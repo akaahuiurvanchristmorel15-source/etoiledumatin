@@ -1,0 +1,792 @@
+/* ==========================================================================
+   ETOILE DU MATIN — BROKS DIGITAL LIBRARY STYLESHEET
+   Palette:
+   - Background: #F4EBDD
+   - Card: #FFFDF9
+   - Text Principal: #1E1D1B
+   - Text Secondaire: #8B857C
+   - Accent Doré: #D9AE5C
+   - Accent Beige: #E9D5A8
+   - Dark: #191919
+   ========================================================================== */
+
+:root {
+    --bg-main: #F4EBDD;
+    --card-main: #FFFDF9;
+    --text-primary: #1E1D1B;
+    --text-secondary: #8B857C;
+    --accent-gold: #D9AE5C;
+    --accent-gold-hover: #C59B4B;
+    --accent-beige: #E9D5A8;
+    --dark: #191919;
+    --card-shadow: 0 20px 50px rgba(60, 45, 25, 0.08);
+    --book-shadow: 0 16px 36px rgba(35, 25, 15, 0.16);
+    --book-shadow-hover: 0 24px 44px rgba(35, 25, 15, 0.24);
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body.broks-page {
+    background-color: var(--bg-main) !important;
+    color: var(--text-primary);
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    min-height: 100vh;
+    padding: 2.5rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* Typographie éditoriale */
+.font-editorial {
+    font-family: 'Playfair Display', Georgia, serif;
+}
+
+/* Grande Carte Principale */
+.library-container {
+    width: 100%;
+    max-width: 1380px;
+    background-color: var(--card-main);
+    border-radius: 28px;
+    box-shadow: var(--card-shadow);
+    overflow: hidden;
+    position: relative;
+    border: 1px solid rgba(217, 174, 92, 0.15);
+    transition: box-shadow 0.3s ease;
+}
+
+/* ==========================================================================
+   NAVBAR
+   ========================================================================== */
+.broks-navbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 2rem 3rem 1.5rem 3rem;
+    border-bottom: 1px solid rgba(139, 133, 124, 0.08);
+}
+
+.logo-text {
+    font-size: 1.5rem;
+    font-weight: 800;
+    letter-spacing: 0.18em;
+    color: var(--dark);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.logo-star {
+    color: var(--accent-gold);
+    font-size: 1.1rem;
+}
+
+.nav-tabs {
+    display: flex;
+    align-items: center;
+    background-color: #F6F0E6;
+    padding: 0.35rem;
+    border-radius: 20px;
+    gap: 0.25rem;
+}
+
+.nav-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.55rem 1.4rem;
+    border-radius: 16px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-decoration: none;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    transition: all 0.25s ease;
+}
+
+.nav-tab.active {
+    background-color: var(--accent-gold);
+    color: var(--text-primary);
+    box-shadow: 0 4px 14px rgba(217, 174, 92, 0.3);
+}
+
+.nav-tab:hover:not(.active) {
+    color: var(--text-primary);
+}
+
+.nav-actions {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+}
+
+.action-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-primary);
+    cursor: pointer;
+    padding: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.2s ease;
+    position: relative;
+}
+
+.action-btn:hover {
+    background-color: #F4EBDD;
+    color: var(--accent-gold-hover);
+}
+
+.cart-badge {
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    background-color: var(--accent-gold);
+    color: #1A1A1A;
+    font-size: 0.65rem;
+    font-weight: 800;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid var(--card-main);
+    transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.cart-badge.bump {
+    transform: scale(1.35);
+}
+
+.avatar-circle {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background-color: var(--accent-beige);
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.875rem;
+    border: 2px solid var(--accent-gold);
+}
+
+/* ==========================================================================
+   HERO PRINCIPAL
+   ========================================================================== */
+.hero-section {
+    display: grid;
+    grid-template-columns: 1.15fr 1fr 1fr;
+    gap: 2.5rem;
+    padding: 3rem 3rem 2.5rem 3rem;
+    align-items: center;
+}
+
+/* Zone Gauche */
+.hero-left {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.hero-title {
+    font-size: 3.8rem;
+    line-height: 1.08;
+    font-weight: 800;
+    color: var(--text-primary);
+    letter-spacing: -0.02em;
+    margin-bottom: 1rem;
+}
+
+.hero-subtitle {
+    font-size: 1.05rem;
+    color: var(--text-secondary);
+    margin-bottom: 2rem;
+    font-weight: 400;
+}
+
+.search-container {
+    position: relative;
+    max-width: 380px;
+    width: 100%;
+}
+
+.search-input {
+    width: 100%;
+    background-color: #FFFFFF;
+    border: 1px solid rgba(139, 133, 124, 0.18);
+    border-radius: 50px;
+    padding: 0.95rem 1.25rem 0.95rem 3.1rem;
+    font-size: 0.9rem;
+    color: var(--text-primary);
+    box-shadow: 0 4px 20px rgba(60, 45, 25, 0.04);
+    outline: none;
+    transition: all 0.25s ease;
+}
+
+.search-input:focus {
+    border-color: var(--accent-gold);
+    box-shadow: 0 6px 24px rgba(217, 174, 92, 0.2);
+    transform: translateY(-1px);
+}
+
+.search-icon {
+    position: absolute;
+    left: 1.15rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-secondary);
+    pointer-events: none;
+    transition: color 0.2s;
+}
+
+.search-input:focus + .search-icon {
+    color: var(--accent-gold);
+}
+
+/* Zone Centrale (Livre Vedette) */
+.hero-center {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.featured-book-wrap {
+    position: relative;
+    perspective: 1200px;
+    transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.featured-book-wrap:hover {
+    transform: translateY(-8px) rotateY(-4deg);
+}
+
+.featured-book-img {
+    width: 250px;
+    height: 375px;
+    object-fit: cover;
+    border-radius: 14px;
+    box-shadow: var(--book-shadow);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.featured-ribbon {
+    position: absolute;
+    top: 14px;
+    right: -10px;
+    background-color: var(--accent-gold);
+    color: #171717;
+    font-size: 0.7rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 0.35rem 0.85rem;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Zone Droite (Panneaux) */
+.hero-right {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    justify-content: center;
+}
+
+.author-card {
+    background-color: #F8F1E5;
+    border-radius: 20px;
+    padding: 1.25rem 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border: 1px solid rgba(217, 174, 92, 0.2);
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.author-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(60, 45, 25, 0.06);
+}
+
+.author-label {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-secondary);
+    font-weight: 600;
+    margin-bottom: 0.2rem;
+}
+
+.author-name {
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: var(--text-primary);
+}
+
+.author-count {
+    font-size: 0.8rem;
+    color: #9C8867;
+    font-weight: 600;
+    margin-top: 0.2rem;
+}
+
+.author-avatar {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid #FFFDF9;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+/* Panneau Audio Player */
+.audio-card {
+    background-color: #FFFFFF;
+    border-radius: 20px;
+    padding: 1.25rem 1.5rem;
+    border: 1px solid rgba(139, 133, 124, 0.12);
+    box-shadow: 0 4px 20px rgba(60, 45, 25, 0.04);
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.audio-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 24px rgba(60, 45, 25, 0.08);
+}
+
+.audio-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+}
+
+.audio-thumb {
+    width: 48px;
+    height: 68px;
+    object-fit: cover;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
+    flex-shrink: 0;
+}
+
+.audio-title {
+    font-size: 0.95rem;
+    font-weight: 800;
+    color: var(--text-primary);
+    line-height: 1.25;
+    margin-bottom: 0.2rem;
+}
+
+.audio-author {
+    font-size: 0.78rem;
+    color: var(--text-secondary);
+}
+
+.audio-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+}
+
+.play-pause-btn {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background-color: var(--dark);
+    color: #FFFFFF;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+}
+
+.play-pause-btn:hover {
+    background-color: var(--accent-gold);
+    color: var(--dark);
+    transform: scale(1.05);
+}
+
+.progress-wrap {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    cursor: pointer;
+}
+
+.progress-bar-bg {
+    width: 100%;
+    height: 5px;
+    background-color: #EDE4D8;
+    border-radius: 10px;
+    overflow: hidden;
+    position: relative;
+}
+
+.progress-bar-fill {
+    height: 100%;
+    background-color: var(--accent-gold);
+    border-radius: 10px;
+    width: 32%;
+    transition: width 0.15s linear;
+}
+
+.time-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+    font-weight: 600;
+}
+
+/* ==========================================================================
+   SECTION BESTSELLERS
+   ========================================================================== */
+.bestsellers-section {
+    background-color: #FFFFFF;
+    border-top: 1px solid rgba(139, 133, 124, 0.08);
+    padding: 2.2rem 3rem 2.8rem 3rem;
+    display: flex;
+    gap: 2.5rem;
+    align-items: stretch;
+}
+
+.vertical-title-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 36px;
+}
+
+.vertical-title {
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+    font-size: 1.15rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    color: var(--text-primary);
+    white-space: nowrap;
+}
+
+.books-row {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 1.75rem;
+    flex: 1;
+}
+
+/* ==========================================================================
+   COMPOSANT BOOK CARD
+   ========================================================================== */
+.book-card {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    background-color: transparent;
+    transition: transform 0.3s ease;
+}
+
+.book-card:hover {
+    transform: translateY(-6px);
+}
+
+.book-cover-wrap {
+    position: relative;
+    border-radius: 12px;
+    overflow: hidden;
+    aspect-ratio: 2 / 3;
+    background-color: #EDE4D8;
+    box-shadow: 0 10px 24px rgba(35, 25, 15, 0.1);
+    transition: box-shadow 0.3s ease;
+    margin-bottom: 0.85rem;
+}
+
+.book-card:hover .book-cover-wrap {
+    box-shadow: var(--book-shadow-hover);
+}
+
+.book-cover-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.35s ease;
+}
+
+.book-card:hover .book-cover-img {
+    transform: scale(1.03);
+}
+
+.book-info {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+
+.book-rating {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.72rem;
+    color: var(--accent-gold);
+    margin-bottom: 0.25rem;
+    font-weight: 700;
+}
+
+.book-title {
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    line-height: 1.3;
+    margin-bottom: 0.2rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.book-author {
+    font-size: 0.78rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.85rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.buy-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    width: 100%;
+    padding: 0.55rem 0.85rem;
+    border-radius: 30px;
+    border: 1.5px solid var(--accent-gold);
+    background-color: transparent;
+    color: var(--text-primary);
+    font-size: 0.78rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    text-decoration: none;
+}
+
+.buy-btn:hover {
+    background-color: var(--accent-gold);
+    color: #171717;
+    box-shadow: 0 4px 12px rgba(217, 174, 92, 0.35);
+    transform: translateY(-1px);
+}
+
+.buy-btn.added {
+    background-color: #2F6F4E;
+    border-color: #2F6F4E;
+    color: #FFFFFF;
+}
+
+/* Toast Notification */
+.toast-msg {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    background-color: var(--dark);
+    color: #FFFFFF;
+    padding: 0.85rem 1.4rem;
+    border-radius: 16px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+    border-left: 4px solid var(--accent-gold);
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    transform: translateY(100px);
+    opacity: 0;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    z-index: 100;
+}
+
+.toast-msg.show {
+    transform: translateY(0);
+    opacity: 1;
+}
+
+/* ==========================================================================
+   RESPONSIVE DESIGN (BREAKPOINTS)
+   ========================================================================== */
+
+/* Tablette (641px - 1024px) */
+@media (max-width: 1024px) {
+    body {
+        padding: 1.5rem 1rem;
+    }
+
+    .broks-navbar {
+        padding: 1.5rem 2rem;
+    }
+
+    .hero-section {
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+        padding: 2rem;
+    }
+
+    .hero-left {
+        grid-column: span 2;
+        text-align: center;
+        align-items: center;
+    }
+
+    .hero-title {
+        font-size: 3.2rem;
+    }
+
+    .hero-center {
+        justify-content: center;
+    }
+
+    .bestsellers-section {
+        flex-direction: column;
+        padding: 2rem;
+    }
+
+    .vertical-title-wrap {
+        width: 100%;
+        justify-content: flex-start;
+    }
+
+    .vertical-title {
+        writing-mode: horizontal-tb;
+        transform: none;
+        font-size: 1.3rem;
+        margin-bottom: 1rem;
+    }
+
+    .books-row {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1.5rem;
+    }
+}
+
+/* Mobile (<= 768px) */
+@media (max-width: 768px) {
+    body, body.broks-page {
+        padding: 0 !important;
+        background-color: var(--card-main) !important;
+    }
+
+    .library-container {
+        border-radius: 0 !important;
+        border: none !important;
+        box-shadow: none !important;
+        max-width: 100% !important;
+    }
+
+    .broks-navbar {
+        padding: 1.25rem 1rem;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .nav-tabs {
+        order: 3;
+        width: 100%;
+        justify-content: center;
+    }
+
+    .hero-section {
+        display: flex;
+        flex-direction: column;
+        padding: 1.5rem 1rem;
+        gap: 2rem;
+    }
+
+    .hero-title {
+        font-size: 2.6rem;
+    }
+
+    .search-container {
+        max-width: 100%;
+    }
+
+    .featured-book-img {
+        width: 200px;
+        height: 300px;
+    }
+
+    .hero-right {
+        width: 100%;
+    }
+
+    .bestsellers-section {
+        padding: 1.5rem 1rem 2rem 1rem;
+    }
+
+    .books-row {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+    }
+
+    .toast-msg {
+        left: 1rem;
+        right: 1rem;
+        bottom: 1rem;
+        text-align: center;
+        justify-content: center;
+    }
+}
+
+/* Format Badges */
+.format-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.28rem 0.65rem;
+    border-radius: 9999px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    line-height: 1;
+}
+
+.format-badge.pdf {
+    background-color: rgba(47, 111, 78, 0.12);
+    color: #2F6F4E;
+    border: 1px solid rgba(47, 111, 78, 0.25);
+}
+
+.format-badge.physical {
+    background-color: rgba(217, 174, 92, 0.15);
+    color: #9C711C;
+    border: 1px solid rgba(217, 174, 92, 0.35);
+}
+
+.format-badge.audio {
+    background-color: rgba(108, 52, 131, 0.12);
+    color: #6C3483;
+    border: 1px solid rgba(108, 52, 131, 0.28);
+}
+
