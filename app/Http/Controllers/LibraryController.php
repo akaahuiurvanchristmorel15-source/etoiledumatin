@@ -4,10 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Models\Order;
 use App\Models\PurchasedDownload;
+use App\Services\OrderService;
 use App\Services\PdfProtectionService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 
 class LibraryController extends Controller
 {
@@ -38,10 +40,7 @@ class LibraryController extends Controller
      */
     public function generateDownloadLink(PurchasedDownload $download, PdfProtectionService $pdfService): RedirectResponse
     {
-        // Vérification de sécurité
-        if (auth()->check() && $download->user_id && $download->user_id !== auth()->id() && ! auth()->user()->isAdmin()) {
-            abort(403, 'Accès non autorisé à ce titre.');
-        }
+        Gate::authorize('view', $download->order);
 
         if (! $download->canDownload()) {
             return back()->with('error', 'Vous avez atteint le nombre maximal de téléchargements autorisés pour cet exemplaire ('.$download->max_downloads.'). Veuillez contacter notre service client.');
@@ -55,22 +54,28 @@ class LibraryController extends Controller
     /**
      * Recherche de commande pour les clients invités
      */
-    public function guestLookup(Request $request): View|RedirectResponse
+    public function guestLookup(Request $request, OrderService $orderService): View
     {
+        if (! $request->filled('order_number')) {
+            return view('pages.guest-lookup', ['order' => null]);
+        }
+
         $validated = $request->validate([
-            'order_number' => ['required', 'string'],
-            'email' => ['required', 'email'],
+            'order_number' => ['required', 'string', 'max:50'],
+            'contact' => ['required', 'string', 'max:150'],
         ]);
 
+        $contact = trim($validated['contact']);
+
         $order = Order::where('order_number', trim($validated['order_number']))
-            ->where('customer_email', trim($validated['email']))
+            ->where(fn ($query) => $query->where('customer_email', $contact)->orWhere('customer_phone', $contact))
             ->with(['items.book', 'shippingAddress', 'downloads.book'])
             ->first();
 
-        if (! $order) {
-            return back()->with('error', 'Aucune commande ne correspond à ce numéro et cette adresse email.');
+        if ($order) {
+            $orderService->grantSessionAccess($order);
         }
 
-        return view('pages.order-status', compact('order'));
+        return view('pages.guest-lookup', compact('order'));
     }
 }

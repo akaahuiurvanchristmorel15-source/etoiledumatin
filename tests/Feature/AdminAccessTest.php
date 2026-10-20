@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\Book;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -50,5 +51,16 @@ class AdminAccessTest extends TestCase
         $csvResponse = $this->actingAs($admin)->get('/admin/commandes/export/csv');
         $csvResponse->assertStatus(200);
         $csvResponse->assertHeader('Content-Type', 'text/csv; charset=UTF-8');
+    }
+
+    public function test_admin_edit_page_loads_the_selected_book(): void
+    {
+        $admin = User::where('role', 'super_admin')->first();
+        $book = Book::first();
+
+        $this->actingAs($admin)
+            ->get(route('admin.books.edit', $book))
+            ->assertOk()
+            ->assertSee(route('admin.books.update', $book), false);
     }
 }

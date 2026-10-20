@@ -124,7 +124,7 @@
                                 <h4 style="font-size: 0.95rem; font-weight: 700; color: #1E1D1B; margin-bottom: 0.25rem;">{{ $download->book?->title }}</h4>
                                 <p style="font-size: 0.75rem; color: #8B857C; margin-bottom: 1rem;">Téléchargements restants : {{ max(0, $download->max_downloads - $download->download_count) }}</p>
                             </div>
-                            <a href="{{ route('downloads.pdf', $download->download_token) }}" class="buy-btn" style="background: #2F6F4E; color: #fff; border-color: #2F6F4E; font-weight: 700; padding: 0.65rem 1rem;">
+                            <a href="{{ route('library.download', $download) }}" class="buy-btn" style="background: #2F6F4E; color: #fff; border-color: #2F6F4E; font-weight: 700; padding: 0.65rem 1rem;">
                                 <span>Télécharger le PDF</span>
                             </a>
                         </div>

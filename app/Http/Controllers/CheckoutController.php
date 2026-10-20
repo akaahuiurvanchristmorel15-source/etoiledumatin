@@ -10,6 +10,8 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Log;
 
 class CheckoutController extends Controller
 {
@@ -65,10 +67,16 @@ class CheckoutController extends Controller
 
         // Créer la commande
         $order = $orderService->createOrderFromCart($cartService, $validated, auth()->user());
+        $orderService->grantSessionAccess($order);
 
         // Initialiser le paiement avec Paystack
-        $callbackUrl = route('checkout.callback', ['order_id' => $order->id]);
-        $paymentData = $paymentGateway->initializePayment($order, $callbackUrl);
+        try {
+            $paymentData = $paymentGateway->initializePayment($order, route('checkout.callback'));
+        } catch (\Throwable $e) {
+            Log::error('Initialisation du paiement impossible', ['order_id' => $order->id, 'message' => $e->getMessage()]);
+
+            return redirect()->route('cart.index')->with('error', 'Le service de paiement est momentanément indisponible. Veuillez réessayer dans quelques instants.');
+        }
 
         // Sauvegarder la référence de paiement
         $order->update([
@@ -84,19 +92,33 @@ class CheckoutController extends Controller
         OrderService $orderService
     ): RedirectResponse {
         $reference = $request->query('reference') ?? $request->query('trxref');
-        $orderId = $request->query('order_id');
 
         if (! $reference) {
             return redirect()->route('cart.index')->with('error', 'Référence de transaction introuvable.');
         }
 
-        $order = $orderId ? Order::find($orderId) : Order::where('payment_reference', $reference)->first();
+        // La commande est retrouvée uniquement via la référence générée lors de l'initialisation
+        $order = Order::where('payment_reference', $reference)->first();
 
         if (! $order) {
             return redirect()->route('home')->with('error', 'Commande introuvable.');
         }
 
+        if ($order->isPaid()) {
+            return redirect()->route('checkout.confirmation', $order);
+        }
+
         $verification = $paymentGateway->verifyTransaction($reference);
+
+        if ($verification['success'] && ! $this->coversOrderTotal($order, $verification['amount'])) {
+            Log::warning('Montant Paystack inférieur au total de la commande', [
+                'order_id' => $order->id,
+                'expected' => $order->total_amount,
+                'received' => $verification['amount'],
+            ]);
+
+            return redirect()->route('cart.index')->with('error', 'Le montant payé ne correspond pas au total de la commande. Veuillez contacter notre service client.');
+        }
 
         if ($verification['success']) {
             $orderService->completeOrderPayment(
@@ -114,7 +136,8 @@ class CheckoutController extends Controller
 
     public function confirmation(Order $order): View
     {
-        // Autoriser si l'utilisateur est le propriétaire ou pour les commandes d'invités
+        Gate::authorize('view', $order);
+
         $order->load(['items.book', 'shippingAddress', 'downloads.book']);
 
         return view('pages.confirmation', compact('order'));
@@ -123,9 +146,11 @@ class CheckoutController extends Controller
     /**
      * Interface de simulation de paiement Paystack en mode sandbox/test
      */
-    public function sandboxPayment(Order $order, Request $request): View
+    public function sandboxPayment(Order $order, PaymentGatewayInterface $paymentGateway): View
     {
-        $ref = $request->query('ref', 'SANDBOX_'.uniqid());
+        $this->ensureSandboxIsUsable($order, $paymentGateway);
+
+        $ref = $order->payment_reference;
 
         return view('pages.sandbox-checkout', compact('order', 'ref'));
     }
@@ -133,21 +158,43 @@ class CheckoutController extends Controller
     public function sandboxConfirm(
         Order $order,
         Request $request,
-        OrderService $orderService
+        OrderService $orderService,
+        PaymentGatewayInterface $paymentGateway
     ): RedirectResponse {
+        $this->ensureSandboxIsUsable($order, $paymentGateway);
+
         $validated = $request->validate([
-            'channel' => ['required', 'string', 'in:Orange Money,MTN Mobile Money,Moov Money,Wave,Carte Bancaire Visa/Mastercard'],
-            'reference' => ['required', 'string'],
+            'payment_channel' => ['required', 'string', 'in:Orange Money,MTN Mobile Money,Moov Money,Wave,Carte Bancaire Visa/Mastercard'],
+            'reference' => ['required', 'string', 'in:'.$order->payment_reference],
         ]);
 
         $orderService->completeOrderPayment(
             $order,
             $validated['reference'],
-            'paystack_sandbox ('.$validated['channel'].')'
+            'paystack_sandbox ('.$validated['payment_channel'].')'
         );
 
         return redirect()->route('checkout.confirmation', $order)
-            ->with('success', 'Paiement Paystack simulé avec succès via '.$validated['channel'].' !');
+            ->with('success', 'Paiement Paystack simulé avec succès via '.$validated['payment_channel'].' !');
+    }
+
+    /**
+     * Le paiement simulé n'existe qu'en développement, pour une commande en attente appartenant au visiteur.
+     */
+    private function ensureSandboxIsUsable(Order $order, PaymentGatewayInterface $paymentGateway): void
+    {
+        abort_unless($paymentGateway->isSimulationEnabled(), 404);
+        abort_if($order->isPaid() || empty($order->payment_reference), 404);
+
+        Gate::authorize('view', $order);
+    }
+
+    /**
+     * Vérifie que le montant encaissé (en FCFA) couvre le total de la commande.
+     */
+    private function coversOrderTotal(Order $order, int $amountPaid): bool
+    {
+        return $amountPaid >= (int) $order->total_amount;
     }
 
     /**
@@ -167,7 +214,9 @@ class CheckoutController extends Controller
         if ($result['event'] === 'charge.success' && ! empty($result['reference'])) {
             $order = Order::where('payment_reference', $result['reference'])->first();
 
-            if ($order && ! $order->isPaid()) {
+            $amountPaid = (int) (($result['data']['amount'] ?? 0) / 100);
+
+            if ($order && ! $order->isPaid() && $this->coversOrderTotal($order, $amountPaid)) {
                 $orderService->completeOrderPayment(
                     $order,
                     $result['reference'],

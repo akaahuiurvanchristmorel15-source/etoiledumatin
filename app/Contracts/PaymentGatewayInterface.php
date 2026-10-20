@@ -27,4 +27,9 @@ interface PaymentGatewayInterface
      * @return array{verified: bool, event: string, reference: ?string, data: array}
      */
     public function handleWebhook(Request $request): array;
+
+    /**
+     * Indique si le paiement simulé (sans appel à la passerelle) est autorisé.
+     */
+    public function isSimulationEnabled(): bool;
 }

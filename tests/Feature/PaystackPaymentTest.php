@@ -7,6 +7,7 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\PurchasedDownload;
 use App\Models\ShippingAddress;
+use App\Services\OrderService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -68,8 +69,8 @@ class PaystackPaymentTest extends TestCase
         ]);
 
         // Simuler la validation du paiement via le formulaire sandbox
-        $response = $this->post(route('checkout.sandbox-confirm', $order), [
-            'channel' => 'Orange Money',
+        $response = $this->withSession([OrderService::SESSION_ACCESS_KEY => [$order->id]])->post(route('checkout.sandbox-confirm', $order), [
+            'payment_channel' => 'Orange Money',
             'reference' => 'SANDBOX_REF_123',
         ]);
 

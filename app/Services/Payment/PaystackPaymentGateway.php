@@ -33,10 +33,10 @@ class PaystackPaymentGateway implements PaymentGatewayInterface
     {
         $reference = 'PAY_'.strtoupper(uniqid()).'_'.$order->id;
 
-        // Si nous sommes en mode sandbox et sans clé Paystack réelle, on simule l'interface de paiement
-        if ($this->sandboxMode && ($this->isSampleKey() || empty($this->secretKey))) {
+        // Mode simulation (développement uniquement) : interface de paiement factice
+        if ($this->isSimulationEnabled()) {
             return [
-                'authorization_url' => route('checkout.sandbox-payment', ['order' => $order->id, 'ref' => $reference]),
+                'authorization_url' => route('checkout.sandbox-payment', $order),
                 'access_code' => 'sandbox_access_'.uniqid(),
                 'reference' => $reference,
             ];
@@ -86,26 +86,9 @@ class PaystackPaymentGateway implements PaymentGatewayInterface
                 'body' => $response->json(),
             ]);
 
-            // En cas d'erreur de clé, fallback gracieux vers sandbox si permis
-            if ($this->sandboxMode) {
-                return [
-                    'authorization_url' => route('checkout.sandbox-payment', ['order' => $order->id, 'ref' => $reference]),
-                    'access_code' => 'sandbox_fallback_'.uniqid(),
-                    'reference' => $reference,
-                ];
-            }
-
             throw new \RuntimeException('Erreur lors de l\'initialisation du paiement Paystack : '.($response->json('message') ?? 'Échec de connexion'));
         } catch (\Exception $e) {
             Log::error('Paystack Exception', ['message' => $e->getMessage()]);
-
-            if ($this->sandboxMode) {
-                return [
-                    'authorization_url' => route('checkout.sandbox-payment', ['order' => $order->id, 'ref' => $reference]),
-                    'access_code' => 'sandbox_fallback_'.uniqid(),
-                    'reference' => $reference,
-                ];
-            }
 
             throw $e;
         }
@@ -116,16 +99,6 @@ class PaystackPaymentGateway implements PaymentGatewayInterface
      */
     public function verifyTransaction(string $reference): array
     {
-        if (str_starts_with($reference, 'SANDBOX_') || (str_starts_with($reference, 'PAY_') && $this->isSampleKey())) {
-            return [
-                'success' => true,
-                'reference' => $reference,
-                'amount' => 0,
-                'message' => 'Paiement simulé validé en mode test.',
-                'raw_data' => ['status' => 'success', 'channel' => 'mobile_money_simulation'],
-            ];
-        }
-
         try {
             $response = Http::withToken($this->secretKey)
                 ->timeout(15)
@@ -172,13 +145,13 @@ class PaystackPaymentGateway implements PaymentGatewayInterface
         $signature = $request->header('x-paystack-signature');
         $rawPayload = $request->getContent();
 
-        // En mode sandbox sans clé réelle, accepter pour les tests
-        if ($this->sandboxMode && $this->isSampleKey()) {
+        // En mode simulation (développement uniquement), la signature n'est pas exigée
+        if ($this->isSimulationEnabled()) {
             return [
                 'verified' => true,
                 'event' => $request->input('event', 'charge.success'),
                 'reference' => $request->input('data.reference'),
-                'data' => $request->all(),
+                'data' => $request->input('data', []),
             ];
         }
 
@@ -205,6 +178,14 @@ class PaystackPaymentGateway implements PaymentGatewayInterface
             'reference' => $payload['data']['reference'] ?? null,
             'data' => $payload['data'] ?? [],
         ];
+    }
+
+    /**
+     * La simulation n'est possible qu'en mode sandbox, sans vraie clé, et jamais en production.
+     */
+    public function isSimulationEnabled(): bool
+    {
+        return $this->sandboxMode && $this->isSampleKey() && ! app()->isProduction();
     }
 
     protected function isSampleKey(): bool

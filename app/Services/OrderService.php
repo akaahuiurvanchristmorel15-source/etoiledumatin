@@ -14,6 +14,23 @@ use Illuminate\Support\Str;
 class OrderService
 {
     /**
+     * Clé de session listant les commandes que le visiteur courant a passées ou retrouvées.
+     */
+    public const SESSION_ACCESS_KEY = 'letoile_accessible_orders';
+
+    /**
+     * Autorise la session courante à consulter la commande (utile pour les clients invités).
+     */
+    public function grantSessionAccess(Order $order): void
+    {
+        $orderIds = session()->get(self::SESSION_ACCESS_KEY, []);
+
+        if (! in_array($order->id, $orderIds, true)) {
+            session()->put(self::SESSION_ACCESS_KEY, [...$orderIds, $order->id]);
+        }
+    }
+
+    /**
      * Crée une commande en base de données à partir du panier courant.
      */
     public function createOrderFromCart(CartService $cartService, array $customerData, ?User $user = null): Order
@@ -93,6 +110,13 @@ class OrderService
         }
 
         DB::transaction(function () use ($order, $paymentReference, $paymentMethod) {
+            // Verrou pessimiste : le retour client et le webhook peuvent arriver simultanément
+            $order = Order::whereKey($order->id)->lockForUpdate()->firstOrFail();
+
+            if ($order->isPaid()) {
+                return;
+            }
+
             $order->update([
                 'payment_status' => 'paid',
                 'payment_reference' => $paymentReference,
@@ -140,5 +164,7 @@ class OrderService
                 'amount' => $order->total_amount,
             ]);
         });
+
+        $order->refresh();
     }
 }

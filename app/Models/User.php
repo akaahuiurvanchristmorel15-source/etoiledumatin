@@ -46,6 +46,11 @@ class User extends Authenticatable
         return in_array($this->role, ['super_admin', 'admin', 'logistics']);
     }
 
+    public function isStaff(): bool
+    {
+        return $this->isAdmin() || $this->isManager() || $this->isLogistics();
+    }
+
     public function orders(): HasMany
     {
         return $this->hasMany(Order::class);

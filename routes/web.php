@@ -24,7 +24,7 @@ Route::get('/catalogue', [CatalogController::class, 'index'])->name('catalog.ind
 Route::get('/livre/{slug}', [CatalogController::class, 'show'])->name('catalog.show');
 Route::get('/livre/{book}/apercu-pdf', [CatalogController::class, 'previewPdf'])->name('catalog.preview-pdf');
 Route::post('/livre/{book}/avis', [CatalogController::class, 'addReview'])->name('books.review');
-Route::get('/suivi-commande', [LibraryController::class, 'guestLookup'])->name('orders.lookup');
+Route::get('/suivi-commande', [LibraryController::class, 'guestLookup'])->name('orders.lookup')->middleware('throttle:10,1');
 
 /*
 |--------------------------------------------------------------------------
@@ -91,6 +91,7 @@ Route::prefix('admin')->name('admin.')->middleware('admin')->group(function () {
 
     // Livres
     Route::resource('livres', AdminBookController::class)
+        ->parameters(['livres' => 'book'])
         ->names([
             'index' => 'books.index',
             'create' => 'books.create',
