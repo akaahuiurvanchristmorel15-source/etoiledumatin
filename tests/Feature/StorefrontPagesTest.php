@@ -89,6 +89,17 @@ class StorefrontPagesTest extends TestCase
         $this->assertMatchesRegularExpression('/x-show="mobileMenuOpen"\s+x-cloak/', $content);
     }
 
+    public function test_flash_messages_are_shown_as_toasts(): void
+    {
+        $book = Book::active()->where('is_pdf_available', true)->firstOrFail();
+
+        $this->followingRedirects()
+            ->post(route('cart.add'), ['book_id' => $book->id, 'format' => 'pdf'])
+            ->assertOk()
+            ->assertSee('class="toast toast-success"', false)
+            ->assertSee('a été ajouté à votre panier');
+    }
+
     public function test_login_and_register_pages_render(): void
     {
         $this->get(route('login'))->assertOk()->assertSee('Connexion')->assertSee('name="remember"', false);
