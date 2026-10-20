@@ -175,7 +175,7 @@ class CheckoutSecurityTest extends TestCase
     {
         $this->get(route('orders.lookup'))
             ->assertOk()
-            ->assertSee('Suivre une Commande');
+            ->assertSee('Suivre une commande');
     }
 
     public function test_guest_lookup_with_wrong_contact_does_not_reveal_the_order(): void
@@ -184,7 +184,7 @@ class CheckoutSecurityTest extends TestCase
 
         $this->get(route('orders.lookup', ['order_number' => $order->order_number, 'contact' => 'intrus@test.ci']))
             ->assertOk()
-            ->assertDontSee('Commande #'.$order->order_number);
+            ->assertDontSee('Commande '.$order->order_number);
     }
 
     public function test_deleting_a_book_keeps_customer_orders_and_licenses(): void

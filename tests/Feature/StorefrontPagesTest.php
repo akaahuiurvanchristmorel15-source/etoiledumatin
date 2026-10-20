@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Book;
+use App\Models\Order;
 use App\Models\PurchasedDownload;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -91,6 +92,52 @@ class StorefrontPagesTest extends TestCase
             ->assertOk()
             ->assertSee('Votre bibliothèque vous attend')
             ->assertSee(route('login'), false);
+    }
+
+    public function test_confirmation_thanks_the_customer_and_shows_downloads_and_tracking(): void
+    {
+        $order = Order::where('order_number', 'EDM-2026-DEMO1')->with('downloads', 'shippingAddress')->firstOrFail();
+
+        $response = $this->actingAs($order->user)
+            ->get(route('checkout.confirmation', $order))
+            ->assertOk()
+            ->assertSee('Commande confirmée')
+            ->assertSee($order->order_number)
+            ->assertSee('Suivi de livraison')
+            ->assertSee('En préparation');
+
+        foreach ($order->downloads as $download) {
+            $response->assertSee(route('library.download', $download), false);
+        }
+    }
+
+    public function test_pending_order_confirmation_says_payment_is_awaited(): void
+    {
+        $order = Order::where('order_number', 'EDM-2026-DEMO1')->firstOrFail();
+        $order->update(['payment_status' => 'pending', 'paid_at' => null]);
+
+        $this->actingAs($order->user)
+            ->get(route('checkout.confirmation', $order))
+            ->assertOk()
+            ->assertSee('Paiement en attente')
+            ->assertDontSee(route('library.download', $order->downloads()->first()), false);
+    }
+
+    public function test_guest_lookup_shows_order_tracking(): void
+    {
+        $order = Order::where('order_number', 'EDM-2026-DEMO1')->firstOrFail();
+
+        $this->get(route('orders.lookup', ['order_number' => $order->order_number, 'contact' => $order->customer_email]))
+            ->assertOk()
+            ->assertSee('Commande '.$order->order_number)
+            ->assertSee('Suivi de livraison');
+    }
+
+    public function test_guest_lookup_without_match_shows_help(): void
+    {
+        $this->get(route('orders.lookup', ['order_number' => 'EDM-INCONNU', 'contact' => 'personne@test.ci']))
+            ->assertOk()
+            ->assertSee('Aucune commande trouvée');
     }
 
     public function test_library_lists_the_customer_downloads_and_orders(): void
