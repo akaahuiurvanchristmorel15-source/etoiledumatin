@@ -1,192 +1,187 @@
 @extends('layouts.app')
-@section('title', 'Finaliser votre commande — NSOROMMA')
+@section('title', 'Paiement — NSOROMMA')
 @section('meta_description', 'Renseignez vos coordonnées pour le paiement sécurisé de vos livres.')
 
 @push('styles')
-    <link rel="stylesheet" href="{{ asset('css/books.css') }}">
-    <link rel="stylesheet" href="{{ asset('css/catalog.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/pages.css') }}?v={{ filemtime(public_path('css/pages.css')) }}">
 @endpush
 
 @section('content')
-<div x-data="{ paymentMethod: 'paystack_momo' }">
+    @php
+        $formatLabels = ['pdf' => 'e-Book PDF', 'physical' => 'Livre papier', 'audio' => 'Livre audio'];
+        $subtotal = $cart['subtotal_pdf'] + $cart['subtotal_physical'] + ($cart['subtotal_audio'] ?? 0);
+        $selectedZone = old('delivery_zone', $cart['shipping_zone']);
+        $zonePrices = collect($zones)->map(fn (array $zone) => $zone['price']);
+        $step = 1;
+    @endphp
 
-    <!-- 1. Section Héro En-tête (Style BROKS) -->
-    <section class="hero-section" aria-label="En-tête de commande">
-        <div class="hero-left" style="grid-column: span 2;">
-            <nav class="breadcrumb" style="margin-bottom: 0.75rem;" aria-label="Fil d'Ariane">
-                <ol class="breadcrumb-list">
-                    <li class="breadcrumb-item"><a href="{{ route('home') }}">Accueil</a></li>
-                    <li class="breadcrumb-separator">›</li>
-                    <li class="breadcrumb-item"><a href="{{ route('cart.index') }}">Panier</a></li>
-                    <li class="breadcrumb-separator">›</li>
-                    <li class="breadcrumb-item active" aria-current="page">Paiement Sécurisé</li>
-                </ol>
-            </nav>
+    <div class="pg"
+         x-data="{
+            zone: @js($selectedZone),
+            prices: @js($zonePrices),
+            subtotal: {{ $subtotal }},
+            hasPhysical: {{ $cart['has_physical'] ? 'true' : 'false' }},
+            get shipping() { return this.hasPhysical ? (this.prices[this.zone] ?? 0) : 0 },
+            get total() { return this.subtotal + this.shipping },
+            money(value) { return new Intl.NumberFormat('fr-FR').format(value).replace(/ /g, ' ') + ' FCFA' }
+         }">
+        <header class="pg-head">
+            <ol class="pg-crumbs">
+                <li><a href="{{ route('home') }}">Accueil</a></li>
+                <li><a href="{{ route('cart.index') }}">Panier</a></li>
+                <li aria-current="page">Paiement</li>
+            </ol>
+            <h1 class="pg-title">Paiement</h1>
+            <p class="pg-subtitle">Quelques informations, puis vous serez redirigé vers Paystack pour régler en toute sécurité.</p>
+        </header>
 
-            <h1 class="hero-title font-editorial" style="font-size: 3rem;">
-                Commander
-            </h1>
-            <p class="hero-subtitle">
-                Renseignez vos coordonnées de facturation et de livraison pour accéder au paiement.
-            </p>
-        </div>
+        @if($errors->any())
+            <div class="pg-alert" role="alert">
+                Merci de vérifier les informations suivantes :
+                <ul>
+                    @foreach($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
 
-        <div class="hero-right hero-right-desktop-only">
-            <article class="author-card" aria-label="Récapitulatif">
-                <div>
-                    <span class="author-label">Total à régler</span>
-                    <h2 class="author-name font-editorial" style="font-size: 1.4rem; color: #D9AE5C;">
-                        {{ number_format($cart['total'], 0, ',', ' ') }} FCFA
-                    </h2>
-                    <p class="author-count">{{ $cart['count'] }} article(s) à confirmer</p>
-                </div>
-                <div style="width: 48px; height: 48px; border-radius: 50%; background: #D9AE5C; color: #191919; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1.1rem;">
-                    ★
-                </div>
-            </article>
-        </div>
-    </section>
-
-    <!-- 2. Formulaire & Récapitulatif -->
-    <section class="page-section-padded" aria-label="Formulaire de commande">
-        <form action="{{ route('checkout.process') }}" method="POST">
+        <form action="{{ route('checkout.process') }}" method="POST" class="pg-split">
             @csrf
 
-            <div class="checkout-main-grid">
-                
-                <!-- Colonne Gauche : Étapes -->
-                <div style="display: flex; flex-direction: column; gap: 1.5rem;">
-                    
-                    <!-- Étape 1 : Informations personnelles -->
-                    <div style="background: #FFFDF9; border: 1px solid rgba(217, 174, 92, 0.22); border-radius: 20px; padding: 1.75rem; box-shadow: 0 4px 14px rgba(60, 45, 25, 0.04);">
-                        <h3 class="font-editorial" style="font-size: 1.25rem; font-weight: 800; color: #1E1D1B; margin-bottom: 1.25rem; display: flex; align-items: center; gap: 0.6rem;">
-                            <span style="width: 28px; height: 28px; border-radius: 50%; background: #D9AE5C; color: #191919; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 800;">1</span>
-                            <span>Vos Coordonnées</span>
-                        </h3>
-
-                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem;">
-                            <div style="grid-column: 1 / -1;">
-                                <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #1E1D1B; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.35rem;">Nom complet *</label>
-                                <input type="text" name="name" value="{{ old('name', $user?->name) }}" required placeholder="Ex : Amadou Koné" style="width: 100%; background: #F8F1E5; border: 1px solid rgba(139,133,124,0.2); border-radius: 12px; padding: 0.65rem 1rem; font-size: 0.85rem; color: #1E1D1B; outline: none;">
-                                @error('name') <span style="color: #C0392B; font-size: 0.72rem; margin-top: 0.25rem; display: block;">{{ $message }}</span> @enderror
-                            </div>
-
-                            <div>
-                                <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #1E1D1B; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.35rem;">Adresse Email *</label>
-                                <input type="email" name="email" value="{{ old('email', $user?->email) }}" required placeholder="amadou@exemple.ci" style="width: 100%; background: #F8F1E5; border: 1px solid rgba(139,133,124,0.2); border-radius: 12px; padding: 0.65rem 1rem; font-size: 0.85rem; color: #1E1D1B; outline: none;">
-                                @error('email') <span style="color: #C0392B; font-size: 0.72rem; margin-top: 0.25rem; display: block;">{{ $message }}</span> @enderror
-                            </div>
-
-                            <div>
-                                <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #1E1D1B; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.35rem;">Téléphone *</label>
-                                <input type="tel" name="phone" value="{{ old('phone') }}" required placeholder="+225 07 00 00 00" style="width: 100%; background: #F8F1E5; border: 1px solid rgba(139,133,124,0.2); border-radius: 12px; padding: 0.65rem 1rem; font-size: 0.85rem; color: #1E1D1B; outline: none;">
-                                @error('phone') <span style="color: #C0392B; font-size: 0.72rem; margin-top: 0.25rem; display: block;">{{ $message }}</span> @enderror
-                            </div>
+            <div>
+                <section class="pg-section">
+                    <h2 class="pg-section-title"><span class="pg-step">0{{ $step++ }}</span> Vos coordonnées</h2>
+                    <div class="pg-grid-2">
+                        <div class="pg-field pg-full">
+                            <label class="pg-label" for="name">Nom complet</label>
+                            <input id="name" type="text" name="name" value="{{ old('name', $user?->name) }}" required maxlength="150" autocomplete="name" class="pg-input @error('name') is-invalid @enderror">
+                            @error('name')<span class="pg-error">{{ $message }}</span>@enderror
+                        </div>
+                        <div class="pg-field">
+                            <label class="pg-label" for="email">Adresse e-mail</label>
+                            <input id="email" type="email" name="email" value="{{ old('email', $user?->email) }}" required maxlength="150" autocomplete="email" class="pg-input @error('email') is-invalid @enderror">
+                            @error('email')<span class="pg-error">{{ $message }}</span>@enderror
+                            <span class="pg-hint">Vos liens de téléchargement y seront rattachés.</span>
+                        </div>
+                        <div class="pg-field">
+                            <label class="pg-label" for="phone">Téléphone</label>
+                            <input id="phone" type="tel" name="phone" value="{{ old('phone', $user?->phone) }}" required maxlength="30" autocomplete="tel" placeholder="+225 07 00 00 00 00" class="pg-input @error('phone') is-invalid @enderror">
+                            @error('phone')<span class="pg-error">{{ $message }}</span>@enderror
                         </div>
                     </div>
+                </section>
 
-                    <!-- Étape 2 : Adresse de livraison (si livres physiques) -->
-                    @if($cart['has_physical'])
-                    <div style="background: #FFFDF9; border: 1px solid rgba(217, 174, 92, 0.22); border-radius: 20px; padding: 1.75rem; box-shadow: 0 4px 14px rgba(60, 45, 25, 0.04);">
-                        <h3 class="font-editorial" style="font-size: 1.25rem; font-weight: 800; color: #1E1D1B; margin-bottom: 1.25rem; display: flex; align-items: center; gap: 0.6rem;">
-                            <span style="width: 28px; height: 28px; border-radius: 50%; background: #D9AE5C; color: #191919; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 800;">2</span>
-                            <span>Adresse de Livraison</span>
-                        </h3>
+                @if($cart['has_physical'])
+                    <section class="pg-section">
+                        <h2 class="pg-section-title"><span class="pg-step">0{{ $step++ }}</span> Livraison</h2>
 
-                        <div style="display: grid; grid-template-columns: 1fr; gap: 1rem;">
-                            <div>
-                                <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #1E1D1B; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.35rem;">Zone / Commune *</label>
-                                <select name="shipping_zone" required style="width: 100%; background: #F8F1E5; border: 1px solid rgba(139,133,124,0.2); border-radius: 12px; padding: 0.65rem 1rem; font-size: 0.85rem; color: #1E1D1B; outline: none;">
-                                    <option value="abidjan_centre">Abidjan (Plateau, Cocody, Marcory) — 1 500 FCFA</option>
-                                    <option value="abidjan_peripherie">Abidjan Périphérie (Yopougon, Abobo, Bingerville) — 2 500 FCFA</option>
-                                    <option value="interieur">Intérieur de la Côte d'Ivoire (Expédition car) — 3 500 FCFA</option>
-                                    <option value="international">International (DHL / Chronopost) — Sur devis</option>
-                                </select>
+                        <div class="pg-choices" role="radiogroup" aria-label="Zone de livraison">
+                            @foreach($zones as $key => $zone)
+                                <label class="pg-choice">
+                                    <input type="radio" name="delivery_zone" value="{{ $key }}" x-model="zone" @checked($selectedZone === $key)>
+                                    <span class="pg-choice-main">
+                                        <span class="pg-choice-dot" aria-hidden="true"></span>
+                                        <span>
+                                            <span class="pg-choice-title">{{ $zone['name'] }}</span>
+                                            <span class="pg-choice-sub">{{ $zone['delay'] }} · {{ $zone['description'] }}</span>
+                                        </span>
+                                    </span>
+                                    <span class="pg-choice-price">{{ number_format($zone['price'], 0, ',', ' ') }} FCFA</span>
+                                </label>
+                            @endforeach
+                        </div>
+                        @error('delivery_zone')<span class="pg-error">{{ $message }}</span>@enderror
+
+                        <div class="pg-grid-2" style="margin-top: 1.75rem;">
+                            <div class="pg-field pg-full">
+                                <label class="pg-label" for="address_line">Adresse</label>
+                                <input id="address_line" type="text" name="address_line" value="{{ old('address_line', $user?->address) }}" required maxlength="255" autocomplete="street-address" placeholder="Quartier, rue, repère…" class="pg-input @error('address_line') is-invalid @enderror">
+                                @error('address_line')<span class="pg-error">{{ $message }}</span>@enderror
                             </div>
-
-                            <div>
-                                <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #1E1D1B; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.35rem;">Adresse détaillée / Repères de livraison *</label>
-                                <input type="text" name="shipping_address" value="{{ old('shipping_address') }}" required placeholder="Ex : Cocody Angré 8ème Tranche, près de la pharmacie..." style="width: 100%; background: #F8F1E5; border: 1px solid rgba(139,133,124,0.2); border-radius: 12px; padding: 0.65rem 1rem; font-size: 0.85rem; color: #1E1D1B; outline: none;">
+                            <div class="pg-field">
+                                <label class="pg-label" for="city">Ville</label>
+                                <input id="city" type="text" name="city" value="{{ old('city', $user?->city ?? 'Abidjan') }}" required maxlength="100" autocomplete="address-level2" class="pg-input @error('city') is-invalid @enderror">
+                                @error('city')<span class="pg-error">{{ $message }}</span>@enderror
+                            </div>
+                            <div class="pg-field">
+                                <label class="pg-label" for="country">Pays</label>
+                                <input id="country" type="text" name="country" value="{{ old('country', $user?->country ?? 'Côte d\'Ivoire') }}" required maxlength="100" autocomplete="country-name" class="pg-input @error('country') is-invalid @enderror">
+                                @error('country')<span class="pg-error">{{ $message }}</span>@enderror
+                            </div>
+                            <div class="pg-field pg-full">
+                                <label class="pg-label" for="delivery_instructions">Instructions pour le livreur <span class="pg-hint">(facultatif)</span></label>
+                                <input id="delivery_instructions" type="text" name="delivery_instructions" value="{{ old('delivery_instructions') }}" maxlength="500" placeholder="Horaires, code d'accès, personne à contacter…" class="pg-input">
                             </div>
                         </div>
+                    </section>
+                @endif
+
+                <section class="pg-section">
+                    <h2 class="pg-section-title"><span class="pg-step">0{{ $step++ }}</span> Mode de paiement</h2>
+                    <div class="pg-choices" role="radiogroup" aria-label="Mode de paiement">
+                        <label class="pg-choice">
+                            <input type="radio" name="payment_channel" value="paystack_momo" @checked(old('payment_channel', 'paystack_momo') === 'paystack_momo')>
+                            <span class="pg-choice-main">
+                                <span class="pg-choice-dot" aria-hidden="true"></span>
+                                <span>
+                                    <span class="pg-choice-title">Mobile Money</span>
+                                    <span class="pg-choice-sub">Orange Money, MTN, Moov, Wave</span>
+                                </span>
+                            </span>
+                        </label>
+                        <label class="pg-choice">
+                            <input type="radio" name="payment_channel" value="paystack_card" @checked(old('payment_channel') === 'paystack_card')>
+                            <span class="pg-choice-main">
+                                <span class="pg-choice-dot" aria-hidden="true"></span>
+                                <span>
+                                    <span class="pg-choice-title">Carte bancaire</span>
+                                    <span class="pg-choice-sub">Visa, Mastercard</span>
+                                </span>
+                            </span>
+                        </label>
                     </div>
-                    @endif
+                    @error('payment_channel')<span class="pg-error">{{ $message }}</span>@enderror
 
-                    <!-- Étape 3 : Mode de Paiement Sécurisé -->
-                    <div style="background: #FFFDF9; border: 1px solid rgba(217, 174, 92, 0.22); border-radius: 20px; padding: 1.75rem; box-shadow: 0 4px 14px rgba(60, 45, 25, 0.04);">
-                        <h3 class="font-editorial" style="font-size: 1.25rem; font-weight: 800; color: #1E1D1B; margin-bottom: 1.25rem; display: flex; align-items: center; gap: 0.6rem;">
-                            <span style="width: 28px; height: 28px; border-radius: 50%; background: #D9AE5C; color: #191919; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 800;">{{ $cart['has_physical'] ? '3' : '2' }}</span>
-                            <span>Mode de Règlement Sécurisé</span>
-                        </h3>
-
-                        <div style="display: flex; flex-direction: column; gap: 0.75rem;">
-                            <!-- Paystack Mobile Money -->
-                            <label style="border: 1.5px solid rgba(217,174,92,0.4); border-radius: 16px; padding: 1rem 1.25rem; display: flex; align-items: center; justify-content: space-between; cursor: pointer; background: #FAF5ED;">
-                                <div style="display: flex; align-items: center; gap: 0.85rem;">
-                                    <input type="radio" name="payment_channel" value="paystack_momo" checked style="accent-color: #D9AE5C; width: 18px; height: 18px;">
-                                    <div>
-                                        <div style="font-weight: 700; font-size: 0.9rem; color: #1E1D1B;">Mobile Money (Orange, Wave, MTN, Moov)</div>
-                                        <div style="font-size: 0.75rem; color: #8B857C;">Paiement instantané sécurisé par Paystack</div>
-                                    </div>
-                                </div>
-                                <span style="font-size: 1.2rem;">📱</span>
-                            </label>
-
-                            <!-- Paystack Carte Bancaire -->
-                            <label style="border: 1.5px solid rgba(139,133,124,0.2); border-radius: 16px; padding: 1rem 1.25rem; display: flex; align-items: center; justify-content: space-between; cursor: pointer; background: #FFFFFF;">
-                                <div style="display: flex; align-items: center; gap: 0.85rem;">
-                                    <input type="radio" name="payment_channel" value="paystack_card" style="accent-color: #D9AE5C; width: 18px; height: 18px;">
-                                    <div>
-                                        <div style="font-weight: 700; font-size: 0.9rem; color: #1E1D1B;">Carte Bancaire (Visa, Mastercard)</div>
-                                        <div style="font-size: 0.75rem; color: #8B857C;">Règlement international sécurisé</div>
-                                    </div>
-                                </div>
-                                <span style="font-size: 1.2rem;">💳</span>
-                            </label>
-                        </div>
+                    <div class="pg-field" style="margin-top: 1.75rem;">
+                        <label class="pg-label" for="notes">Note sur la commande <span class="pg-hint">(facultatif)</span></label>
+                        <textarea id="notes" name="notes" maxlength="500" rows="3" class="pg-textarea">{{ old('notes') }}</textarea>
                     </div>
-
-                </div>
-
-                <!-- Colonne Droite : Récapitulatif Panier & Validation -->
-                <div style="background: #F8F1E5; border: 1px solid rgba(217, 174, 92, 0.25); border-radius: 24px; padding: 1.75rem; position: sticky; top: 2rem;">
-                    <h3 class="font-editorial" style="font-size: 1.3rem; font-weight: 800; color: #1E1D1B; margin-bottom: 1.25rem;">
-                        Votre Commande
-                    </h3>
-
-                    <div style="display: flex; flex-direction: column; gap: 0.85rem; max-height: 260px; overflow-y: auto; padding-right: 0.5rem; margin-bottom: 1rem; border-bottom: 1px solid rgba(139,133,124,0.14); padding-bottom: 1rem;">
-                        @foreach($cart['items'] as $item)
-                            @php $book = $item['book']; @endphp
-                            <div style="display: flex; gap: 0.75rem; align-items: center;">
-                                <img src="{{ $book->cover_image ? asset($book->cover_image) : asset('images/books/fallback-book.jpg') }}" alt="{{ $book->title }}" style="width: 38px; height: 57px; border-radius: 6px; object-fit: cover; flex-shrink: 0; box-shadow: 0 2px 6px rgba(0,0,0,0.1);">
-                                <div style="flex: 1; min-width: 0;">
-                                    <div style="font-size: 0.8rem; font-weight: 700; color: #1E1D1B; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ $book->title }}</div>
-                                    <div style="font-size: 0.7rem; color: #8B857C;">{{ $item['format'] === 'pdf' ? 'e-Book PDF' : ($item['format'] === 'audio' ? 'Livre Audio MP3' : 'Livre papier') }} × {{ $item['quantity'] }}</div>
-                                </div>
-                                <div style="font-weight: 700; font-size: 0.8rem; color: #1E1D1B;">{{ number_format($item['price'] * $item['quantity'], 0, ',', ' ') }} F</div>
-                            </div>
-                        @endforeach
-                    </div>
-
-                    <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 1.5rem;">
-                        <span style="font-weight: 800; font-size: 0.95rem; color: #1E1D1B;">Total final</span>
-                        <span style="font-family: 'Playfair Display', Georgia, serif; font-size: 1.5rem; font-weight: 800; color: #1E1D1B;">
-                            {{ number_format($cart['total'], 0, ',', ' ') }} FCFA
-                        </span>
-                    </div>
-
-                    <button type="submit" class="buy-btn" style="background: #D9AE5C; color: #191919; border-color: #D9AE5C; padding: 0.85rem 1.5rem; font-size: 0.95rem; font-weight: 800; width: 100%; justify-content: center; box-shadow: 0 4px 14px rgba(217, 174, 92, 0.35);">
-                        <span>Confirmer &amp; Payer ›</span>
-                    </button>
-
-                    <p style="font-size: 0.72rem; color: #8B857C; text-align: center; margin-top: 1rem; line-height: 1.4;">
-                        En validant, vous acceptez les conditions de diffusion et de licence de NSOROMMA.
-                    </p>
-                </div>
-
+                </section>
             </div>
-        </form>
-    </section>
 
-</div>
+            <aside class="pg-aside">
+                <div class="pg-panel">
+                    <h2 class="pg-summary-title">Votre commande</h2>
+
+                    @foreach($cart['items'] as $item)
+                        <div class="pg-mini">
+                            <img src="{{ $item['book']->cover_image ? asset($item['book']->cover_image) : asset('images/books/fallback-book.jpg') }}" alt="">
+                            <div style="min-width: 0;">
+                                <div class="pg-mini-title">{{ $item['book']->title }}</div>
+                                <div class="pg-mini-sub">{{ $formatLabels[$item['format']] ?? $item['format'] }} × {{ $item['quantity'] }}</div>
+                            </div>
+                            <div class="pg-mini-price">{{ number_format($item['total_price'], 0, ',', ' ') }} F</div>
+                        </div>
+                    @endforeach
+
+                    <div style="margin-top: 1rem; padding-top: .75rem; border-top: 1px solid var(--line);">
+                        <div class="pg-row"><span>Sous-total</span><strong>{{ number_format($subtotal, 0, ',', ' ') }} FCFA</strong></div>
+                        @if($cart['has_physical'])
+                            <div class="pg-row"><span>Livraison</span><strong x-text="money(shipping)">{{ number_format($cart['shipping_cost'], 0, ',', ' ') }} FCFA</strong></div>
+                        @endif
+                        <div class="pg-row pg-row-total"><span>Total</span><strong x-text="money(total)">{{ number_format($cart['total'], 0, ',', ' ') }} FCFA</strong></div>
+                    </div>
+
+                    <div class="pg-summary-actions">
+                        <button type="submit" class="pg-btn pg-btn-block">
+                            <span>Payer <span x-text="money(total)">{{ number_format($cart['total'], 0, ',', ' ') }} FCFA</span></span>
+                        </button>
+                        <a href="{{ route('cart.index') }}" class="pg-link" style="text-align: center;">Modifier le panier</a>
+                    </div>
+                    <p class="pg-note">En validant, vous acceptez les conditions de vente et de licence de NSOROMMA. Paiement chiffré par Paystack.</p>
+                </div>
+            </aside>
+        </form>
+    </div>
 @endsection

@@ -64,8 +64,8 @@ class CartAndOrderTest extends TestCase
         $cartPage = $this->get('/panier');
         $cartPage->assertStatus(200);
         $cartPage->assertSee($book->title);
-        $cartPage->assertSee('e-Book Numérique (PDF)');
-        $cartPage->assertSee('Livre Papier Broché');
+        $cartPage->assertSee('e-Book PDF');
+        $cartPage->assertSee('Livre papier');
     }
 
     public function test_checkout_creates_order_and_redirects_to_payment(): void
@@ -116,7 +116,7 @@ class CartAndOrderTest extends TestCase
         $cartPage = $this->get('/panier');
         $cartPage->assertStatus(200);
         $cartPage->assertSee($book->title);
-        $cartPage->assertSee('Livre Audio MP3');
+        $cartPage->assertSee('Livre audio MP3');
     }
 
     public function test_checkout_audio_only_creates_digital_order_without_shipping(): void
