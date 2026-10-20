@@ -209,7 +209,7 @@ button { font: inherit; }
 .check-help { display: block; font-size: .74rem; color: var(--muted); }
 
 .file-current { display: flex; align-items: center; gap: .6rem; padding: .5rem .65rem; background: var(--surface-muted); border: 1px dashed var(--border-strong); border-radius: var(--radius-sm); font-size: .78rem; color: var(--text-soft); }
-.file-current img { width: 32px; height: 46px; object-fit: cover; border-radius: 4px; }
+.file-current img { width: 32px; height: 46px; object-fit: cover; border-radius: 0; }
 .file-current span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 .form-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: .5rem; margin-top: 1.25rem; }
@@ -240,7 +240,7 @@ button { font: inherit; }
 .text-muted { color: var(--muted); }
 .text-strong { font-weight: 600; }
 .book-cell { display: flex; align-items: center; gap: .75rem; min-width: 0; }
-.book-thumb { width: 36px; height: 52px; border-radius: 4px; object-fit: cover; flex-shrink: 0; background: var(--surface-muted); border: 1px solid var(--border); }
+.book-thumb { width: 36px; height: 52px; border-radius: 0; object-fit: cover; flex-shrink: 0; background: var(--surface-muted); border: 1px solid var(--border); }
 
 .empty { padding: 3rem 1rem; text-align: center; color: var(--muted); }
 .empty-title { font-weight: 600; color: var(--text); margin-bottom: .25rem; }

@@ -67,6 +67,6 @@ class DigitalLibraryPageTest extends TestCase
 
         $this->get(route('catalog.index'))
             ->assertOk()
-            ->assertSee('Catalogue des Livres', false);
+            ->assertSee('Tous les livres');
     }
 }

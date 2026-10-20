@@ -119,6 +119,16 @@ body.broks-page {
 
 .nav-dropdown { background: var(--shell-panel) !important; border: 1px solid var(--shell-line) !important; border-radius: 14px !important; box-shadow: 0 18px 40px -16px rgba(30, 34, 48, .3) !important; }
 
+/* ---------- Couvertures : toujours à angles droits ---------- */
+img[src*="/covers/"],
+img[src*="/images/books/"],
+.book-cover-wrap, .book-cover-img,
+.featured-book-wrap, .featured-book-img,
+:is(a, div, span, figure):has(> img[src*="/covers/"]),
+:is(a, div, span, figure):has(> img[src*="/images/books/"]) {
+    border-radius: 0 !important;
+}
+
 /* ---------- Pied de page ---------- */
 .site-footer {
     display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem;

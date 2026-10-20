@@ -15,7 +15,7 @@ class CatalogController extends Controller
 {
     public function index(Request $request): View
     {
-        $query = Book::active()->with(['category', 'approvedReviews']);
+        $query = Book::active()->with('category');
 
         // Filtre par catégorie
         if ($request->filled('category')) {
@@ -43,20 +43,17 @@ class CatalogController extends Controller
             $query->where('is_audio_available', true);
         }
 
-        // Filtre par plage de prix
-        if ($request->filled('price_min')) {
-            $query->where(function ($q) use ($request) {
-                $q->where('price_pdf', '>=', (int) $request->query('price_min'))
-                    ->orWhere('price_physical', '>=', (int) $request->query('price_min'))
-                    ->orWhere('price_audio', '>=', (int) $request->query('price_min'));
-            });
-        }
+        // Filtre par plage de prix : au moins un format réellement en vente doit être dans la fourchette
+        if ($request->filled('price_min') || $request->filled('price_max')) {
+            $min = $request->filled('price_min') ? (int) $request->query('price_min') : 0;
+            $max = $request->filled('price_max') ? (int) $request->query('price_max') : PHP_INT_MAX;
 
-        if ($request->filled('price_max')) {
-            $query->where(function ($q) use ($request) {
-                $q->where('price_pdf', '<=', (int) $request->query('price_max'))
-                    ->orWhere('price_physical', '<=', (int) $request->query('price_max'))
-                    ->orWhere('price_audio', '<=', (int) $request->query('price_max'));
+            $query->where(function ($q) use ($min, $max) {
+                foreach (['pdf', 'physical', 'audio'] as $format) {
+                    $q->orWhere(fn ($formatQuery) => $formatQuery
+                        ->where("is_{$format}_available", true)
+                        ->whereBetween("price_{$format}", [$min, $max]));
+                }
             });
         }
 
