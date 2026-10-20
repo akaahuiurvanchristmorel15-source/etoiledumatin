@@ -37,15 +37,15 @@ class AdminAccessTest extends TestCase
 
         $dashboardResponse = $this->actingAs($admin)->get('/admin');
         $dashboardResponse->assertStatus(200);
-        $dashboardResponse->assertSee('Tableau de Bord & Indicateurs', false);
+        $dashboardResponse->assertSee('Ventes par format');
 
         $booksResponse = $this->actingAs($admin)->get('/admin/livres');
         $booksResponse->assertStatus(200);
-        $booksResponse->assertSee('Catalogue des Livres');
+        $booksResponse->assertSee('Ajouter un livre');
 
         $ordersResponse = $this->actingAs($admin)->get('/admin/commandes');
         $ordersResponse->assertStatus(200);
-        $ordersResponse->assertSee('Commandes & Expéditions');
+        $ordersResponse->assertSee('Paiements Paystack et suivi des expéditions.');
 
         // Test export CSV
         $csvResponse = $this->actingAs($admin)->get('/admin/commandes/export/csv');

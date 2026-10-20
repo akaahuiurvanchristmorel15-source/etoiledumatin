@@ -16,9 +16,8 @@
     <header class="broks-navbar" role="banner">
         
         <!-- Logo de Prestige -->
-        <a href="{{ route('home') }}" class="logo-text" aria-label="Accueil L'Étoile du Matin">
-            <span class="logo-star" aria-hidden="true">★</span>
-            <span class="font-editorial" style="font-weight: 800; letter-spacing: 0.12em;">L'ÉTOILE DU MATIN</span>
+        <a href="{{ route('home') }}" class="logo-text" aria-label="Accueil NSOROMMA">
+            <x-brand-logo :size="34" name-size="1.15rem" />
         </a>
 
         <!-- Onglets Centraux (Livre, Livre Audio, Catalogue) -->
@@ -230,9 +229,8 @@
         </button>
 
         <!-- Brand Logo Centré -->
-        <a href="{{ route('home') }}" class="logo-text" style="font-size: 1.15rem;" aria-label="Accueil">
-            <span class="logo-star" aria-hidden="true">★</span>
-            <span class="font-editorial" style="font-weight: 800; letter-spacing: 0.1em;">L'ÉTOILE DU MATIN</span>
+        <a href="{{ route('home') }}" class="logo-text" aria-label="Accueil NSOROMMA">
+            <x-brand-logo :size="28" name-size="1rem" />
         </a>
 
         <!-- Actions Droite Mobile : Recherche & Panier -->
@@ -290,12 +288,7 @@
         
         <!-- Header du Tiroir -->
         <div class="mobile-drawer-header">
-            <div style="display: flex; align-items: center; gap: 0.5rem;">
-                <span class="logo-star" style="font-size: 1.25rem;">★</span>
-                <span class="font-editorial" style="font-weight: 800; font-size: 1.1rem; color: #1E1D1B; letter-spacing: 0.08em;">
-                    L'ÉTOILE DU MATIN
-                </span>
-            </div>
+            <x-brand-logo :size="30" name-size="1.05rem" />
             <button type="button" 
                     @click="mobileMenuOpen = false" 
                     style="background: #FAF5ED; border: none; width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #1E1D1B; cursor: pointer;"

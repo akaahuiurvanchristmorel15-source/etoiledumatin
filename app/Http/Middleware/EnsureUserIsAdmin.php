@@ -19,10 +19,8 @@ class EnsureUserIsAdmin
             return redirect()->route('login')->with('error', 'Veuillez vous connecter pour accéder à l\'espace de gestion.');
         }
 
-        $user = auth()->user();
-
-        if (! $user->isAdmin() && ! $user->isManager() && ! $user->isLogistics()) {
-            abort(403, 'Accès réservé au personnel d\'administration de L\'Étoile du Matin.');
+        if (! auth()->user()->isStaff()) {
+            abort(403, 'Accès réservé au personnel d\'administration de L\'NSOROMMA.');
         }
 
         return $next($request);

@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'Suivi de commande sans compte — L\'Étoile du Matin')
+@section('title', 'Suivi de commande sans compte — L\'NSOROMMA')
 @section('meta_description', 'Consultez l\'état de livraison de votre colis ou téléchargez vos e-books achetés sans compte.')
 
 @push('styles')

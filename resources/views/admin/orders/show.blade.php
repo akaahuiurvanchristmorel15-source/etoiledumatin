@@ -1,229 +1,172 @@
 @extends('layouts.admin')
-@section('title', 'Commande ' . $order->order_number . ' — Administration')
+@section('title', 'Commande '.$order->order_number)
 
 @section('content')
-<div style="max-width: 1050px; margin: 0 auto; display: flex; flex-direction: column; gap: 2rem;">
+    @php
+        $formatLabels = ['pdf' => 'e-Book PDF', 'audio' => 'Livre audio', 'physical' => 'Livre papier'];
+        $shipping = $order->shippingAddress;
+    @endphp
 
-    <!-- En-tête -->
-    <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem; padding-bottom: 1.25rem; border-bottom: 1px solid rgba(139, 133, 124, 0.1);">
+    <div class="page-header">
         <div>
-            <nav class="breadcrumb" style="margin-bottom: 0.5rem;" aria-label="Fil d'Ariane">
-                <ol class="breadcrumb-list">
-                    <li class="breadcrumb-item"><a href="{{ route('admin.orders.index') }}">Commandes</a></li>
-                    <li class="breadcrumb-separator">›</li>
-                    <li class="breadcrumb-item active" aria-current="page">{{ $order->order_number }}</li>
-                </ol>
+            <nav class="breadcrumb" aria-label="Fil d'Ariane">
+                <a href="{{ route('admin.orders.index') }}">Commandes</a><span>/</span><span class="mono">{{ $order->order_number }}</span>
             </nav>
-            <div style="display: flex; align-items: center; gap: 0.75rem;">
-                <h1 class="hero-title font-editorial" style="font-size: 2.2rem; line-height: 1.15; margin: 0;">
-                    Commande {{ $order->order_number }}
-                </h1>
-                @if($order->payment_status === 'paid')
-                    <span class="admin-badge admin-badge-green">Paiement Validé</span>
-                @else
-                    <span class="admin-badge admin-badge-gold">{{ ucfirst($order->payment_status) }}</span>
-                @endif
-            </div>
-            <p style="font-size: 0.85rem; color: #786B5A; margin-top: 0.25rem;">
-                Enregistrée le {{ $order->created_at->format('d/m/Y à H:i') }} &bull; Réf. Paystack : <strong>{{ $order->payment_reference ?? 'N/A' }}</strong>
+            <h1 class="page-title" style="display: flex; flex-wrap: wrap; align-items: center; gap: .6rem;">
+                <span class="mono" style="font-size: 1.25rem;">{{ $order->order_number }}</span>
+                @include('admin.partials.payment-badge', ['status' => $order->payment_status])
+            </h1>
+            <p class="page-subtitle">
+                Passée le {{ $order->created_at->format('d/m/Y à H:i') }}
+                @if($order->paid_at) · payée le {{ $order->paid_at->format('d/m/Y à H:i') }} @endif
             </p>
         </div>
-        <a href="{{ route('admin.orders.index') }}" class="admin-btn-secondary">
-            &larr; Retour aux commandes
-        </a>
+        <div class="page-actions">
+            <a href="{{ route('admin.orders.index') }}" class="btn btn-secondary">
+                <x-admin.icon name="arrow-left" />
+                <span>Retour</span>
+            </a>
+        </div>
     </div>
 
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 2rem; align-items: start;">
-
-        <!-- Colonne Gauche : Articles & Droits Numériques -->
-        <div style="display: flex; flex-direction: column; gap: 1.75rem;">
-            
-            <!-- Articles Commandés -->
-            <div style="background-color: #FFFDF9; border: 1px solid rgba(217, 174, 92, 0.25); border-radius: 20px; padding: 2rem; box-shadow: 0 4px 14px rgba(60, 45, 25, 0.04);">
-                <h2 class="font-editorial" style="font-size: 1.25rem; font-weight: 800; color: #1E1D1B; margin-bottom: 1.25rem; padding-bottom: 0.75rem; border-bottom: 1px solid rgba(139, 133, 124, 0.1);">
-                    Articles Achetés ({{ $order->items->count() }})
-                </h2>
-
-                <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+    <div class="grid-aside">
+        <div class="stack">
+            <section class="card">
+                <div class="card-header"><h2 class="card-title">Articles ({{ $order->items->count() }})</h2></div>
+                <div class="card-body">
                     @foreach($order->items as $item)
-                        <div style="display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding-bottom: 1rem; border-bottom: 1px solid rgba(139, 133, 124, 0.08);">
-                            <div style="display: flex; align-items: center; gap: 1rem;">
-                                <div style="width: 48px; height: 72px; border-radius: 8px; overflow: hidden; background: #F8F1E5; border: 1px solid rgba(217, 174, 92, 0.2); flex-shrink: 0; box-shadow: 0 2px 6px rgba(0,0,0,0.06);">
-                                    <img src="{{ $item->book?->cover_image ? asset($item->book->cover_image) : asset('images/books/fallback-book.jpg') }}" alt="{{ $item->book_title }}" style="width: 100%; height: 100%; object-fit: cover;">
-                                </div>
-                                <div>
-                                    <div style="font-weight: 700; color: #1E1D1B; font-size: 0.95rem;">{{ $item->book_title }}</div>
-                                    <div style="font-size: 0.78rem; color: #8B857C;">{{ $item->book_author }}</div>
-                                    <div style="margin-top: 0.35rem; display: flex; align-items: center; gap: 0.5rem;">
-                                        @if($item->format === 'pdf')
-                                            <span class="admin-badge admin-badge-gold">e-Book PDF</span>
-                                        @elseif($item->format === 'audio')
-                                            <span class="admin-badge" style="background: rgba(108, 52, 131, 0.15); color: #6C3483;">Livre Audio MP3</span>
-                                        @else
-                                            <span class="admin-badge" style="background: rgba(30, 29, 27, 0.08); color: #1E1D1B;">Livre Papier Relié</span>
-                                        @endif
-                                        <span style="font-size: 0.75rem; color: #8B857C;">&times; {{ $item->quantity }}</span>
-                                    </div>
+                        <div class="list-item">
+                            <div class="book-cell">
+                                <img src="{{ $item->book?->cover_image ? asset($item->book->cover_image) : asset('images/books/fallback-book.jpg') }}" alt="" class="book-thumb">
+                                <div style="min-width: 0;">
+                                    <div class="cell-title">{{ $item->book_title }}</div>
+                                    <div class="cell-sub">{{ $formatLabels[$item->format] ?? $item->format }} · {{ number_format($item->unit_price, 0, ',', ' ') }} F × {{ $item->quantity }}</div>
                                 </div>
                             </div>
-                            <div style="text-align: right;">
-                                <div style="font-weight: 800; color: #1E1D1B; font-size: 0.95rem;">{{ number_format((float) ($item->subtotal ?? 0), 0, ',', ' ') }} FCFA</div>
-                                <div style="font-size: 0.72rem; color: #8B857C;">{{ number_format((float) ($item->unit_price ?? 0), 0, ',', ' ') }} FCFA / u</div>
-                            </div>
+                            <div class="text-strong" style="white-space: nowrap;">{{ number_format($item->subtotal, 0, ',', ' ') }} F</div>
                         </div>
                     @endforeach
-                </div>
 
-                <!-- Récapitulatif Financier -->
-                <div style="padding-top: 1.25rem; display: flex; flex-direction: column; gap: 0.5rem; font-size: 0.85rem;">
-                    @if($order->subtotal_pdf > 0)
-                        <div style="display: flex; justify-content: space-between; color: #786B5A;">
-                            <span>Sous-total e-Books PDF</span>
-                            <span style="font-weight: 700; color: #1E1D1B;">{{ number_format((float) ($order->subtotal_pdf ?? 0), 0, ',', ' ') }} FCFA</span>
-                        </div>
-                    @endif
-                    @if(($order->subtotal_audio ?? 0) > 0)
-                        <div style="display: flex; justify-content: space-between; color: #786B5A;">
-                            <span>Sous-total Livres Audio</span>
-                            <span style="font-weight: 700; color: #6C3483;">{{ number_format((float) ($order->subtotal_audio ?? 0), 0, ',', ' ') }} FCFA</span>
-                        </div>
-                    @endif
-                    @if($order->subtotal_physical > 0)
-                        <div style="display: flex; justify-content: space-between; color: #786B5A;">
-                            <span>Sous-total Livres physiques</span>
-                            <span style="font-weight: 700; color: #1E1D1B;">{{ number_format((float) ($order->subtotal_physical ?? 0), 0, ',', ' ') }} FCFA</span>
-                        </div>
-                    @endif
-                    <div style="display: flex; justify-content: space-between; color: #786B5A;">
-                        <span>Frais d'acheminement livraison</span>
-                        <span style="font-weight: 700; color: #1E1D1B;">{{ number_format((float) ($order->shipping_cost ?? 0), 0, ',', ' ') }} FCFA</span>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; font-size: 1.15rem; font-weight: 800; color: #1E1D1B; padding-top: 0.75rem; border-top: 1.5px solid rgba(217, 174, 92, 0.3);">
-                        <span class="font-editorial">Total Encaissé</span>
-                        <span style="color: #D9AE5C;">{{ number_format((float) ($order->total_amount ?? 0), 0, ',', ' ') }} FCFA</span>
+                    <div style="margin-top: 1rem;">
+                        @if($order->subtotal_pdf > 0)
+                            <div class="summary-row"><span>Sous-total PDF</span><span>{{ number_format($order->subtotal_pdf, 0, ',', ' ') }} F</span></div>
+                        @endif
+                        @if(($order->subtotal_audio ?? 0) > 0)
+                            <div class="summary-row"><span>Sous-total audio</span><span>{{ number_format($order->subtotal_audio, 0, ',', ' ') }} F</span></div>
+                        @endif
+                        @if($order->subtotal_physical > 0)
+                            <div class="summary-row"><span>Sous-total papier</span><span>{{ number_format($order->subtotal_physical, 0, ',', ' ') }} F</span></div>
+                        @endif
+                        <div class="summary-row"><span>Livraison</span><span>{{ number_format($order->shipping_cost, 0, ',', ' ') }} F</span></div>
+                        <div class="summary-row total"><span>Total</span><span>{{ number_format($order->total_amount, 0, ',', ' ') }} FCFA</span></div>
                     </div>
                 </div>
-            </div>
+            </section>
 
-            <!-- E-books & Téléchargements Générés -->
             @if($order->downloads->isNotEmpty())
-                <div style="background-color: #FFFDF9; border: 1px solid rgba(217, 174, 92, 0.25); border-radius: 20px; padding: 2rem; box-shadow: 0 4px 14px rgba(60, 45, 25, 0.04);">
-                    <h2 class="font-editorial" style="font-size: 1.25rem; font-weight: 800; color: #1E1D1B; margin-bottom: 1.25rem; padding-bottom: 0.75rem; border-bottom: 1px solid rgba(139, 133, 124, 0.1);">
-                        Droits Numériques &amp; Audio
-                    </h2>
-                    <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                <section class="card">
+                    <div class="card-header">
+                        <div>
+                            <h2 class="card-title">Accès numériques</h2>
+                            <p class="card-subtitle">Licences de téléchargement générées après paiement.</p>
+                        </div>
+                    </div>
+                    <div class="card-body">
                         @foreach($order->downloads as $download)
-                            <div style="padding: 1rem 1.25rem; background: #FAF5ED; border-radius: 14px; border: 1px solid rgba(217, 174, 92, 0.2); display: flex; align-items: center; justify-content: space-between; font-size: 0.82rem;">
+                            <div class="list-item">
                                 <div>
-                                    <div style="font-weight: 700; color: #1E1D1B;">
-                                        {{ $download->book?->title ?? 'Ouvrage' }}
-                                        <span class="admin-badge" style="margin-left: 0.5rem; font-size: 0.65rem; background: {{ $download->isAudio() ? 'rgba(108, 52, 131, 0.15); color: #6C3483;' : 'rgba(47, 111, 78, 0.15); color: #2F6F4E;' }}">
-                                            {{ $download->isAudio() ? 'Audio MP3' : 'e-Book PDF' }}
-                                        </span>
-                                    </div>
-                                    <div style="font-family: monospace; font-size: 0.72rem; color: #8B857C; margin-top: 2px;">Token: {{ substr($download->download_token, 0, 16) }}...</div>
+                                    <div class="cell-title">{{ $download->book?->title ?? 'Ouvrage' }}</div>
+                                    <div class="cell-sub">{{ $download->isAudio() ? 'Livre audio' : 'e-Book PDF' }}@if($download->last_downloaded_at) · dernier téléchargement {{ $download->last_downloaded_at->diffForHumans() }}@endif</div>
                                 </div>
-                                <span class="admin-badge {{ $download->download_count < $download->max_downloads ? 'admin-badge-green' : 'admin-badge-red' }}">
-                                    {{ $download->download_count }} / {{ $download->max_downloads }} téléchargements
-                                </span>
+                                <span class="badge {{ $download->canDownload() ? '' : 'badge-danger' }}">{{ $download->download_count }} / {{ $download->max_downloads }}</span>
                             </div>
                         @endforeach
                     </div>
-                </div>
+                </section>
             @endif
 
+            @if($order->notes)
+                <section class="card">
+                    <div class="card-header"><h2 class="card-title">Note du client</h2></div>
+                    <div class="card-body"><p style="white-space: pre-line;">{{ $order->notes }}</p></div>
+                </section>
+            @endif
         </div>
 
-        <!-- Colonne Droite : Fiche Client & Gestion Expédition -->
-        <div style="display: flex; flex-direction: column; gap: 1.75rem;">
+        <aside class="stack">
+            <section class="card">
+                <div class="card-header"><h2 class="card-title">Client</h2></div>
+                <div class="card-body">
+                    <dl class="dl">
+                        <div><dt>Nom</dt><dd>{{ $order->customer_name }}</dd></div>
+                        <div><dt>E-mail</dt><dd><a class="link" href="mailto:{{ $order->customer_email }}">{{ $order->customer_email }}</a></dd></div>
+                        <div><dt>Téléphone</dt><dd><a href="tel:{{ preg_replace('/\s+/', '', $order->customer_phone) }}">{{ $order->customer_phone }}</a></dd></div>
+                        <div><dt>Compte</dt><dd>{{ $order->user ? 'Client inscrit' : 'Commande invité' }}</dd></div>
+                    </dl>
+                </div>
+            </section>
 
-            <!-- Fiche Client -->
-            <div style="background-color: #FFFDF9; border: 1px solid rgba(217, 174, 92, 0.25); border-radius: 20px; padding: 1.75rem; box-shadow: 0 4px 14px rgba(60, 45, 25, 0.04); display: flex; flex-direction: column; gap: 0.85rem; font-size: 0.85rem;">
-                <h2 class="font-editorial" style="font-size: 1.15rem; font-weight: 800; color: #1E1D1B; padding-bottom: 0.5rem; border-bottom: 1px solid rgba(139, 133, 124, 0.1);">
-                    Coordonnées Client
-                </h2>
-                <div>
-                    <span style="font-size: 0.72rem; font-weight: 800; text-transform: uppercase; color: #8B857C; display: block;">Nom &amp; Prénoms</span>
-                    <span style="font-weight: 700; color: #1E1D1B; font-size: 0.95rem;">{{ $order->customer_name }}</span>
+            <section class="card">
+                <div class="card-header"><h2 class="card-title">Paiement</h2></div>
+                <div class="card-body">
+                    <dl class="dl">
+                        <div><dt>Moyen</dt><dd>{{ $order->payment_method ?? '—' }}</dd></div>
+                        <div><dt>Référence</dt><dd class="mono">{{ $order->payment_reference ?? '—' }}</dd></div>
+                    </dl>
                 </div>
-                <div>
-                    <span style="font-size: 0.72rem; font-weight: 800; text-transform: uppercase; color: #8B857C; display: block;">Email</span>
-                    <a href="mailto:{{ $order->customer_email }}" style="color: #D9AE5C; font-weight: 700; text-decoration: underline;">{{ $order->customer_email }}</a>
-                </div>
-                <div>
-                    <span style="font-size: 0.72rem; font-weight: 800; text-transform: uppercase; color: #8B857C; display: block;">Téléphone</span>
-                    <span style="font-family: monospace; color: #1E1D1B; font-weight: 700;">{{ $order->customer_phone }}</span>
-                </div>
-                <div style="padding-top: 0.5rem; border-top: 1px solid rgba(139, 133, 124, 0.08);">
-                    @if($order->user)
-                        <span style="font-size: 0.75rem; color: #2F6F4E; font-weight: 700;">
-                            ✓ Client avec compte enregistré (ID #{{ $order->user->id }})
-                        </span>
-                    @else
-                        <span style="font-size: 0.75rem; color: #8B857C;">
-                            Commande passée en mode Invité
-                        </span>
-                    @endif
-                </div>
-            </div>
+            </section>
 
-            <!-- Gestion Expédition -->
-            <div style="background-color: #FFFDF9; border: 1px solid rgba(217, 174, 92, 0.25); border-radius: 20px; padding: 1.75rem; box-shadow: 0 4px 14px rgba(60, 45, 25, 0.04); font-size: 0.85rem;">
-                <h2 class="font-editorial" style="font-size: 1.15rem; font-weight: 800; color: #1E1D1B; padding-bottom: 0.5rem; border-bottom: 1px solid rgba(139, 133, 124, 0.1); margin-bottom: 1rem;">
-                    Logistique &amp; Envoi
-                </h2>
-
-                @if($order->shippingAddress)
-                    <div style="margin-bottom: 1.25rem;">
-                        <span style="font-size: 0.72rem; font-weight: 800; text-transform: uppercase; color: #8B857C; display: block;">Adresse de livraison</span>
-                        <p style="font-weight: 700; color: #1E1D1B; margin-top: 0.25rem;">{{ $order->shippingAddress->address_line }}</p>
-                        <p style="color: #786B5A;">{{ $order->shippingAddress->city }}, {{ $order->shippingAddress->country }}</p>
-                        @if($order->shippingAddress->notes)
-                            <p style="margin-top: 0.5rem; padding: 0.5rem 0.75rem; background: #FAF5ED; border-radius: 8px; border: 1px solid rgba(217, 174, 92, 0.25); font-size: 0.78rem; color: #786B5A;">
-                                <strong>Indications :</strong> {{ $order->shippingAddress->notes }}
-                            </p>
-                        @endif
+            <section class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Expédition</h2>
+                    @include('admin.partials.shipping-badge', ['shipping' => $shipping])
+                </div>
+                @if($shipping)
+                    <div class="card-body">
+                        <dl class="dl">
+                            <div><dt>Destinataire</dt><dd>{{ $shipping->recipient_name }} · {{ $shipping->phone }}</dd></div>
+                            <div><dt>Adresse</dt><dd>{{ $shipping->address_line }}<br>{{ $shipping->city }}, {{ $shipping->country }}</dd></div>
+                            <div><dt>Zone</dt><dd>{{ $shipping->zone_label }}</dd></div>
+                            @if($shipping->instructions)
+                                <div><dt>Instructions</dt><dd>{{ $shipping->instructions }}</dd></div>
+                            @endif
+                            @if($shipping->shipped_at)
+                                <div><dt>Expédiée le</dt><dd>{{ $shipping->shipped_at->format('d/m/Y à H:i') }}</dd></div>
+                            @endif
+                            @if($shipping->delivered_at)
+                                <div><dt>Livrée le</dt><dd>{{ $shipping->delivered_at->format('d/m/Y à H:i') }}</dd></div>
+                            @endif
+                        </dl>
                     </div>
-
-                    <!-- Formulaire de mise à jour statut expédition -->
-                    <form action="{{ route('admin.orders.update-shipping', $order) }}" method="POST" style="display: flex; flex-direction: column; gap: 1rem; padding-top: 1rem; border-top: 1px solid rgba(139, 133, 124, 0.1);">
+                    <form action="{{ route('admin.orders.update-shipping', $order) }}" method="POST">
                         @csrf
-
-                        <div>
-                            <label style="display: block; font-size: 0.75rem; font-weight: 800; text-transform: uppercase; color: #1E1D1B; margin-bottom: 0.35rem;">Statut d'expédition</label>
-                            <select name="status" style="width: 100%; background: #F8F1E5; border: 1px solid rgba(139, 133, 124, 0.2); border-radius: 12px; padding: 0.65rem 1rem; font-size: 0.85rem; color: #1E1D1B; outline: none;">
-                                <option value="pending" {{ $order->shippingAddress->status === 'pending' ? 'selected' : '' }}>À préparer</option>
-                                <option value="processing" {{ $order->shippingAddress->status === 'processing' ? 'selected' : '' }}>En préparation</option>
-                                <option value="shipped" {{ $order->shippingAddress->status === 'shipped' ? 'selected' : '' }}>Expédié / En transit</option>
-                                <option value="delivered" {{ $order->shippingAddress->status === 'delivered' ? 'selected' : '' }}>Colis Livré</option>
-                                <option value="cancelled" {{ $order->shippingAddress->status === 'cancelled' ? 'selected' : '' }}>Annulé</option>
-                            </select>
+                        <div class="card-body stack" style="gap: .85rem; border-top: 1px solid var(--border);">
+                            <div class="field">
+                                <label class="label" for="status">Statut</label>
+                                <select id="status" name="status" class="select @error('status') is-invalid @enderror">
+                                    @foreach(['pending' => 'À préparer', 'processing' => 'En préparation', 'shipped' => 'Expédiée', 'delivered' => 'Livrée', 'cancelled' => 'Annulée'] as $value => $label)
+                                        <option value="{{ $value }}" @selected(old('status', $shipping->status) === $value)>{{ $label }}</option>
+                                    @endforeach
+                                </select>
+                                @error('status')<p class="error">{{ $message }}</p>@enderror
+                            </div>
+                            <div class="field">
+                                <label class="label" for="carrier_name">Transporteur</label>
+                                <input type="text" id="carrier_name" name="carrier_name" value="{{ old('carrier_name', $shipping->carrier_name) }}" maxlength="100" class="input" placeholder="Ex : coursier interne, DHL…">
+                            </div>
+                            <div class="field">
+                                <label class="label" for="tracking_number">N° de suivi</label>
+                                <input type="text" id="tracking_number" name="tracking_number" value="{{ old('tracking_number', $shipping->tracking_number) }}" maxlength="100" class="input">
+                            </div>
                         </div>
-
-                        <div>
-                            <label style="display: block; font-size: 0.75rem; font-weight: 800; text-transform: uppercase; color: #1E1D1B; margin-bottom: 0.35rem;">Transporteur</label>
-                            <input type="text" name="carrier_name" value="{{ old('carrier_name', $order->shippingAddress->carrier_name) }}" placeholder="Ex : Chronopost, Livro, Coursier interne..." style="width: 100%; background: #F8F1E5; border: 1px solid rgba(139, 133, 124, 0.2); border-radius: 12px; padding: 0.65rem 1rem; font-size: 0.85rem; color: #1E1D1B; outline: none;">
+                        <div class="card-footer">
+                            <button type="submit" class="btn btn-primary btn-block">Mettre à jour l'expédition</button>
                         </div>
-
-                        <div>
-                            <label style="display: block; font-size: 0.75rem; font-weight: 800; text-transform: uppercase; color: #1E1D1B; margin-bottom: 0.35rem;">N° de Suivi</label>
-                            <input type="text" name="tracking_number" value="{{ old('tracking_number', $order->shippingAddress->tracking_number) }}" placeholder="Ex : TRK-98234-CI" style="width: 100%; background: #F8F1E5; border: 1px solid rgba(139, 133, 124, 0.2); border-radius: 12px; padding: 0.65rem 1rem; font-size: 0.85rem; color: #1E1D1B; outline: none;">
-                        </div>
-
-                        <button type="submit" class="admin-btn-primary" style="width: 100%; justify-content: center; margin-top: 0.25rem;">
-                            Mettre à jour le statut
-                        </button>
                     </form>
                 @else
-                    <p style="text-align: center; color: #8B857C; padding: 1rem 0; font-size: 0.82rem;">
-                        Cette commande est 100% numérique (e-Books). Aucun envoi physique n'est requis.
-                    </p>
+                    <div class="card-body"><p class="text-muted">Commande 100 % numérique : aucun envoi.</p></div>
                 @endif
-            </div>
-
-        </div>
-
+            </section>
+        </aside>
     </div>
-
-</div>
 @endsection

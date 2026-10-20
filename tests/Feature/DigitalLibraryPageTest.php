@@ -55,7 +55,7 @@ class DigitalLibraryPageTest extends TestCase
 
         $catalogResponse = $this->get(route('catalog.index'));
         $catalogResponse->assertStatus(200);
-        $catalogResponse->assertSee("L'ÉTOILE DU MATIN", false);
+        $catalogResponse->assertSee('NSOROMMA', false);
         $catalogResponse->assertSee('Catalogue des Livres', false);
     }
 }

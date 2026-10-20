@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
-@section('title', 'L\'ÉTOILE DU MATIN — Bibliothèque Numérique & AudioBooks')
-@section('meta_description', 'Explorez la sélection de livres numériques et audiobooks sur la plateforme Etoile du Matin.')
+@section('title', 'L\'NSOROMMA — Bibliothèque Numérique & AudioBooks')
+@section('meta_description', 'Explorez la sélection de livres numériques et audiobooks sur la plateforme NSOROMMA.')
 @section('body_class', 'broks-page')
 @section('body_attributes', '')
 

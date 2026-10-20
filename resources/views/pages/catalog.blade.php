@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'Le Catalogue des Livres — L\'ÉTOILE DU MATIN')
+@section('title', 'Le Catalogue des Livres — L\'NSOROMMA')
 @section('meta_description', 'Parcourez l\'ensemble des ouvrages de spiritualité africaine, philosophie, religion et politique panafricaine.')
 
 @push('styles')

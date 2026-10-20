@@ -1,6 +1,6 @@
 /**
  * ==========================================================================
- * ETOILE DU MATIN — BROKS JAVASCRIPT VANILLA
+ * NSOROMMA — BROKS JAVASCRIPT VANILLA
  * - Recherche instantanée de livres
  * - Lecteur audio interactif avec suivi de progression
  * - Gestion du panier et animations

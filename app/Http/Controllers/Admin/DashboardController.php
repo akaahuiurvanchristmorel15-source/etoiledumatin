@@ -34,6 +34,10 @@ class DashboardController extends Controller
             ->whereHas('order', fn ($q) => $q->where('payment_status', 'paid'))
             ->sum('quantity');
 
+        $audioSalesCount = OrderItem::where('format', 'audio')
+            ->whereHas('order', fn ($q) => $q->where('payment_status', 'paid'))
+            ->sum('quantity');
+
         // Alertes stocks
         $lowStockBooks = Book::active()
             ->where('is_physical_available', true)
@@ -63,6 +67,7 @@ class DashboardController extends Controller
             'pendingLogisticsCount',
             'pdfSalesCount',
             'physicalSalesCount',
+            'audioSalesCount',
             'lowStockBooks',
             'recentOrders',
             'pendingReviewsCount',

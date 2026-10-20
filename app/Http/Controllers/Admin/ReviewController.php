@@ -35,6 +35,15 @@ class ReviewController extends Controller
         return back()->with('success', 'L\'avis a été approuvé et est désormais visible sur la fiche du livre.');
     }
 
+    public function hide(Review $review): RedirectResponse
+    {
+        $review->update(['is_approved' => false]);
+
+        AuditLog::log(auth()->id(), 'review_hidden', ['review_id' => $review->id]);
+
+        return back()->with('success', 'L\'avis a été masqué de la fiche du livre.');
+    }
+
     public function destroy(Review $review): RedirectResponse
     {
         $review->delete();

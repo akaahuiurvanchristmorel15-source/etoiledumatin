@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'Confirmation de commande — L\'Étoile du Matin')
+@section('title', 'Confirmation de commande — L\'NSOROMMA')
 @section('meta_description', 'Votre commande a bien été enregistrée et confirmée.')
 
 @push('styles')

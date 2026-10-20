@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'Créer un compte — L\'Étoile du Matin')
+@section('title', 'Créer un compte — L\'NSOROMMA')
 @section('meta_description', 'Créez votre compte lecteur pour télécharger vos e-books certifiés et suivre vos commandes de livres.')
 
 @push('styles')
@@ -367,7 +367,7 @@
                 <!-- Séparateur & Lien Connexion -->
                 <div style="margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid rgba(139, 133, 124, 0.1); text-align: center;">
                     <p style="font-size: 0.82rem; color: #8B857C; margin-bottom: 0.85rem;">
-                        Déjà inscrit sur L'Étoile du Matin ?
+                        Déjà inscrit sur NSOROMMA ?
                     </p>
                     <a href="{{ route('login') }}" class="auth-btn-secondary">
                         <i data-lucide="log-in" style="width: 16px; height: 16px;"></i>
@@ -386,7 +386,7 @@
         <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.75rem; flex-wrap: wrap; gap: 1rem;">
             <div>
                 <span style="font-size: 0.72rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.12em; color: #D9AE5C;">Garanties de Confiance</span>
-                <h2 class="font-editorial" style="font-size: 1.5rem; font-weight: 800; color: #1E1D1B;">Les Engagements de L'Étoile du Matin</h2>
+                <h2 class="font-editorial" style="font-size: 1.5rem; font-weight: 800; color: #1E1D1B;">Les Engagements de NSOROMMA</h2>
             </div>
             <a href="{{ route('catalog.index') }}" style="display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.82rem; font-weight: 700; color: #D9AE5C; text-decoration: none;">
                 <span>Explorer le catalogue complet</span>

@@ -65,7 +65,7 @@ class GenerateSampleAssetsCommand extends Command
             imagerectangle($img, 24, 24, $width - 24, $height - 24, $accent);
 
             // Collection
-            imagestring($img, 3, 50, 50, "COLLECTION L'ETOILE DU MATIN", $accent);
+            imagestring($img, 3, 50, 50, 'COLLECTION NSOROMMA', $accent);
 
             // Auteur
             imagestring($img, 5, 45, 120, strtoupper($book->author), $accent);
@@ -123,7 +123,7 @@ class GenerateSampleAssetsCommand extends Command
             $fpdf->Ln(10);
 
             $fpdf->SetFont('Helvetica', '', 9);
-            $fpdf->MultiCell(0, 6, utf8_decode("Tous droits réservés © L'Étoile du Matin — Diffusion autorisée uniquement sous licence personnelle certifiée."));
+            $fpdf->MultiCell(0, 6, utf8_decode('Tous droits réservés © NSOROMMA — Diffusion autorisée uniquement sous licence personnelle certifiée.'));
             $fpdf->Output('F', $pdfFullPath);
 
             $book->pdf_path = $pdfRelPath;

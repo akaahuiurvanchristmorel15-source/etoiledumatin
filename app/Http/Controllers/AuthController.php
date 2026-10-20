@@ -32,7 +32,7 @@ class AuthController extends Controller
 
             AuditLog::log(Auth::id(), 'user_logged_in');
 
-            if (Auth::user()->isAdmin() || Auth::user()->isManager() || Auth::user()->isLogistics()) {
+            if (Auth::user()->isStaff()) {
                 return redirect()->intended(route('admin.dashboard'));
             }
 

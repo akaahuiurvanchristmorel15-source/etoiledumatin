@@ -4,8 +4,10 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'Librairie L\'Étoile du Matin — Spiritualité, Philosophie & Savoirs Africains')</title>
+    <title>@yield('title', 'Librairie L\'NSOROMMA — Spiritualité, Philosophie & Savoirs Africains')</title>
     <meta name="description" content="@yield('meta_description', 'Librairie en ligne panafricaine spécialisée en spiritualité africaine, philosophie, religion et politique. Achat de livres en téléchargement PDF immédiat ou livraison de livres physiques.')">
+
+    <link rel="icon" type="image/png" href="{{ asset('images/brand/favicon.png') }}">
 
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -99,12 +101,7 @@
             <div class="broks-footer-grid">
                 <!-- Colonne 1 : La Maison & Vocation -->
                 <div>
-                    <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem;">
-                        <span class="logo-star" style="font-size: 1.25rem;">★</span>
-                        <span class="font-editorial" style="font-weight: 800; font-size: 1.15rem; color: #1E1D1B; letter-spacing: 0.08em;">
-                            L'ÉTOILE DU MATIN
-                        </span>
-                    </div>
+                    <img src="{{ asset('images/brand/nsoromma-logo.png') }}" alt="NSOROMMA" width="96" height="114" style="width: 96px; height: auto; margin-bottom: 1rem;">
                     <p style="font-size: 0.84rem; line-height: 1.6; color: #767067; margin-bottom: 1.2rem;">
                         Maison d'édition et librairie panafricaine dédiée à la transmission, l'éveil des consciences, la spiritualité et les sagesses du monde noir.
                     </p>
@@ -115,7 +112,7 @@
             <div class="broks-footer-bottom">
                 <div style="display: flex; flex-direction: column; gap: 0.35rem;">
                     <div>
-                        © {{ date('Y') }} L'ÉTOILE DU MATIN — Tous droits réservés.
+                        © {{ date('Y') }} NSOROMMA — Tous droits réservés.
                     </div>
                 </div>
             </div>

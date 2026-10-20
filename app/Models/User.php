@@ -51,6 +51,17 @@ class User extends Authenticatable
         return $this->isAdmin() || $this->isManager() || $this->isLogistics();
     }
 
+    public function roleLabel(): string
+    {
+        return match ($this->role) {
+            'super_admin' => 'Super administrateur',
+            'admin' => 'Administrateur',
+            'manager' => 'Gestionnaire catalogue',
+            'logistics' => 'Logistique',
+            default => 'Client',
+        };
+    }
+
     public function orders(): HasMany
     {
         return $this->hasMany(Order::class);

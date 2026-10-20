@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'Finaliser votre commande — L\'Étoile du Matin')
+@section('title', 'Finaliser votre commande — L\'NSOROMMA')
 @section('meta_description', 'Renseignez vos coordonnées pour le paiement sécurisé de vos livres.')
 
 @push('styles')
@@ -180,7 +180,7 @@
                     </button>
 
                     <p style="font-size: 0.72rem; color: #8B857C; text-align: center; margin-top: 1rem; line-height: 1.4;">
-                        En validant, vous acceptez les conditions de diffusion et de licence de L'Étoile du Matin.
+                        En validant, vous acceptez les conditions de diffusion et de licence de NSOROMMA.
                     </p>
                 </div>
 

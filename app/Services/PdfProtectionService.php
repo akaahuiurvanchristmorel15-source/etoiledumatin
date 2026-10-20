@@ -70,7 +70,7 @@ class PdfProtectionService
                     $pdf->SetXY(10, 5);
                     $pdf->SetFont('Helvetica', '', 7);
                     $pdf->SetTextColor(160, 160, 160);
-                    $pdf->Cell(0, 5, utf8_decode("Librairie L'Étoile du Matin — Édition numérique certifiée"), 0, 0, 'R');
+                    $pdf->Cell(0, 5, utf8_decode('Librairie NSOROMMA — Édition numérique certifiée'), 0, 0, 'R');
                 }
             } else {
                 // Génération d'un document complet représentatif
@@ -90,7 +90,7 @@ class PdfProtectionService
 
                 $pdf->SetFont('Helvetica', '', 10);
                 $pdf->SetTextColor(51, 65, 85);
-                $notice = "Cet ouvrage numérique vous a été délivré par la librairie en ligne « L'Étoile du matin ».\n\n"
+                $notice = "Cet ouvrage numérique vous a été délivré par la librairie en ligne « NSOROMMA ».\n\n"
                     ."Résumé de l'œuvre :\n".$book->description."\n\n"
                     ."Extrait sélectionné :\n".($book->excerpt ?: 'Consultez les écrits et sagesses ancestrales dans cette édition originale.')."\n\n"
                     .'Rappel légal : Conformément au Code de la propriété intellectuelle et aux conditions générales de vente, '
@@ -124,7 +124,7 @@ class PdfProtectionService
             ? Storage::disk('local')->path($relativePath)
             : null;
 
-        $watermarkText = 'EXTRAIT SPÉCIMEN — APERÇU LIMITÉ — L\'ÉTOILE DU MATIN';
+        $watermarkText = 'EXTRAIT SPÉCIMEN — APERÇU LIMITÉ — L\'NSOROMMA';
         $filename = 'extrait-'.Str::slug($book->title).'.pdf';
 
         return response()->stream(function () use ($sourceFullPath, $book, $watermarkText) {
@@ -163,7 +163,7 @@ class PdfProtectionService
                 $pdf->SetFont('Helvetica', 'B', 11);
                 $pdf->SetTextColor(190, 140, 50);
                 $pdf->SetXY(20, 25);
-                $pdf->Cell(0, 8, utf8_decode("LIBRAIRIE ÉDITIONS L'ÉTOILE DU MATIN"), 0, 1, 'C');
+                $pdf->Cell(0, 8, utf8_decode('LIBRAIRIE ÉDITIONS NSOROMMA'), 0, 1, 'C');
 
                 $pdf->SetFont('Helvetica', 'B', 20);
                 $pdf->SetTextColor(30, 29, 27);

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\BookRequest;
 use App\Models\AuditLog;
 use App\Models\Book;
 use App\Models\Category;
@@ -14,6 +15,18 @@ use Illuminate\Support\Str;
 
 class BookController extends Controller
 {
+    /**
+     * Champs fichier du formulaire : [colonne en base, dossier, disque, préfixe public].
+     *
+     * @var array<string, array{0: string, 1: string, 2: string, 3: string}>
+     */
+    protected const FILE_FIELDS = [
+        'cover_file' => ['cover_image', 'covers', 'public', 'storage/'],
+        'pdf_file' => ['pdf_path', 'books', 'local', ''],
+        'audio_file' => ['audio_path', 'audiobooks', 'local', ''],
+        'audio_sample_file' => ['audio_sample_path', 'audio_samples', 'public', 'storage/'],
+    ];
+
     public function index(Request $request): View
     {
         $query = Book::with('category');
@@ -27,6 +40,12 @@ class BookController extends Controller
             $query->where('category_id', $request->query('category_id'));
         }
 
+        if ($request->query('visibility') === 'active') {
+            $query->where('is_active', true);
+        } elseif ($request->query('visibility') === 'hidden') {
+            $query->where('is_active', false);
+        }
+
         $books = $query->latest()->paginate(15)->withQueryString();
         $categories = Category::orderBy('name')->get();
 
@@ -37,72 +56,15 @@ class BookController extends Controller
     {
         $categories = Category::orderBy('name')->get();
 
-        return view('admin.books.create', compact('categories'));
+        return view('admin.books.create', ['book' => new Book, 'categories' => $categories]);
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(BookRequest $request): RedirectResponse
     {
-        $validated = $request->validate([
-            'category_id' => ['required', 'exists:categories,id'],
-            'title' => ['required', 'string', 'max:255'],
-            'author' => ['required', 'string', 'max:255'],
-            'publisher' => ['nullable', 'string', 'max:255'],
-            'language' => ['required', 'string', 'max:50'],
-            'pages_count' => ['nullable', 'integer', 'min:1'],
-            'published_year' => ['nullable', 'integer', 'min:1800', 'max:'.(date('Y') + 1)],
-            'isbn' => ['nullable', 'string', 'max:50'],
-            'description' => ['required', 'string'],
-            'excerpt' => ['nullable', 'string'],
-            'weight_grams' => ['required', 'integer', 'min:50'],
-            'price_pdf' => ['required', 'integer', 'min:0'],
-            'price_physical' => ['required', 'integer', 'min:0'],
-            'price_audio' => ['nullable', 'integer', 'min:0'],
-            'stock_physical' => ['required', 'integer', 'min:0'],
-            'audio_duration' => ['nullable', 'string', 'max:50'],
-            'is_pdf_available' => ['boolean'],
-            'is_physical_available' => ['boolean'],
-            'is_audio_available' => ['boolean'],
-            'is_featured' => ['boolean'],
-            'is_active' => ['boolean'],
-            'cover_file' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:4096'],
-            'pdf_file' => ['nullable', 'file', 'mimes:pdf', 'max:51200'],
-            'audio_file' => ['nullable', 'file', 'mimes:mp3,wav,ogg,m4a,aac', 'max:102400'],
-            'audio_sample_file' => ['nullable', 'file', 'mimes:mp3,wav,ogg,m4a,aac', 'max:20480'],
-        ]);
+        $data = $this->bookAttributes($request);
+        $data['slug'] = Str::slug($data['title']).'-'.Str::lower(Str::random(4));
 
-        $validated['slug'] = Str::slug($validated['title']).'-'.Str::random(4);
-        $validated['price_audio'] = (int) ($validated['price_audio'] ?? 0);
-        $validated['is_pdf_available'] = $request->boolean('is_pdf_available');
-        $validated['is_physical_available'] = $request->boolean('is_physical_available');
-        $validated['is_audio_available'] = $request->boolean('is_audio_available');
-        $validated['is_featured'] = $request->boolean('is_featured');
-        $validated['is_active'] = $request->boolean('is_active', true);
-
-        // Upload Couverture dans storage public
-        if ($request->hasFile('cover_file')) {
-            $path = $request->file('cover_file')->store('covers', 'public');
-            $validated['cover_image'] = 'storage/'.$path;
-        }
-
-        // Upload PDF dans storage privé
-        if ($request->hasFile('pdf_file')) {
-            $path = $request->file('pdf_file')->store('books', 'local');
-            $validated['pdf_path'] = $path;
-        }
-
-        // Upload Audio complet dans storage privé
-        if ($request->hasFile('audio_file')) {
-            $path = $request->file('audio_file')->store('audiobooks', 'local');
-            $validated['audio_path'] = $path;
-        }
-
-        // Upload Extrait Audio dans storage public
-        if ($request->hasFile('audio_sample_file')) {
-            $path = $request->file('audio_sample_file')->store('audio_samples', 'public');
-            $validated['audio_sample_path'] = 'storage/'.$path;
-        }
-
-        $book = Book::create($validated);
+        $book = Book::create($data);
 
         AuditLog::log(auth()->id(), 'book_created', ['book_id' => $book->id, 'title' => $book->title]);
 
@@ -116,63 +78,13 @@ class BookController extends Controller
         return view('admin.books.edit', compact('book', 'categories'));
     }
 
-    public function update(Request $request, Book $book): RedirectResponse
+    public function update(BookRequest $request, Book $book): RedirectResponse
     {
-        $validated = $request->validate([
-            'category_id' => ['required', 'exists:categories,id'],
-            'title' => ['required', 'string', 'max:255'],
-            'author' => ['required', 'string', 'max:255'],
-            'publisher' => ['nullable', 'string', 'max:255'],
-            'language' => ['required', 'string', 'max:50'],
-            'pages_count' => ['nullable', 'integer', 'min:1'],
-            'published_year' => ['nullable', 'integer', 'min:1800', 'max:'.(date('Y') + 1)],
-            'isbn' => ['nullable', 'string', 'max:50'],
-            'description' => ['required', 'string'],
-            'excerpt' => ['nullable', 'string'],
-            'weight_grams' => ['required', 'integer', 'min:50'],
-            'price_pdf' => ['required', 'integer', 'min:0'],
-            'price_physical' => ['required', 'integer', 'min:0'],
-            'price_audio' => ['nullable', 'integer', 'min:0'],
-            'stock_physical' => ['required', 'integer', 'min:0'],
-            'audio_duration' => ['nullable', 'string', 'max:50'],
-            'cover_file' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:4096'],
-            'pdf_file' => ['nullable', 'file', 'mimes:pdf', 'max:51200'],
-            'audio_file' => ['nullable', 'file', 'mimes:mp3,wav,ogg,m4a,aac', 'max:102400'],
-            'audio_sample_file' => ['nullable', 'file', 'mimes:mp3,wav,ogg,m4a,aac', 'max:20480'],
-        ]);
-
-        $validated['price_audio'] = (int) ($validated['price_audio'] ?? 0);
-        $validated['is_pdf_available'] = $request->boolean('is_pdf_available');
-        $validated['is_physical_available'] = $request->boolean('is_physical_available');
-        $validated['is_audio_available'] = $request->boolean('is_audio_available');
-        $validated['is_featured'] = $request->boolean('is_featured');
-        $validated['is_active'] = $request->boolean('is_active');
-
-        if ($request->hasFile('cover_file')) {
-            $path = $request->file('cover_file')->store('covers', 'public');
-            $validated['cover_image'] = 'storage/'.$path;
-        }
-
-        if ($request->hasFile('pdf_file')) {
-            $path = $request->file('pdf_file')->store('books', 'local');
-            $validated['pdf_path'] = $path;
-        }
-
-        if ($request->hasFile('audio_file')) {
-            $path = $request->file('audio_file')->store('audiobooks', 'local');
-            $validated['audio_path'] = $path;
-        }
-
-        if ($request->hasFile('audio_sample_file')) {
-            $path = $request->file('audio_sample_file')->store('audio_samples', 'public');
-            $validated['audio_sample_path'] = 'storage/'.$path;
-        }
-
-        $book->update($validated);
+        $book->update($this->bookAttributes($request, $book));
 
         AuditLog::log(auth()->id(), 'book_updated', ['book_id' => $book->id, 'title' => $book->title]);
 
-        return redirect()->route('admin.books.index')->with('success', "Le livre « {$book->title} » a été mis à jour.");
+        return redirect()->route('admin.books.edit', $book)->with('success', "Le livre « {$book->title} » a été mis à jour.");
     }
 
     public function destroy(Book $book): RedirectResponse
@@ -182,6 +94,30 @@ class BookController extends Controller
 
         AuditLog::log(auth()->id(), 'book_deleted', ['title' => $title]);
 
-        return redirect()->route('admin.books.index')->with('success', "Le livre « {$title} » a été supprimé.");
+        return redirect()->route('admin.books.index')->with('success', "Le livre « {$title} » a été retiré du catalogue.");
+    }
+
+    /**
+     * Données validées + chemins des fichiers envoyés (les anciens fichiers remplacés sont supprimés).
+     *
+     * @return array<string, mixed>
+     */
+    protected function bookAttributes(BookRequest $request, ?Book $book = null): array
+    {
+        $data = collect($request->validated())->except(array_keys(self::FILE_FIELDS))->all();
+
+        foreach (self::FILE_FIELDS as $field => [$column, $directory, $disk, $publicPrefix]) {
+            if (! $request->hasFile($field)) {
+                continue;
+            }
+
+            $data[$column] = $publicPrefix.$request->file($field)->store($directory, $disk);
+
+            if ($book?->{$column}) {
+                Storage::disk($disk)->delete(Str::after($book->{$column}, $publicPrefix));
+            }
+        }
+
+        return $data;
     }
 }

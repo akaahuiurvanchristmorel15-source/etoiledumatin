@@ -1,9 +1,12 @@
 <?php
 
 use App\Http\Controllers\Admin\BookController as AdminBookController;
+use App\Http\Controllers\Admin\CategoryController as AdminCategoryController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\OrderController as AdminOrderController;
 use App\Http\Controllers\Admin\ReviewController as AdminReviewController;
+use App\Http\Controllers\Admin\SettingsController as AdminSettingsController;
+use App\Http\Controllers\Admin\TeamController as AdminTeamController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\CatalogController;
@@ -89,27 +92,48 @@ Route::post('/deconnexion', [AuthController::class, 'logout'])->name('logout');
 Route::prefix('admin')->name('admin.')->middleware('admin')->group(function () {
     Route::get('/', [AdminDashboardController::class, 'index'])->name('dashboard');
 
-    // Livres
-    Route::resource('livres', AdminBookController::class)
-        ->parameters(['livres' => 'book'])
-        ->names([
-            'index' => 'books.index',
-            'create' => 'books.create',
-            'store' => 'books.store',
-            'edit' => 'books.edit',
-            'update' => 'books.update',
-            'destroy' => 'books.destroy',
-        ])
-        ->except(['show']);
+    // Catalogue : livres, catégories & avis (gestionnaires et administrateurs)
+    Route::middleware('can:manage-catalog')->group(function () {
+        Route::resource('livres', AdminBookController::class)
+            ->parameters(['livres' => 'book'])
+            ->names([
+                'index' => 'books.index',
+                'create' => 'books.create',
+                'store' => 'books.store',
+                'edit' => 'books.edit',
+                'update' => 'books.update',
+                'destroy' => 'books.destroy',
+            ])
+            ->except(['show']);
 
-    // Commandes & Expéditions
-    Route::get('/commandes', [AdminOrderController::class, 'index'])->name('orders.index');
-    Route::get('/commandes/export/csv', [AdminOrderController::class, 'exportCsv'])->name('orders.export-csv');
-    Route::get('/commandes/{order}', [AdminOrderController::class, 'show'])->name('orders.show');
-    Route::post('/commandes/{order}/statut-expedition', [AdminOrderController::class, 'updateShipping'])->name('orders.update-shipping');
+        Route::resource('categories', AdminCategoryController::class)->except(['show']);
 
-    // Modération des avis
-    Route::get('/avis', [AdminReviewController::class, 'index'])->name('reviews.index');
-    Route::post('/avis/{review}/approuver', [AdminReviewController::class, 'approve'])->name('reviews.approve');
-    Route::delete('/avis/{review}', [AdminReviewController::class, 'destroy'])->name('reviews.destroy');
+        Route::get('/avis', [AdminReviewController::class, 'index'])->name('reviews.index');
+        Route::post('/avis/{review}/approuver', [AdminReviewController::class, 'approve'])->name('reviews.approve');
+        Route::post('/avis/{review}/masquer', [AdminReviewController::class, 'hide'])->name('reviews.hide');
+        Route::delete('/avis/{review}', [AdminReviewController::class, 'destroy'])->name('reviews.destroy');
+    });
+
+    // Commandes & Expéditions (logistique et administrateurs)
+    Route::middleware('can:manage-orders')->group(function () {
+        Route::get('/commandes', [AdminOrderController::class, 'index'])->name('orders.index');
+        Route::get('/commandes/export/csv', [AdminOrderController::class, 'exportCsv'])->name('orders.export-csv');
+        Route::get('/commandes/{order}', [AdminOrderController::class, 'show'])->name('orders.show');
+        Route::post('/commandes/{order}/statut-expedition', [AdminOrderController::class, 'updateShipping'])->name('orders.update-shipping');
+    });
+
+    // Paramètres : profil pour tout le personnel, boutique & équipe pour les administrateurs
+    Route::get('/parametres', [AdminSettingsController::class, 'profile'])->name('settings.profile');
+    Route::put('/parametres/profil', [AdminSettingsController::class, 'updateProfile'])->name('settings.profile.update');
+    Route::put('/parametres/mot-de-passe', [AdminSettingsController::class, 'updatePassword'])->name('settings.password.update');
+
+    Route::middleware('can:manage-store')->group(function () {
+        Route::get('/parametres/livraison', [AdminSettingsController::class, 'shipping'])->name('settings.shipping');
+        Route::put('/parametres/livraison', [AdminSettingsController::class, 'updateShipping'])->name('settings.shipping.update');
+
+        Route::get('/parametres/equipe', [AdminTeamController::class, 'index'])->name('settings.team');
+        Route::post('/parametres/equipe', [AdminTeamController::class, 'store'])->name('settings.team.store');
+        Route::put('/parametres/equipe/{member}', [AdminTeamController::class, 'update'])->name('settings.team.update');
+        Route::delete('/parametres/equipe/{member}', [AdminTeamController::class, 'destroy'])->name('settings.team.destroy');
+    });
 });
