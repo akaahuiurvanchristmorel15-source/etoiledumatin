@@ -9,6 +9,9 @@
 
     <link rel="icon" type="image/png" href="{{ asset('images/brand/favicon.png') }}">
 
+    {{-- Masque les éléments Alpine (menus, recherche, tiroirs) tant qu'Alpine n'est pas initialisé --}}
+    <style>[x-cloak] { display: none !important; }</style>
+
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

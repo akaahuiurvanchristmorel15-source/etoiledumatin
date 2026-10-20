@@ -80,6 +80,15 @@ class StorefrontPagesTest extends TestCase
         $this->assertDatabaseHas('shipping_addresses', ['city' => 'Bouaké', 'delivery_zone' => 'interior']);
     }
 
+    public function test_alpine_overlays_are_hidden_until_alpine_starts(): void
+    {
+        $content = $this->get(route('home'))->assertOk()->getContent();
+
+        $this->assertStringContainsString('[x-cloak] { display: none !important; }', $content);
+        $this->assertMatchesRegularExpression('/x-show="searchModalOpen"\s+x-cloak/', $content);
+        $this->assertMatchesRegularExpression('/x-show="mobileMenuOpen"\s+x-cloak/', $content);
+    }
+
     public function test_login_and_register_pages_render(): void
     {
         $this->get(route('login'))->assertOk()->assertSee('Connexion')->assertSee('name="remember"', false);
