@@ -42,7 +42,7 @@
 
         arrows.forEach(function (arrow) {
             arrow.addEventListener('click', function () {
-                row.scrollBy({ left: Number(arrow.dataset.scroll) * row.clientWidth * 0.8, behavior: 'smooth' });
+                row.scrollBy({ left: Number(arrow.dataset.scroll) * row.clientWidth, behavior: 'smooth' });
             });
         });
 

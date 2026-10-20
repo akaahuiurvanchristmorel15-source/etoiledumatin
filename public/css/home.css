@@ -3,7 +3,15 @@
    Livres posés sur des étagères en plexiglas coloré, animations douces.
    ========================================================================== */
 
-.home-page .library-container { background: #F3F2EF; }
+body.broks-page.home-page { padding: 0 !important; background: #F3F2EF !important; }
+.home-page .library-container {
+    max-width: none;
+    min-height: 100vh;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    background: #F3F2EF;
+}
 
 .home {
     --ink: #151514;
@@ -54,9 +62,9 @@
 .home-search button:hover { background: #33322F; }
 
 /* ---------- Étagère ---------- */
-.shelf { max-width: 1120px; margin: 0 auto 3.25rem; }
+.shelf { --books-per-view: 4; --book-gap: clamp(1.5rem, 3vw, 3rem); max-width: 1280px; margin: 0 auto 4rem; }
 .shelf-head { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 1rem; padding: 0 .25rem; }
-.shelf-title { margin: 0; font-size: 1.05rem; font-weight: 600; letter-spacing: -.01em; }
+.shelf-title { margin: 0; font-size: clamp(1.05rem, 1.4vw, 1.3rem); font-weight: 600; letter-spacing: -.01em; }
 .shelf-title a { color: inherit; text-decoration: none; }
 .shelf-title a:hover { text-decoration: underline; text-underline-offset: 3px; }
 .shelf-meta { display: flex; align-items: center; gap: .35rem; }
@@ -74,17 +82,17 @@
 .shelf-stage { position: relative; }
 .shelf-row {
     list-style: none; margin: 0;
-    display: flex; gap: clamp(1rem, 2.2vw, 1.75rem);
-    padding: 1.5rem 2.25rem 2.1rem;
+    display: flex; gap: var(--book-gap);
+    padding: 2rem clamp(1.5rem, 3.5vw, 3.5rem) 2.6rem;
     overflow-x: auto; scroll-snap-type: x mandatory; scroll-behavior: smooth;
-    scroll-padding-inline: 2.25rem;
+    scroll-padding-inline: clamp(1.5rem, 3.5vw, 3.5rem);
     scrollbar-width: none;
 }
 .shelf-row::-webkit-scrollbar { display: none; }
 
 .shelf-book {
-    flex: 0 0 auto; scroll-snap-align: start;
-    width: clamp(108px, 14vw, 148px);
+    flex: 0 0 calc((100% - (var(--books-per-view) - 1) * var(--book-gap)) / var(--books-per-view));
+    scroll-snap-align: start;
     opacity: 0; transform: translateY(40px);
 }
 .shelf.is-visible .shelf-book { animation: book-in .7s cubic-bezier(.2, .8, .2, 1) forwards; animation-delay: calc(200ms + var(--i) * 60ms); }
@@ -107,7 +115,7 @@
     width: max-content; max-width: 92%;
     padding: .45rem .7rem; border-radius: 10px;
     background: var(--ink); color: #fff; text-align: center;
-    font-size: .74rem; line-height: 1.35;
+    font-size: .8rem; line-height: 1.35;
     opacity: 0; pointer-events: none;
     transform: translate(-50%, 6px);
     transition: opacity .25s, transform .25s;
@@ -120,7 +128,7 @@
 .shelf-board {
     --board: 245, 158, 11;
     position: absolute; left: 0; right: 0; bottom: .9rem; z-index: 2;
-    height: clamp(44px, 5.5vw, 60px);
+    height: clamp(52px, 6vw, 78px);
     border-radius: 6px;
     background: linear-gradient(180deg, rgba(var(--board), .78), rgba(var(--board), .9));
     border-top: 1px solid rgba(255, 255, 255, .55);
@@ -135,7 +143,7 @@
 }
 .shelf.is-visible .shelf-board { animation: board-in .8s cubic-bezier(.2, .8, .2, 1) forwards; }
 .shelf-screw {
-    width: 11px; height: 11px; border-radius: 50%;
+    width: 13px; height: 13px; border-radius: 50%;
     background: radial-gradient(circle at 35% 35%, #fff, #C9CCD1 55%, #8D9197);
     box-shadow: 0 1px 2px rgba(0, 0, 0, .3);
 }
@@ -175,9 +183,13 @@
 @keyframes cta-in { to { transform: translate(-50%, 0); } }
 
 /* ---------- Responsive ---------- */
+@media (max-width: 1024px) {
+    .shelf { --books-per-view: 3; }
+}
+
 @media (max-width: 768px) {
-    /* La barre d'onglets mobile (≈66px) occupe le bas de l'écran */
-    .home-cta { bottom: calc(66px + .85rem + env(safe-area-inset-bottom, 0px)); }
+    /* La barre d'onglets mobile flottante (62px + 12px de marge) occupe le bas de l'écran */
+    .home-cta { bottom: calc(74px + .85rem + env(safe-area-inset-bottom, 0px)); }
     .home { padding-bottom: 9rem; }
 }
 
@@ -186,7 +198,7 @@
     .home-hero { margin-bottom: 2.5rem; }
     .home-subtitle { font-size: .92rem; }
     .home-search button { padding: .65rem 1rem; }
-    .shelf { margin-bottom: 2.5rem; }
+    .shelf { --books-per-view: 2.3; --book-gap: 1rem; margin-bottom: 2.5rem; }
     .shelf-row { padding: 1.25rem 1.25rem 1.9rem; scroll-padding-inline: 1.25rem; }
     .shelf-board { padding: 0 .8rem; }
     .shelf-book-caption { display: none; }

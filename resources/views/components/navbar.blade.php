@@ -405,66 +405,37 @@
        4. BARRE DE NAVIGATION INFÉRIEURE FLOTTANTE (MOBILE < 768px)
        ========================================================================= -->
     <nav class="mobile-bottom-bar" aria-label="Navigation rapide mobile">
-        <div class="mobile-bottom-grid">
-            
-            <!-- Accueil -->
-            <a href="{{ route('home') }}" class="mobile-bottom-item {{ $isHome ? 'active' : '' }}">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-                    <polyline points="9 22 9 12 15 12 15 22"></polyline>
-                </svg>
-                <span>Accueil</span>
+        <div class="tabbar-pill">
+            <a href="{{ route('home') }}" class="tabbar-item {{ $isHome ? 'active' : '' }}" aria-label="Accueil" @if($isHome) aria-current="page" @endif>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M11.3 2.6a1.1 1.1 0 0 1 1.4 0l8 6.6c.2.2.4.5.4.8V20a1.5 1.5 0 0 1-1.5 1.5H15a.5.5 0 0 1-.5-.5v-5a1.5 1.5 0 0 0-1.5-1.5h-2A1.5 1.5 0 0 0 9.5 16v5a.5.5 0 0 1-.5.5H4.4A1.5 1.5 0 0 1 2.9 20v-10c0-.3.1-.6.4-.8z"/></svg>
             </a>
 
-            <!-- Catalogue -->
-            <a href="{{ route('catalog.index') }}" class="mobile-bottom-item {{ $isCatalog ? 'active' : '' }}">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                    <rect x="3" y="3" width="7" height="7"></rect>
-                    <rect x="14" y="3" width="7" height="7"></rect>
-                    <rect x="14" y="14" width="7" height="7"></rect>
-                    <rect x="3" y="14" width="7" height="7"></rect>
-                </svg>
-                <span>Catalogue</span>
+            <a href="{{ route('catalog.index') }}" class="tabbar-item {{ $isCatalog ? 'active' : '' }}" aria-label="Catalogue" @if($isCatalog) aria-current="page" @endif>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="3" y="3" width="8" height="8" rx="2.2"/><rect x="13" y="3" width="8" height="8" rx="2.2"/><rect x="3" y="13" width="8" height="8" rx="2.2"/><rect x="13" y="13" width="8" height="8" rx="2.2"/></svg>
             </a>
 
-            <!-- Panier -->
-            <a href="{{ route('cart.index') }}" class="mobile-bottom-item {{ $isCart ? 'active' : '' }}">
-                <div style="position: relative; display: inline-flex;">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"></path>
-                        <path d="M3 6h18"></path>
-                        <path d="M16 10a4 4 0 0 1-8 0"></path>
-                    </svg>
-                    @if($cartCount > 0)
-                        <span style="position: absolute; top: -6px; right: -8px; background: #D9AE5C; color: #191919; font-size: 0.6rem; font-weight: 800; min-width: 16px; height: 16px; border-radius: 8px; display: flex; align-items: center; justify-content: center; border: 1.5px solid #FFFDF9;">
-                            {{ $cartCount }}
-                        </span>
-                    @endif
-                </div>
-                <span>Panier</span>
+            <a href="{{ route('cart.index') }}" class="tabbar-item {{ $isCart ? 'active' : '' }}" aria-label="Panier{{ $cartCount > 0 ? ' ('.$cartCount.' article'.($cartCount > 1 ? 's' : '').')' : '' }}" @if($isCart) aria-current="page" @endif>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7.5 7V6.5a4.5 4.5 0 0 1 9 0V7h2.1c.8 0 1.4.6 1.5 1.4l.9 11.2a1.8 1.8 0 0 1-1.8 1.9H4.8A1.8 1.8 0 0 1 3 19.6l.9-11.2C4 7.6 4.6 7 5.4 7zm2 0h5v-.5a2.5 2.5 0 0 0-5 0z"/></svg>
+                @if($cartCount > 0)
+                    <span class="tabbar-badge" aria-hidden="true">{{ $cartCount }}</span>
+                @endif
             </a>
 
-            <!-- Bibliothèque / Compte -->
             @auth
-                <a href="{{ route('library.index') }}" class="mobile-bottom-item {{ $isLibrary ? 'active' : '' }}">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"></path>
-                        <path d="M6 6h10"></path>
-                        <path d="M6 10h10"></path>
-                    </svg>
-                    <span>Lectures</span>
+                <a href="{{ route('library.index') }}" class="tabbar-item {{ $isLibrary ? 'active' : '' }}" aria-label="Ma bibliothèque" @if($isLibrary) aria-current="page" @endif>
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="7.5" r="4.5"/><path d="M3.5 20.2c0-3.6 3.8-6.2 8.5-6.2s8.5 2.6 8.5 6.2c0 .7-.6 1.3-1.3 1.3H4.8c-.7 0-1.3-.6-1.3-1.3"/></svg>
                 </a>
             @else
-                <a href="{{ route('login') }}" class="mobile-bottom-item {{ request()->routeIs('login') ? 'active' : '' }}">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
-                        <circle cx="12" cy="7" r="4"></circle>
-                    </svg>
-                    <span>Connexion</span>
+                <a href="{{ route('login') }}" class="tabbar-item {{ request()->routeIs('login', 'register') ? 'active' : '' }}" aria-label="Connexion" @if(request()->routeIs('login', 'register')) aria-current="page" @endif>
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="7.5" r="4.5"/><path d="M3.5 20.2c0-3.6 3.8-6.2 8.5-6.2s8.5 2.6 8.5 6.2c0 .7-.6 1.3-1.3 1.3H4.8c-.7 0-1.3-.6-1.3-1.3"/></svg>
                 </a>
             @endauth
-
         </div>
+
+        <button type="button" class="tabbar-fab" aria-label="Rechercher un livre"
+                @click="searchModalOpen = true; $nextTick(() => $refs.searchInputModal.focus())">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><line x1="20" y1="20" x2="15.4" y2="15.4"/></svg>
+        </button>
     </nav>
 
     <!-- =========================================================================
