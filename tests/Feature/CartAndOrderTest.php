@@ -4,6 +4,8 @@ namespace Tests\Feature;
 
 use App\Models\Book;
 use App\Models\Order;
+use App\Models\PurchasedDownload;
+use App\Services\OrderService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -23,9 +25,8 @@ class CartAndOrderTest extends TestCase
         $response = $this->get('/');
 
         $response->assertStatus(200);
-        $response->assertSee('BROKS');
-        $response->assertSee('The Last Thing He Told Me');
-        $response->assertSee('Recent Bestsellers');
+        $response->assertSee('Nouveautés');
+        $response->assertSee(Book::active()->latest()->first()->title);
     }
 
     public function test_catalog_displays_books_and_filters(): void
@@ -148,10 +149,10 @@ class CartAndOrderTest extends TestCase
         $this->assertNull($order->shippingAddress);
 
         // Simuler la complétion du paiement
-        $orderService = app(\App\Services\OrderService::class);
+        $orderService = app(OrderService::class);
         $orderService->completeOrderPayment($order, 'PAY_TEST_AUDIO_123', 'paystack_momo');
 
-        $download = \App\Models\PurchasedDownload::where('order_id', $order->id)->first();
+        $download = PurchasedDownload::where('order_id', $order->id)->first();
         $this->assertNotNull($download);
         $this->assertEquals('audio', $download->format);
         $this->assertTrue($download->isAudio());

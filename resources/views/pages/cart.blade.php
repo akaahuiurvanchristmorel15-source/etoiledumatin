@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'Votre Panier — L\'NSOROMMA')
+@section('title', 'Votre Panier — NSOROMMA')
 @section('meta_description', 'Consultez et validez les livres numériques ou physiques de votre panier.')
 
 @push('styles')

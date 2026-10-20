@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'Librairie L\'NSOROMMA — Spiritualité, Philosophie & Savoirs Africains')</title>
+    <title>@yield('title', 'Librairie NSOROMMA — Spiritualité, Philosophie & Savoirs Africains')</title>
     <meta name="description" content="@yield('meta_description', 'Librairie en ligne panafricaine spécialisée en spiritualité africaine, philosophie, religion et politique. Achat de livres en téléchargement PDF immédiat ou livraison de livres physiques.')">
 
     <link rel="icon" type="image/png" href="{{ asset('images/brand/favicon.png') }}">

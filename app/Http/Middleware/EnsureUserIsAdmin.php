@@ -20,7 +20,7 @@ class EnsureUserIsAdmin
         }
 
         if (! auth()->user()->isStaff()) {
-            abort(403, 'Accès réservé au personnel d\'administration de L\'NSOROMMA.');
+            abort(403, 'Accès réservé au personnel d\'administration de NSOROMMA.');
         }
 
         return $next($request);

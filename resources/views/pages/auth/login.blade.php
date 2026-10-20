@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'Connexion — L\'NSOROMMA')
+@section('title', 'Connexion — NSOROMMA')
 @section('meta_description', 'Connectez-vous à votre espace lecteur pour accéder à votre bibliothèque d\'e-books et vos commandes.')
 
 @push('styles')

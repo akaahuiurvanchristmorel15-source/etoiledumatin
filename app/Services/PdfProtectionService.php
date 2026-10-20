@@ -124,7 +124,7 @@ class PdfProtectionService
             ? Storage::disk('local')->path($relativePath)
             : null;
 
-        $watermarkText = 'EXTRAIT SPÉCIMEN — APERÇU LIMITÉ — L\'NSOROMMA';
+        $watermarkText = 'EXTRAIT SPÉCIMEN — APERÇU LIMITÉ — NSOROMMA';
         $filename = 'extrait-'.Str::slug($book->title).'.pdf';
 
         return response()->stream(function () use ($sourceFullPath, $book, $watermarkText) {

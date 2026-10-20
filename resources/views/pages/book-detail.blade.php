@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', $book->title . ' — L\'NSOROMMA')
+@section('title', $book->title . ' — NSOROMMA')
 @section('meta_description', Str::limit(strip_tags($book->description), 160))
 
 @push('styles')

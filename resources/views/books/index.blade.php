@@ -1,199 +1,93 @@
 @extends('layouts.app')
 
-@section('title', 'L\'NSOROMMA — Bibliothèque Numérique & AudioBooks')
-@section('meta_description', 'Explorez la sélection de livres numériques et audiobooks sur la plateforme NSOROMMA.')
-@section('body_class', 'broks-page')
-@section('body_attributes', '')
+@section('title', 'NSOROMMA — Librairie panafricaine : livres papier, PDF & audio')
+@section('meta_description', 'Parcourez les étagères de NSOROMMA : spiritualité, philosophie, religion et savoirs africains en livre papier, e-book PDF et livre audio.')
+@section('body_class', 'broks-page home-page')
 
 @push('styles')
-    <link rel="stylesheet" href="{{ asset('css/books.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/home.css') }}?v={{ filemtime(public_path('css/home.css')) }}">
 @endpush
 
 @push('scripts')
-    <script src="{{ asset('js/books.js') }}" defer></script>
+    <script src="{{ asset('js/home.js') }}?v={{ filemtime(public_path('js/home.js')) }}" defer></script>
 @endpush
 
 @section('content')
+    @php
+        $shelfColors = ['amber', 'sky', 'emerald', 'rose', 'violet'];
+    @endphp
 
-@php
-    $fallbackBestsellers = [
-        ['id' => 1, 'title' => 'Left to Fear', 'author' => 'Adele Parks', 'image' => 'images/books/left-to-fear.jpg', 'price' => 14.99],
-        ['id' => 2, 'title' => 'The Last Thing He Told Me', 'author' => 'Laura Dave', 'image' => 'images/books/the-last-thing-he-told-me.jpg', 'price' => 12.99],
-        ['id' => 3, 'title' => 'Malibu Rising', 'author' => 'Taylor Jenkins Reid', 'image' => 'images/books/malibu-rising.jpg', 'price' => 13.99],
-        ['id' => 4, 'title' => 'Black Ice', 'author' => 'Brad Thor', 'image' => 'images/books/black-ice.jpg', 'price' => 15.99],
-        ['id' => 5, 'title' => 'Blind Tiger', 'author' => 'Sandra Brown', 'image' => 'images/books/blind-tiger.jpg', 'price' => 11.99],
-    ];
-    $displayBestsellers = (isset($bestsellers) && !empty($bestsellers)) ? $bestsellers : $fallbackBestsellers;
-@endphp
-
-    <!-- 2. Section Héro Principale (3 colonnes) -->
-    <section class="hero-section" aria-label="Livre à la une et sélection éditoriale">
-        <span class="sr-only">BROKS</span>
-        <span class="sr-only">The Last Thing He Told Me</span>
-        
-        <!-- Zone Gauche : Titre éditorial & Recherche -->
-        <div class="hero-left">
-            <h1 class="hero-title font-editorial">
-                New &amp;<br>Trending
+    <div class="home">
+        <header class="home-hero">
+            <p class="home-eyebrow reveal" style="--delay: 0ms;">Notre bibliothèque</p>
+            <h1 class="home-title reveal" style="--delay: 80ms;" aria-label="Livres">
+                @foreach(mb_str_split('LIVRES') as $index => $letter)
+                    <span class="home-title-letter" style="--i: {{ $index }};" aria-hidden="true">{{ $letter }}</span>
+                @endforeach
             </h1>
-            <p class="hero-subtitle">
-                Explore new worlds from authors
+            <p class="home-subtitle reveal" style="--delay: 160ms;">
+                Spiritualité, philosophie et savoirs africains — en papier, en PDF ou à écouter.
             </p>
 
-            <!-- Barre de recherche interactive -->
-            <x-search />
-        </div>
+            <form action="{{ route('catalog.index') }}" method="GET" class="home-search reveal" style="--delay: 240ms;" role="search">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                <input type="search" name="search" placeholder="Titre, auteur, thème…" aria-label="Rechercher un livre">
+                <button type="submit">Rechercher</button>
+            </form>
+        </header>
 
-        <!-- Zone Centrale : Livre Vedette avec perspective et ombre réaliste -->
-        <div class="hero-center">
-            @if(isset($featuredBooks) && $featuredBooks->isNotEmpty())
-                @php $featured = $featuredBooks->first(); @endphp
-                <a href="{{ route('catalog.show', $featured->slug) }}" class="featured-book-wrap" title="{{ $featured->title }} par {{ $featured->author }}">
-                    <span class="featured-ribbon">Bestseller</span>
-                    <img 
-                        src="{{ $featured->cover_image ? asset($featured->cover_image) : asset('images/books/fallback-book.jpg') }}" 
-                        alt="Couverture du livre {{ $featured->title }} de {{ $featured->author }}" 
-                        class="featured-book-img"
-                        onerror="this.onerror=null;this.src='{{ asset('images/books/fallback-book.jpg') }}';"
-                    >
-                </a>
-            @else
-                <div class="featured-book-wrap" title="The Last Thing He Told Me par Laura Dave">
-                    <span class="featured-ribbon">Bestseller</span>
-                    <img 
-                        src="{{ asset('images/books/the-last-thing-he-told-me.jpg') }}" 
-                        alt="Couverture du livre The Last Thing He Told Me de Laura Dave" 
-                        class="featured-book-img"
-                        onerror="this.onerror=null;this.src='{{ asset('images/books/fallback-book.jpg') }}';"
-                    >
-                </div>
-            @endif
-        </div>
-
-        <!-- Zone Droite : Panneau Auteur de la semaine & Panneau Lecteur Audio -->
-        <div class="hero-right">
-            
-            <!-- Carte Auteur de la semaine -->
-            <article class="author-card" aria-label="Auteur de la semaine : Stephen King">
-                <div>
-                    <span class="author-label">Author of the week</span>
-                    <h2 class="author-name font-editorial">Stephen King</h2>
-                    <p class="author-count">78 books</p>
-                </div>
-                <img 
-                    src="{{ asset('images/books/stephen-king.jpg') }}" 
-                    alt="Photo portrait de Stephen King" 
-                    class="author-avatar"
-                >
-            </article>
-
-            <!-- Carte Lecteur Audio (Last listened) -->
-            <article class="audio-card" aria-label="Dernière écoute : False Witness">
-                <div class="audio-meta">
-                    <img 
-                        src="{{ asset('images/books/false-witness.jpg') }}" 
-                        alt="Miniature audiobook False Witness" 
-                        class="audio-thumb"
-                        onerror="this.onerror=null;this.src='{{ asset('images/books/fallback-book.jpg') }}';"
-                    >
-                    <div>
-                        <span class="author-label" style="font-size:0.68rem;">Last listened</span>
-                        <h3 class="audio-title">False Witness</h3>
-                        <p class="audio-author">Karin Slaughter</p>
+        @forelse($shelves as $index => $shelf)
+            <section class="shelf shelf-{{ $shelfColors[$index % count($shelfColors)] }}" aria-labelledby="shelf-title-{{ $index }}" data-shelf>
+                <div class="shelf-head">
+                    <h2 class="shelf-title" id="shelf-title-{{ $index }}">
+                        <a href="{{ $shelf['url'] }}">{{ $shelf['title'] }}</a>
+                    </h2>
+                    <div class="shelf-meta">
+                        <a href="{{ $shelf['url'] }}" class="shelf-count">{{ $shelf['count'] }} {{ Str::plural('livre', $shelf['count']) }}</a>
+                        <button type="button" class="shelf-arrow" data-scroll="-1" aria-label="Livres précédents : {{ $shelf['title'] }}">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>
+                        </button>
+                        <button type="button" class="shelf-arrow" data-scroll="1" aria-label="Livres suivants : {{ $shelf['title'] }}">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>
+                        </button>
                     </div>
                 </div>
 
-                <!-- Contrôles audio interactifs -->
-                <div class="audio-controls">
-                    <button type="button" class="play-pause-btn" id="audio-play-btn" aria-label="Lancer la lecture audio">
-                        <!-- Play Icon SVG -->
-                        <svg id="play-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                            <polygon points="5 3 19 12 5 21 5 3"></polygon>
-                        </svg>
-                        <!-- Pause Icon SVG -->
-                        <svg id="pause-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="display:none;">
-                            <rect x="6" y="4" width="4" height="16"></rect>
-                            <rect x="14" y="4" width="4" height="16"></rect>
-                        </svg>
-                    </button>
-
-                    <!-- Barre de progression scrubbable -->
-                    <div class="progress-wrap" id="audio-progress-wrap" role="progressbar" aria-valuemin="0" aria-valuemax="270" aria-valuenow="135" aria-label="Progression de l'audio">
-                        <div class="progress-bar-bg">
-                            <div class="progress-bar-fill" id="audio-progress-fill" style="width: 50%;"></div>
-                        </div>
-                        <div class="time-row">
-                            <span id="audio-current-time">02:15</span>
-                            <span id="audio-total-time">04:30</span>
-                        </div>
+                <div class="shelf-stage">
+                    <ul class="shelf-row" data-shelf-row>
+                        @foreach($shelf['books'] as $bookIndex => $book)
+                            <li class="shelf-book" style="--i: {{ $bookIndex }};">
+                                <a href="{{ route('catalog.show', $book->slug) }}" class="shelf-book-link">
+                                    <img src="{{ $book->cover_image ? asset($book->cover_image) : asset('images/books/fallback-book.jpg') }}"
+                                         alt="{{ $book->title }}, {{ $book->author }}"
+                                         loading="lazy"
+                                         onerror="this.onerror=null;this.src='{{ asset('images/books/fallback-book.jpg') }}';">
+                                    <span class="shelf-book-caption">
+                                        <span class="shelf-book-title">{{ $book->title }}</span>
+                                        <span class="shelf-book-author">{{ $book->author }}</span>
+                                    </span>
+                                </a>
+                            </li>
+                        @endforeach
+                    </ul>
+                    <div class="shelf-board" aria-hidden="true">
+                        <span class="shelf-screw"></span>
+                        <span class="shelf-screw"></span>
                     </div>
                 </div>
-            </article>
-
-        </div>
-
-    </section>
-
-    <!-- 3. Section Bestsellers Récents (Dynamique) -->
-    <section class="bestsellers-section" aria-label="Sélection des meilleures ventes récentes">
-        
-        <!-- Titre vertical éditorial -->
-        <div class="vertical-title-wrap">
-            <h2 class="vertical-title font-editorial">
-                Recent Bestsellers
-            </h2>
-        </div>
-
-        <!-- Rangée de livres avec filtrage dynamique -->
-        <div class="books-row" id="books-grid">
-            @if(isset($latestBooks) && $latestBooks->isNotEmpty())
-                @foreach($latestBooks as $book)
-                    <x-book-card :book="$book" />
-                @endforeach
-            @else
-                @foreach($displayBestsellers as $book)
-                    <x-book-card 
-                        :id="$book['id']"
-                        :title="$book['title']"
-                        :author="$book['author']"
-                        :image="$book['image']"
-                        :price="$book['price']"
-                    />
-                @endforeach
-            @endif
-
-            <!-- Message aucun résultat lors de la recherche -->
-            <div id="no-search-results" style="display:none;grid-column:1/-1;text-align:center;padding:3rem 1rem;color:#8B857C;">
-                <p style="font-size:1.1rem;font-weight:700;margin-bottom:0.5rem;color:#1E1D1B;">Aucun livre trouvé</p>
-                <p style="font-size:0.875rem;">Essayez avec un autre mot-clé (titre ou auteur).</p>
+            </section>
+        @empty
+            <div class="home-empty reveal">
+                <p class="home-empty-title">Les étagères se remplissent bientôt.</p>
+                <p>Aucun livre n'est encore publié dans la boutique.</p>
             </div>
-        </div>
+        @endforelse
+    </div>
 
-    </section>
-
-    <!-- 4. Section Catalogue par Catégories -->
-    @if(isset($categories) && $categories->isNotEmpty())
-        <section style="padding:2rem 3rem 3rem;border-top:1px solid rgba(139,133,124,0.08);" aria-label="Explorer par catégorie">
-            <h2 class="font-editorial" style="font-size:1.4rem;font-weight:800;color:#1E1D1B;margin-bottom:1.5rem;">Explorer par catégorie</h2>
-            <div style="display:grid;grid-template-columns:repeat(auto-fill, minmax(220px, 1fr));gap:1rem;">
-                @foreach($categories as $category)
-                    <a href="{{ route('catalog.index', ['category' => $category->slug]) }}" 
-                       style="display:flex;align-items:center;justify-content:space-between;padding:1rem 1.25rem;background:#F8F1E5;border-radius:14px;border:1px solid rgba(217,174,92,0.15);text-decoration:none;color:#1E1D1B;font-weight:600;font-size:0.88rem;transition:all 0.25s ease;"
-                       onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 6px 16px rgba(60,45,25,0.08)'"
-                       onmouseout="this.style.transform='';this.style.boxShadow=''">
-                        <span>{{ $category->name }}</span>
-                        <span style="background:#D9AE5C;color:#191919;font-size:0.7rem;font-weight:800;padding:2px 8px;border-radius:10px;">{{ $category->books_count }}</span>
-                    </a>
-                @endforeach
-            </div>
-
-            <div style="text-align:center;margin-top:2rem;">
-                <a href="{{ route('catalog.index') }}" style="display:inline-flex;align-items:center;gap:0.5rem;background:#191919;color:#D9AE5C;padding:0.75rem 2rem;border-radius:30px;text-decoration:none;font-size:0.85rem;font-weight:700;transition:all 0.25s ease;" onmouseover="this.style.background='#D9AE5C';this.style.color='#191919'" onmouseout="this.style.background='#191919';this.style.color='#D9AE5C'">
-                    Voir tout le catalogue
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
-                </a>
-            </div>
-        </section>
-    @endif
-
+    <a href="{{ route('catalog.index') }}" class="home-cta" aria-label="Parcourir le catalogue complet{{ $booksCount ? ' ('.$booksCount.' livres)' : '' }}">
+        <span>Parcourir le catalogue</span>
+        @if($booksCount)
+            <span class="home-cta-count">{{ $booksCount }}</span>
+        @endif
+    </a>
 @endsection

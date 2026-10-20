@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'Finaliser votre commande — L\'NSOROMMA')
+@section('title', 'Finaliser votre commande — NSOROMMA')
 @section('meta_description', 'Renseignez vos coordonnées pour le paiement sécurisé de vos livres.')
 
 @push('styles')

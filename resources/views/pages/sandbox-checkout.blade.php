@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Simulation Paiement Paystack — L\'NSOROMMA')
+@section('title', 'Simulation Paiement Paystack — NSOROMMA')
 @section('meta_description', 'Environnement de simulation sécurisé pour les paiements Paystack.')
 
 @push('styles')

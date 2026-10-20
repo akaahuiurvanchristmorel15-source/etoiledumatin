@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'Ma Bibliothèque & Commandes — L\'NSOROMMA')
+@section('title', 'Ma Bibliothèque & Commandes — NSOROMMA')
 @section('meta_description', 'Accédez à vos e-books PDF certifiés et suivez l\'état de vos commandes physiques.')
 
 @push('styles')
