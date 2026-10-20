@@ -12,11 +12,12 @@
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <link rel="stylesheet" href="{{ asset('css/books.css') }}">
     <link rel="stylesheet" href="{{ asset('css/navbar.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/shell.css') }}?v={{ filemtime(public_path('css/shell.css')) }}">
 
     @stack('styles')
 
@@ -96,26 +97,17 @@
             @yield('content')
         </div>
 
-        <!-- 4. Pied de Page Éditorial Chaud Intégré (Style BROKS) -->
-        <footer class="broks-footer" role="contentinfo">
-            <div class="broks-footer-grid">
-                <!-- Colonne 1 : La Maison & Vocation -->
-                <div>
-                    <img src="{{ asset('images/brand/nsoromma-logo.png') }}" alt="NSOROMMA" width="96" height="114" style="width: 96px; height: auto; margin-bottom: 1rem;">
-                    <p style="font-size: 0.84rem; line-height: 1.6; color: #767067; margin-bottom: 1.2rem;">
-                        Maison d'édition et librairie panafricaine dédiée à la transmission, l'éveil des consciences, la spiritualité et les sagesses du monde noir.
-                    </p>
-                </div>
+        <!-- 4. Pied de page -->
+        <footer class="site-footer" role="contentinfo">
+            <div class="site-footer-brand">
+                <img src="{{ asset('images/brand/nsoromma-mark.png') }}" alt="" width="26" height="26">
+                <span>© {{ date('Y') }} NSOROMMA — Librairie panafricaine</span>
             </div>
-
-            <!-- Bas de page légal & Modes de Paiement -->
-            <div class="broks-footer-bottom">
-                <div style="display: flex; flex-direction: column; gap: 0.35rem;">
-                    <div>
-                        © {{ date('Y') }} NSOROMMA — Tous droits réservés.
-                    </div>
-                </div>
-            </div>
+            <nav class="site-footer-links" aria-label="Liens du pied de page">
+                <a href="{{ route('catalog.index') }}">Catalogue</a>
+                <a href="{{ route('orders.lookup') }}">Suivi de commande</a>
+                <a href="https://wa.me/2250700000001" target="_blank" rel="noopener">Assistance</a>
+            </nav>
         </footer>
     </main>
 

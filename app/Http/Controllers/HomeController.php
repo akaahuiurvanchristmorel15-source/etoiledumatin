@@ -17,9 +17,26 @@ class HomeController extends Controller
     public function index(): View
     {
         return view('books.index', [
+            'spotlightBooks' => $this->spotlightBooks(),
             'shelves' => $this->shelves(),
             'booksCount' => Book::active()->count(),
         ]);
+    }
+
+    /**
+     * Livres présentés « à la une » en haut de page : les livres mis en avant, sinon les plus récents.
+     *
+     * @return Collection<int, Book>
+     */
+    protected function spotlightBooks(): Collection
+    {
+        $relations = ['category', 'approvedReviews' => fn ($query) => $query->with('user')->latest()];
+
+        $featured = Book::active()->featured()->with($relations)->latest()->take(5)->get();
+
+        return $featured->isNotEmpty()
+            ? $featured
+            : Book::active()->with($relations)->latest()->take(5)->get();
     }
 
     /**

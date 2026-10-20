@@ -50,4 +50,26 @@
         window.addEventListener('resize', updateArrows);
         updateArrows();
     });
+
+    // Partage d'un livre : partage natif du téléphone, sinon copie du lien
+    document.querySelectorAll('[data-share]').forEach(function (button) {
+        button.addEventListener('click', function () {
+            var url = button.dataset.shareUrl;
+            var label = button.querySelector('[data-share-label]');
+
+            if (navigator.share) {
+                navigator.share({ title: button.dataset.shareTitle, url: url }).catch(function () {});
+                return;
+            }
+
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(url).then(function () {
+                    if (label) {
+                        label.textContent = 'Lien copié';
+                        setTimeout(function () { label.textContent = 'Partager'; }, 2000);
+                    }
+                });
+            }
+        });
+    });
 })();

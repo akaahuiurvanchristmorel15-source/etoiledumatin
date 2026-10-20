@@ -11,204 +11,98 @@
      @keydown.window.escape="mobileMenuOpen = false; searchModalOpen = false; userMenuOpen = false; moreMenuOpen = false">
 
     <!-- =========================================================================
-       1. NAVBAR DESKTOP & TABLETTE (Aesthetic Signature BROKS Épuré)
+       1. NAVIGATION DESKTOP : barre latérale d'icônes + barre supérieure
        ========================================================================= -->
-    <header class="broks-navbar" role="banner">
-        
-        <!-- Logo de Prestige -->
-        <a href="{{ route('home') }}" class="logo-text" aria-label="Accueil NSOROMMA">
-            <x-brand-logo :size="34" name-size="1.15rem" />
+    @php
+        $railItems = [
+            ['url' => route('home'), 'active' => $isHome, 'label' => 'Accueil', 'icon' => '<path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/>'],
+            ['url' => route('catalog.index'), 'active' => $isCatalog, 'label' => 'Catalogue', 'icon' => '<path d="M5 3h11a3 3 0 0 1 3 3v15H8a3 3 0 0 1-3-3z"/><path d="M9 3v18"/>'],
+            ['url' => route('catalog.index', ['format' => 'audio']), 'active' => false, 'label' => 'Livres audio', 'icon' => '<path d="M4 15v-3a8 8 0 0 1 16 0v3"/><rect x="3" y="14" width="4" height="7" rx="1.5"/><rect x="17" y="14" width="4" height="7" rx="1.5"/>'],
+            ['url' => auth()->check() ? route('library.index') : route('login'), 'active' => $isLibrary, 'label' => 'Ma bibliothèque', 'icon' => '<path d="M6 3h12v18l-6-4-6 4z"/>'],
+            ['url' => route('orders.lookup'), 'active' => request()->routeIs('orders.lookup'), 'label' => 'Suivi de commande', 'icon' => '<rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>'],
+        ];
+    @endphp
+
+    <aside class="site-rail" aria-label="Navigation principale">
+        <a href="{{ route('home') }}" class="site-rail-logo" aria-label="Accueil NSOROMMA">
+            <img src="{{ asset('images/brand/nsoromma-mark.png') }}" alt="" width="34" height="34">
         </a>
 
-        <!-- Onglets Centraux (Livre, Livre Audio, Catalogue) -->
-        <nav class="nav-tabs" role="tablist" aria-label="Navigation principale">
-            <a href="{{ route('home') }}" 
-               class="nav-tab {{ $isHome ? 'active' : '' }}" 
-               role="tab" 
-               aria-selected="{{ $isHome ? 'true' : 'false' }}">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"></path>
-                    <path d="M6 6h10"></path>
-                    <path d="M6 10h10"></path>
-                </svg>
-                <span>Livre</span>
-            </a>
-
-            <a href="{{ $isHome ? '#audio' : route('home') . '#audio' }}" 
-               class="nav-tab" 
-               role="tab" 
-               aria-selected="false">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M3 14h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7a9 9 0 0 1 18 0v7a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3"></path>
-                </svg>
-                <span>Livre Audio</span>
-            </a>
-
-            <a href="{{ route('catalog.index') }}" 
-               class="nav-tab {{ $isCatalog ? 'active' : '' }}" 
-               role="tab" 
-               aria-selected="{{ $isCatalog ? 'true' : 'false' }}">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                    <rect x="3" y="3" width="7" height="7"></rect>
-                    <rect x="14" y="3" width="7" height="7"></rect>
-                    <rect x="14" y="14" width="7" height="7"></rect>
-                    <rect x="3" y="14" width="7" height="7"></rect>
-                </svg>
-                <span>Catalogue</span>
-            </a>
+        <nav class="site-rail-nav">
+            @foreach($railItems as $item)
+                <a href="{{ $item['url'] }}" class="site-rail-link {{ $item['active'] ? 'is-active' : '' }}" aria-label="{{ $item['label'] }}" @if($item['active']) aria-current="page" @endif>
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">{!! $item['icon'] !!}</svg>
+                    <span class="site-rail-tip">{{ $item['label'] }}</span>
+                </a>
+            @endforeach
         </nav>
 
-        <!-- Actions Rapides Droite -->
-        <div class="nav-actions">
-            
-            <!-- Bouton Recherche Rapide Modal -->
-            <button type="button" 
-                    class="action-btn" 
-                    @click="searchModalOpen = true; $nextTick(() => $refs.searchInputModal.focus())" 
-                    aria-label="Rechercher un livre" 
-                    title="Recherche instantanée">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                    <circle cx="11" cy="11" r="8"></circle>
-                    <path d="m21 21-4.3-4.3"></path>
-                </svg>
+        <div class="relative site-rail-bottom" @click.outside="moreMenuOpen = false">
+            <button type="button" class="site-rail-menu" @click="moreMenuOpen = !moreMenuOpen" aria-label="Plus d'options" :aria-expanded="moreMenuOpen.toString()">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="16" y2="12"/><line x1="4" y1="17" x2="12" y2="17"/></svg>
             </button>
+            <div x-show="moreMenuOpen" x-cloak x-transition.opacity.duration.150ms class="nav-dropdown site-rail-dropdown" style="display:none;">
+                <a href="{{ route('catalog.index', ['format' => 'pdf']) }}" class="nav-dropdown-item">e-Books PDF</a>
+                <a href="{{ route('catalog.index', ['format' => 'physical']) }}" class="nav-dropdown-item">Livres papier</a>
+                <a href="{{ route('catalog.index', ['format' => 'audio']) }}" class="nav-dropdown-item">Livres audio</a>
+                <div class="nav-dropdown-divider"></div>
+                <a href="{{ route('orders.lookup') }}" class="nav-dropdown-item">Suivi de commande</a>
+                <a href="https://wa.me/2250700000001" target="_blank" rel="noopener" class="nav-dropdown-item">Assistance WhatsApp</a>
+            </div>
+        </div>
+    </aside>
 
-            <!-- Bouton Panier avec Badge Interactif -->
-            <a href="{{ route('cart.index') }}" 
-               class="action-btn" 
-               aria-label="Voir mon panier d'achat" 
-               title="Panier">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"></path>
-                    <path d="M3 6h18"></path>
-                    <path d="M16 10a4 4 0 0 1-8 0"></path>
-                </svg>
-                <span class="cart-badge" id="cart-counter" style="{{ $cartCount > 0 ? '' : 'display:none;' }}">{{ $cartCount }}</span>
+    <header class="site-topbar" role="banner">
+        <form action="{{ route('catalog.index') }}" method="GET" class="site-search" role="search">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+            <input type="search" name="search" value="{{ request()->routeIs('catalog.index') ? request('search') : '' }}" placeholder="Rechercher un livre, un auteur, un thème…" aria-label="Rechercher un livre">
+        </form>
+
+        <div class="site-topbar-actions">
+            <a href="{{ route('cart.index') }}" class="site-icon-btn {{ $isCart ? 'is-active' : '' }}" aria-label="Panier{{ $cartCount > 0 ? ' ('.$cartCount.')' : '' }}">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 7h12l1 13H5z"/><path d="M9 7a3 3 0 0 1 6 0"/></svg>
+                <span class="cart-badge site-cart-badge" id="cart-counter" style="{{ $cartCount > 0 ? '' : 'display:none;' }}">{{ $cartCount }}</span>
             </a>
 
-            <!-- Avatar / Compte Utilisateur avec Menu Déroulant -->
             <div class="relative" @click.outside="userMenuOpen = false">
-                <button type="button" 
-                        class="avatar-circle" 
-                        @click="userMenuOpen = !userMenuOpen" 
-                        aria-label="Espace Lecteur" 
-                        title="{{ auth()->check() ? auth()->user()->name : 'Mon Compte' }}">
-                    <span>{{ auth()->check() ? strtoupper(substr(auth()->user()->name, 0, 2)) : '★' }}</span>
-                </button>
+                @auth
+                    <button type="button" class="site-user" @click="userMenuOpen = !userMenuOpen" :aria-expanded="userMenuOpen.toString()">
+                        <span class="site-user-avatar" aria-hidden="true">{{ mb_strtoupper(mb_substr(auth()->user()->name, 0, 1)) }}</span>
+                        <span class="site-user-name">{{ auth()->user()->name }}</span>
+                    </button>
+                @else
+                    <button type="button" class="site-user" @click="userMenuOpen = !userMenuOpen" :aria-expanded="userMenuOpen.toString()">
+                        <span class="site-user-avatar" aria-hidden="true">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-6 8-6s8 2 8 6"/></svg>
+                        </span>
+                        <span class="site-user-name">Se connecter</span>
+                    </button>
+                @endauth
 
-                <!-- Dropdown Utilisateur -->
-                <div x-show="userMenuOpen" 
-                     x-cloak 
-                     x-transition:enter="transition ease-out duration-150"
-                     x-transition:enter-start="opacity-0 transform scale-95"
-                     x-transition:enter-end="opacity-100 transform scale-100"
-                     x-transition:leave="transition ease-in duration-100"
-                     x-transition:leave-start="opacity-100 transform scale-100"
-                     x-transition:leave-end="opacity-0 transform scale-95"
-                     class="nav-dropdown"
-                     style="display:none;">
-                    
+                <div x-show="userMenuOpen" x-cloak x-transition.opacity.duration.150ms class="nav-dropdown" style="display:none;">
                     @auth
-                        <div style="padding: 0.65rem 1rem 0.75rem; border-bottom: 1px solid rgba(139,133,124,0.12);">
-                            <div style="font-weight: 800; font-size: 0.9rem; color: #1E1D1B;">{{ auth()->user()->name }}</div>
-                            <div style="font-size: 0.75rem; color: #8B857C;">{{ auth()->user()->email }}</div>
-                            <div style="font-size: 0.68rem; font-weight: 800; color: #D9AE5C; text-transform: uppercase; margin-top: 2px;">
-                                Lecteur Privilégié
-                            </div>
+                        <div class="site-dropdown-head">
+                            <div class="site-dropdown-name">{{ auth()->user()->name }}</div>
+                            <div class="site-dropdown-email">{{ auth()->user()->email }}</div>
                         </div>
-
-                        <a href="{{ route('library.index') }}" class="nav-dropdown-item">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
-                            <span>Ma Bibliothèque (e-Books)</span>
-                        </a>
-
-                        @if(auth()->user()->isAdmin() || auth()->user()->isManager() || auth()->user()->isLogistics())
-                            <a href="{{ route('admin.dashboard') }}" class="nav-dropdown-item" style="color:#B3862A; font-weight: 700;">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18"/><path d="m14 9 3 3-3 3"/></svg>
-                                <span>Panneau d'Administration</span>
-                            </a>
+                        <a href="{{ route('library.index') }}" class="nav-dropdown-item">Ma bibliothèque</a>
+                        @if(auth()->user()->isStaff())
+                            <a href="{{ route('admin.dashboard') }}" class="nav-dropdown-item">Administration</a>
                         @endif
-
                         <div class="nav-dropdown-divider"></div>
-
                         <form action="{{ route('logout') }}" method="POST">
                             @csrf
-                            <button type="submit" class="nav-dropdown-item" style="color: #BE123C;">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-                                <span>Déconnexion</span>
-                            </button>
+                            <button type="submit" class="nav-dropdown-item site-dropdown-danger">Déconnexion</button>
                         </form>
                     @else
-                        <div style="padding: 0.5rem 0.75rem 0.75rem; text-align: center;">
-                            <a href="{{ route('login') }}" class="nav-dropdown-item" style="justify-content: center; background: #191919; color: #D9AE5C; border-radius: 12px; margin-bottom: 0.4rem; font-weight: 800;">
-                                <span>Se connecter</span>
-                            </a>
-                            <a href="{{ route('register') }}" class="nav-dropdown-item" style="justify-content: center; background: #FAF5ED; border: 1px solid rgba(217,174,92,0.3); border-radius: 12px; font-weight: 700;">
-                                <span>Créer un compte</span>
-                            </a>
-                        </div>
+                        <a href="{{ route('login') }}" class="nav-dropdown-item">Se connecter</a>
+                        <a href="{{ route('register') }}" class="nav-dropdown-item">Créer un compte</a>
                         <div class="nav-dropdown-divider"></div>
-                        <a href="{{ route('orders.lookup') }}" class="nav-dropdown-item" style="font-size: 0.8rem; color: #767067;">
-                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-                            <span>Suivi de commande sans compte</span>
-                        </a>
+                        <a href="{{ route('orders.lookup') }}" class="nav-dropdown-item">Suivi de commande sans compte</a>
                     @endauth
-
                 </div>
             </div>
-
-            <!-- Menu d'Options Complémentaires (⋮) -->
-            <div class="relative" @click.outside="moreMenuOpen = false">
-                <button type="button" 
-                        class="action-btn" 
-                        @click="moreMenuOpen = !moreMenuOpen" 
-                        aria-label="Options complémentaires" 
-                        title="Plus d'options">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                        <circle cx="12" cy="12" r="1"></circle>
-                        <circle cx="12" cy="5" r="1"></circle>
-                        <circle cx="12" cy="19" r="1"></circle>
-                    </svg>
-                </button>
-
-                <!-- Dropdown Options -->
-                <div x-show="moreMenuOpen" 
-                     x-cloak 
-                     x-transition:enter="transition ease-out duration-150"
-                     x-transition:enter-start="opacity-0 transform scale-95"
-                     x-transition:enter-end="opacity-100 transform scale-100"
-                     x-transition:leave="transition ease-in duration-100"
-                     x-transition:leave-start="opacity-100 transform scale-100"
-                     x-transition:leave-end="opacity-0 transform scale-95"
-                     class="nav-dropdown"
-                     style="display:none; width: 260px;">
-                    
-                    <a href="{{ route('catalog.index', ['format' => 'pdf']) }}" class="nav-dropdown-item">
-                        <span style="width: 8px; height: 8px; border-radius: 50%; background: #2F6F4E;"></span>
-                        <span>Catalogue e-Books (PDF)</span>
-                    </a>
-
-                    <a href="{{ route('catalog.index', ['format' => 'physical']) }}" class="nav-dropdown-item">
-                        <span style="width: 8px; height: 8px; border-radius: 50%; background: #D9AE5C;"></span>
-                        <span>Catalogue Livres Papier</span>
-                    </a>
-
-                    <a href="{{ route('orders.lookup') }}" class="nav-dropdown-item">
-                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
-                        <span>Suivi de Colis &amp; Expédition</span>
-                    </a>
-
-                    <div class="nav-dropdown-divider"></div>
-
-                    <a href="https://wa.me/2250700000001" target="_blank" class="nav-dropdown-item" style="color: #2F6F4E;">
-                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
-                        <span>Assistance WhatsApp (7j/7)</span>
-                    </a>
-                </div>
-            </div>
-
         </div>
-
     </header>
 
     <!-- =========================================================================

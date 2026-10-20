@@ -32,7 +32,21 @@ class DigitalLibraryPageTest extends TestCase
             ->assertSee($category->name)
             ->assertSee(route('catalog.index', ['category' => $category->slug]), false)
             ->assertSee(route('catalog.show', $book->slug), false)
-            ->assertSee('Parcourir le catalogue');
+            ->assertSee('Nos collections');
+    }
+
+    public function test_homepage_spotlights_featured_books(): void
+    {
+        $this->seed();
+
+        $featured = Book::active()->featured()->firstOrFail();
+
+        $this->get(route('home'))
+            ->assertOk()
+            ->assertSee($featured->title)
+            ->assertSee($featured->author)
+            ->assertSee('Découvrir le livre')
+            ->assertSee(route('cart.add'), false);
     }
 
     public function test_hidden_books_are_not_placed_on_shelves(): void
