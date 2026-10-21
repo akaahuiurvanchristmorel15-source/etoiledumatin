@@ -24,18 +24,6 @@
             </p>
         </header>
 
-        @auth
-            @unless(auth()->user()->hasVerifiedEmail())
-                <div class="pg-notice">
-                    <span>Confirmez votre adresse e-mail <strong>{{ auth()->user()->email }}</strong> pour sécuriser votre compte.</span>
-                    <form action="{{ route('verification.send') }}" method="POST">
-                        @csrf
-                        <button type="submit" class="pg-link">Renvoyer le lien</button>
-                    </form>
-                </div>
-            @endunless
-        @endauth
-
         @guest
             <div class="pg-empty">
                 <p class="pg-empty-title">Votre bibliothèque vous attend</p>

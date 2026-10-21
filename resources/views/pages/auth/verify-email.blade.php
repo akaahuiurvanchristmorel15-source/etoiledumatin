@@ -24,7 +24,12 @@
                 <a href="{{ route('catalog.index') }}" class="pg-btn pg-btn-ghost">Parcourir le catalogue</a>
             </div>
 
-            <p class="pg-note" style="text-align: left; margin-top: 2rem;">Vous pouvez déjà acheter et télécharger vos livres. La confirmation protège votre compte et permet de récupérer votre mot de passe en cas d'oubli.</p>
+            <p class="pg-note" style="text-align: left; margin-top: 2rem;">La confirmation est nécessaire pour accéder à votre bibliothèque, commander et publier des avis. Elle protège votre compte et permet de récupérer votre mot de passe en cas d'oubli.</p>
+
+            <form action="{{ route('logout') }}" method="POST" style="margin-top: 1rem;">
+                @csrf
+                <button type="submit" class="pg-link">Ce n'est pas votre adresse ? Se déconnecter</button>
+            </form>
         </div>
     </div>
 @endsection

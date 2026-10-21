@@ -117,6 +117,42 @@ class AccountSecurityTest extends TestCase
         $this->assertTrue($user->fresh()->hasVerifiedEmail());
     }
 
+    public function test_unverified_accounts_cannot_use_library_checkout_or_reviews(): void
+    {
+        $user = User::factory()->unverified()->create();
+        $book = Book::active()->firstOrFail();
+
+        $this->actingAs($user)->get(route('library.index'))->assertRedirect(route('verification.notice'));
+        $this->actingAs($user)->get(route('checkout.index'))->assertRedirect(route('verification.notice'));
+        $this->actingAs($user)
+            ->post(route('books.review', $book), ['customer_name' => 'Lecteur', 'rating' => 5, 'comment' => 'Très bon livre.'])
+            ->assertRedirect(route('verification.notice'));
+
+        $this->assertDatabaseMissing('reviews', ['user_id' => $user->id]);
+    }
+
+    public function test_unverified_account_lands_on_the_verification_page_after_login(): void
+    {
+        User::factory()->unverified()->create(['email' => 'pas.confirme@test.ci', 'password' => 'Lecture2026']);
+
+        $this->followingRedirects()
+            ->post(route('login'), ['email' => 'pas.confirme@test.ci', 'password' => 'Lecture2026'])
+            ->assertOk()
+            ->assertSee('Confirmez votre e-mail');
+    }
+
+    public function test_verified_accounts_and_guests_keep_access(): void
+    {
+        $book = Book::active()->where('is_pdf_available', true)->firstOrFail();
+
+        $this->get(route('library.index'))->assertOk();
+
+        $this->post(route('cart.add'), ['book_id' => $book->id, 'format' => 'pdf']);
+        $this->get(route('checkout.index'))->assertOk();
+
+        $this->actingAs(User::where('role', 'customer')->firstOrFail())->get(route('library.index'))->assertOk();
+    }
+
     public function test_password_reset_does_not_reveal_whether_an_account_exists(): void
     {
         Notification::fake();

@@ -30,7 +30,7 @@ Route::get('/books', [HomeController::class, 'index'])->name('books.index');
 Route::get('/catalogue', [CatalogController::class, 'index'])->name('catalog.index');
 Route::get('/livre/{slug}', [CatalogController::class, 'show'])->name('catalog.show');
 Route::get('/livre/{book}/apercu-pdf', [CatalogController::class, 'previewPdf'])->name('catalog.preview-pdf');
-Route::post('/livre/{book}/avis', [CatalogController::class, 'addReview'])->name('books.review')->middleware('throttle:reviews');
+Route::post('/livre/{book}/avis', [CatalogController::class, 'addReview'])->name('books.review')->middleware(['verified.account', 'throttle:reviews']);
 Route::get('/suivi-commande', [LibraryController::class, 'guestLookup'])->name('orders.lookup')->middleware('throttle:10,1');
 
 /*
@@ -52,7 +52,7 @@ Route::prefix('panier')->name('cart.')->group(function () {
 | Tunnel de Commande & Paiement Paystack
 |--------------------------------------------------------------------------
 */
-Route::prefix('commander')->name('checkout.')->group(function () {
+Route::prefix('commander')->name('checkout.')->middleware('verified.account')->group(function () {
     Route::get('/', [CheckoutController::class, 'index'])->name('index');
     Route::post('/traiter', [CheckoutController::class, 'process'])->name('process')->middleware('throttle:checkout');
     Route::get('/retour-paystack', [CheckoutController::class, 'callback'])->name('callback');
@@ -69,8 +69,10 @@ Route::post('/paystack/webhook', [CheckoutController::class, 'webhook'])->name('
 | Espace Client & Téléchargements Sécurisés
 |--------------------------------------------------------------------------
 */
-Route::get('/ma-bibliotheque', [LibraryController::class, 'index'])->name('library.index');
-Route::get('/ma-bibliotheque/generer-lien/{download}', [LibraryController::class, 'generateDownloadLink'])->name('library.download');
+Route::middleware('verified.account')->group(function () {
+    Route::get('/ma-bibliotheque', [LibraryController::class, 'index'])->name('library.index');
+    Route::get('/ma-bibliotheque/generer-lien/{download}', [LibraryController::class, 'generateDownloadLink'])->name('library.download');
+});
 
 // Téléchargement sécurisé signé (expirant et protégé par filigrane FPDI)
 Route::get('/telechargement/securise/{token}', [DownloadController::class, 'process'])
