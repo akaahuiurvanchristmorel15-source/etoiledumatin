@@ -132,7 +132,7 @@
             <button type="button" 
                     class="action-btn" 
                     style="width: 38px; height: 38px;"
-                    @click="searchModalOpen = true; $nextTick(() => $refs.searchInputModal.focus())" 
+                    @click="searchModalOpen = true" 
                     aria-label="Recherche">
                 <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
                     <circle cx="11" cy="11" r="8"></circle>
@@ -287,72 +287,133 @@
         </div>
 
         <button type="button" class="tabbar-fab" aria-label="Rechercher un livre"
-                @click="searchModalOpen = true; $nextTick(() => $refs.searchInputModal.focus())">
+                @click="searchModalOpen = true">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><line x1="20" y1="20" x2="15.4" y2="15.4"/></svg>
         </button>
     </nav>
 
     <!-- =========================================================================
-       5. MODAL DE RECHERCHE UNIVERSELLE RAPIDE (Desktop & Mobile)
+       5. FENÊTRE DE RECHERCHE (résultats instantanés)
        ========================================================================= -->
-    <div x-show="searchModalOpen" 
-         x-cloak 
-         class="mobile-drawer-backdrop" 
-         @click="searchModalOpen = false"
-         x-transition:enter="transition-opacity ease-out duration-200"
-         x-transition:enter-start="opacity-0"
-         x-transition:enter-end="opacity-100"
-         x-transition:leave="transition-opacity ease-in duration-150"
-         x-transition:leave-start="opacity-100"
-         x-transition:leave-end="opacity-0">
-    </div>
+    @php
+        $searchAuthors = \App\Models\Book::active()
+            ->select('author')
+            ->groupBy('author')
+            ->orderByRaw('COUNT(*) DESC')
+            ->orderBy('author')
+            ->limit(6)
+            ->pluck('author');
+    @endphp
 
-    <div x-show="searchModalOpen" 
-         x-cloak 
-         style="position: fixed; top: 12%; left: 50%; transform: translateX(-50%); width: 90%; max-width: 640px; background: #FFFDF9; border-radius: 24px; border: 1.5px solid rgba(217,174,92,0.3); box-shadow: 0 25px 60px rgba(0,0,0,0.35); z-index: 1000; overflow: hidden; display: flex; flex-direction: column;"
-         x-transition:enter="transition ease-out duration-200 transform"
-         x-transition:enter-start="opacity-0 scale-95"
-         x-transition:enter-end="opacity-100 scale-100"
-         x-transition:leave="transition ease-in duration-150 transform"
-         x-transition:leave-start="opacity-100 scale-100"
-         x-transition:leave-end="opacity-0 scale-95">
-        
-        <!-- Formulaire de recherche dans la modale -->
-        <form action="{{ route('catalog.index') }}" method="GET" style="display: flex; align-items: center; padding: 1.25rem 1.5rem; border-bottom: 1px solid rgba(139,133,124,0.12); gap: 0.75rem;">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" style="color: #D9AE5C; flex-shrink: 0;"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>
-            <input type="text" 
-                   name="search" 
-                   x-ref="searchInputModal"
-                   placeholder="Rechercher un ouvrage, un auteur (ex: Cheikh Anta Diop)..." 
-                   style="flex: 1; border: none; background: transparent; font-size: 1.05rem; color: #1E1D1B; font-weight: 600; outline: none;">
-            <button type="button" 
-                    @click="searchModalOpen = false" 
-                    style="background: #FAF5ED; border: none; width: 32px; height: 32px; border-radius: 50%; color: #8B857C; cursor: pointer; display: flex; align-items: center; justify-content: center;">
-                ✕
+    <div x-show="searchModalOpen" x-cloak class="search-backdrop" @click="searchModalOpen = false"
+         x-transition:enter="drawer-fade" x-transition:enter-start="drawer-fade-out" x-transition:enter-end="drawer-fade-in"
+         x-transition:leave="drawer-fade" x-transition:leave-start="drawer-fade-in" x-transition:leave-end="drawer-fade-out"></div>
+
+    <div x-show="searchModalOpen" x-cloak class="search-panel" role="dialog" aria-modal="true" aria-label="Rechercher un livre"
+         x-transition:enter="search-pop" x-transition:enter-start="search-pop-out" x-transition:enter-end="search-pop-in"
+         x-transition:leave="search-pop" x-transition:leave-start="search-pop-in" x-transition:leave-end="search-pop-out"
+         x-data="{
+            query: '',
+            results: [],
+            loading: false,
+            searched: false,
+            catalogUrl: @js(route('catalog.index')),
+            controller: null,
+            async search() {
+                const term = this.query.trim();
+                if (term.length < 2) { this.results = []; this.searched = false; return; }
+                this.controller?.abort();
+                this.controller = new AbortController();
+                this.loading = true;
+                try {
+                    const response = await fetch(@js(route('search.suggestions')) + '?q=' + encodeURIComponent(term), { headers: { 'Accept': 'application/json' }, signal: this.controller.signal });
+                    if (! response.ok) { throw new Error(response.status); }
+                    const data = await response.json();
+                    this.results = data.books;
+                    this.catalogUrl = data.catalogUrl;
+                    this.searched = true;
+                } catch (error) {
+                    if (error.name !== 'AbortError') { this.results = []; this.searched = true; }
+                } finally {
+                    this.loading = false;
+                }
+            }
+         }"
+         x-effect="if (searchModalOpen) { $nextTick(() => $refs.searchInput.focus()) }"
+         @keydown.escape.window="searchModalOpen = false">
+
+        <form action="{{ route('catalog.index') }}" method="GET" class="search-form" role="search">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+            <input type="search" name="search" x-ref="searchInput" x-model="query" @input.debounce.250ms="search()"
+                   placeholder="Un titre, un auteur…" autocomplete="off" aria-label="Rechercher un titre ou un auteur" maxlength="80">
+            <span class="search-spinner" x-show="loading" aria-hidden="true"></span>
+            <button type="button" class="search-close" @click="searchModalOpen = false" aria-label="Fermer la recherche">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
             </button>
         </form>
 
-        <!-- Suggestions de Recherche Rapide -->
-        <div style="padding: 1.25rem 1.5rem; background: #FAF5ED;">
-            <span style="font-size: 0.72rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: #767067; display: block; margin-bottom: 0.65rem;">
-                Recherches suggérées
-            </span>
-            <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
-                <a href="{{ route('catalog.index', ['search' => 'Cheikh Anta Diop']) }}" style="padding: 0.4rem 0.85rem; background: #FFFDF9; border: 1px solid rgba(217,174,92,0.25); border-radius: 20px; font-size: 0.8rem; font-weight: 700; color: #1E1D1B; text-decoration: none;">
-                    Cheikh Anta Diop
-                </a>
-                <a href="{{ route('catalog.index', ['category' => 'spiritualite-africaine']) }}" style="padding: 0.4rem 0.85rem; background: #FFFDF9; border: 1px solid rgba(217,174,92,0.25); border-radius: 20px; font-size: 0.8rem; font-weight: 700; color: #1E1D1B; text-decoration: none;">
-                    Spiritualité africaine
-                </a>
-                <a href="{{ route('catalog.index', ['format' => 'pdf']) }}" style="padding: 0.4rem 0.85rem; background: #FFFDF9; border: 1px solid rgba(217,174,92,0.25); border-radius: 20px; font-size: 0.8rem; font-weight: 700; color: #1E1D1B; text-decoration: none;">
-                    e-Books PDF
-                </a>
-                <a href="{{ route('catalog.index', ['category' => 'politique-panafricanisme']) }}" style="padding: 0.4rem 0.85rem; background: #FFFDF9; border: 1px solid rgba(217,174,92,0.25); border-radius: 20px; font-size: 0.8rem; font-weight: 700; color: #1E1D1B; text-decoration: none;">
-                    Panafricanisme
-                </a>
+        <div class="search-body">
+            {{-- Résultats instantanés --}}
+            <div x-show="query.trim().length >= 2" x-cloak>
+                <template x-if="results.length > 0">
+                    <div>
+                        <p class="search-label">Livres</p>
+                        <ul class="search-results">
+                            <template x-for="(book, index) in results" :key="book.url">
+                                <li :style="`--i: ${index}`">
+                                    <a :href="book.url" class="search-result">
+                                        <img :src="book.cover" alt="" loading="lazy">
+                                        <span class="search-result-text">
+                                            <span class="search-result-title" x-text="book.title"></span>
+                                            <span class="search-result-meta" x-text="book.author + (book.formats ? ' — ' + book.formats : '')"></span>
+                                        </span>
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="13 6 19 12 13 18"/></svg>
+                                    </a>
+                                </li>
+                            </template>
+                        </ul>
+                        <a :href="catalogUrl" class="search-all">Voir tous les résultats dans le catalogue →</a>
+                    </div>
+                </template>
+                <p class="search-empty" x-show="searched && ! loading && results.length === 0">
+                    Aucun livre pour « <span x-text="query.trim()"></span> ». Essayez un autre titre ou un nom d'auteur.
+                </p>
+            </div>
+
+            {{-- Suggestions avant la saisie --}}
+            <div x-show="query.trim().length < 2">
+                @if($drawerCategories->isNotEmpty())
+                    <section class="search-section">
+                        <p class="search-label">Collections</p>
+                        <div class="search-chips">
+                            @foreach($drawerCategories as $category)
+                                <a href="{{ route('catalog.index', ['category' => $category->slug]) }}" class="search-chip">{{ $category->name }}</a>
+                            @endforeach
+                        </div>
+                    </section>
+                @endif
+
+                @if($searchAuthors->isNotEmpty())
+                    <section class="search-section">
+                        <p class="search-label">Auteurs</p>
+                        <div class="search-chips">
+                            @foreach($searchAuthors as $author)
+                                <a href="{{ route('catalog.index', ['author' => $author]) }}" class="search-chip">{{ $author }}</a>
+                            @endforeach
+                        </div>
+                    </section>
+                @endif
+
+                <section class="search-section">
+                    <p class="search-label">Formats</p>
+                    <div class="search-chips">
+                        <a href="{{ route('catalog.index', ['format' => 'pdf']) }}" class="search-chip">e-Books PDF</a>
+                        <a href="{{ route('catalog.index', ['format' => 'physical']) }}" class="search-chip">Livres papier</a>
+                        <a href="{{ route('catalog.index', ['format' => 'audio']) }}" class="search-chip">Livres audio</a>
+                    </div>
+                </section>
             </div>
         </div>
-
     </div>
 
 </div>
