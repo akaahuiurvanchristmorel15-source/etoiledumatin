@@ -16,12 +16,16 @@
                 <h1 class="pg-title">Connexion</h1>
                 <p class="pg-subtitle">Retrouvez votre bibliothèque, vos téléchargements et le suivi de vos commandes.</p>
 
-                <form action="{{ route('login') }}" method="POST" class="pg-form" style="margin-top: 2.25rem;" x-data="{ showPassword: false }">
+                <div style="margin-top: 2.25rem;">
+                    @include('pages.auth._google')
+                </div>
+
+                <form action="{{ route('login') }}" method="POST" class="pg-form" style="margin-top: 1.5rem;" x-data="{ showPassword: false }">
                     @csrf
 
                     <div class="pg-field">
                         <label class="pg-label" for="email">Adresse e-mail</label>
-                        <input id="email" type="email" name="email" value="{{ old('email') }}" required autofocus autocomplete="email" class="pg-input @error('email') is-invalid @enderror">
+                        <input id="email" type="email" name="email" value="{{ old('email') }}" required autofocus maxlength="150" autocomplete="username" class="pg-input @error('email') is-invalid @enderror">
                         @error('email')<span class="pg-error">{{ $message }}</span>@enderror
                     </div>
 
@@ -36,10 +40,13 @@
                         @error('password')<span class="pg-error">{{ $message }}</span>@enderror
                     </div>
 
-                    <label class="pg-checkbox">
-                        <input type="checkbox" name="remember" value="1" @checked(old('remember'))>
-                        <span>Rester connecté</span>
-                    </label>
+                    <div style="display: flex; flex-wrap: wrap; justify-content: space-between; gap: .75rem;">
+                        <label class="pg-checkbox">
+                            <input type="checkbox" name="remember" value="1" @checked(old('remember'))>
+                            <span>Rester connecté</span>
+                        </label>
+                        <a href="{{ route('password.request') }}" class="pg-link">Mot de passe oublié ?</a>
+                    </div>
 
                     <button type="submit" class="pg-btn pg-btn-block">
                         <span>Se connecter</span>

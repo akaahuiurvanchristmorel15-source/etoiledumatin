@@ -198,6 +198,7 @@
 
                 <form action="{{ route('books.review', $book) }}" method="POST" class="pg-panel pg-form">
                     @csrf
+                    <input type="text" name="website" value="" tabindex="-1" autocomplete="off" class="pg-honeypot" aria-hidden="true">
                     <h3 class="pg-summary-title" style="margin-bottom: 0;">Donner mon avis</h3>
                     <div class="pg-field">
                         <span class="pg-label" id="rating-label">Note</span>

@@ -69,7 +69,7 @@
                     <button type="submit" class="btn btn-primary btn-block" style="min-height: 46px;">Se connecter</button>
                 </form>
 
-                <p class="admin-auth-help">Mot de passe oublié ? Contactez un administrateur de l'équipe NSOROMMA.</p>
+                <p class="admin-auth-help">Mot de passe oublié ? <a href="{{ route('password.request') }}" class="link">Réinitialisez-le par e-mail</a>.</p>
             </div>
         </section>
     </main>

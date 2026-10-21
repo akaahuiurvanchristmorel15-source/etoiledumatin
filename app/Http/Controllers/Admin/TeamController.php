@@ -42,10 +42,11 @@ class TeamController extends Controller
             'name' => ['required', 'string', 'max:120'],
             'email' => ['required', 'string', 'email', 'max:150', 'unique:users,email'],
             'role' => ['required', Rule::in(array_keys(self::ASSIGNABLE_ROLES))],
-            'password' => ['required', Password::min(8)],
+            'password' => ['required', Password::defaults()],
         ]);
 
-        $member = User::create($validated);
+        $member = User::create(collect($validated)->except('role')->all());
+        $member->forceFill(['role' => $validated['role'], 'email_verified_at' => now()])->save();
 
         AuditLog::log($request->user()->id, 'team_member_created', ['user_id' => $member->id, 'role' => $member->role]);
 
@@ -60,7 +61,7 @@ class TeamController extends Controller
             'role' => ['required', Rule::in(array_keys(self::ASSIGNABLE_ROLES))],
         ]);
 
-        $member->update($validated);
+        $member->forceFill(['role' => $validated['role']])->save();
 
         AuditLog::log($request->user()->id, 'team_member_role_updated', ['user_id' => $member->id, 'role' => $member->role]);
 
@@ -72,7 +73,7 @@ class TeamController extends Controller
         $this->ensureMemberCanBeManaged($request, $member);
 
         // Le compte est conservé (historique des commandes) mais perd l'accès au back-office.
-        $member->update(['role' => 'customer']);
+        $member->forceFill(['role' => 'customer'])->save();
 
         AuditLog::log($request->user()->id, 'team_member_revoked', ['user_id' => $member->id]);
 

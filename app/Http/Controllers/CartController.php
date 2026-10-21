@@ -60,7 +60,7 @@ class CartController extends Controller
         $validated = $request->validate([
             'book_id' => ['required', 'integer'],
             'format' => ['required', 'in:pdf,physical,audio'],
-            'quantity' => ['required', 'integer', 'min:1'],
+            'quantity' => ['required', 'integer', 'min:1', 'max:20'],
         ]);
 
         $cartService->updateQuantity($validated['book_id'], $validated['format'], $validated['quantity']);

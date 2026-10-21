@@ -60,6 +60,11 @@ class CheckoutController extends Controller
 
         $validated = $request->validate($rules);
 
+        // Le stock a pu baisser depuis l'ajout au panier : on refuse plutôt que de vendre des livres absents
+        if ($unavailable = $cartService->unavailableItems()) {
+            return redirect()->route('cart.index')->with('error', 'Stock insuffisant pour : '.implode(', ', $unavailable).'. Ajustez les quantités avant de payer.');
+        }
+
         // Mettre à jour la zone de livraison si spécifiée
         if ($cart['has_physical'] && isset($validated['delivery_zone'])) {
             $cartService->setShippingZone($validated['delivery_zone']);

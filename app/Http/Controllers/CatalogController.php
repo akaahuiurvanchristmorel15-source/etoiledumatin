@@ -116,7 +116,8 @@ class CatalogController extends Controller
     public function addReview(Request $request, Book $book): RedirectResponse
     {
         $validated = $request->validate([
-            'customer_name' => ['required', 'string', 'max:100'],
+            'website' => ['prohibited'],
+            'customer_name' => ['required', 'string', 'min:2', 'max:100'],
             'rating' => ['required', 'integer', 'min:1', 'max:5'],
             'comment' => ['required', 'string', 'min:5', 'max:1000'],
         ]);
@@ -124,7 +125,7 @@ class CatalogController extends Controller
         Review::create([
             'book_id' => $book->id,
             'user_id' => auth()->id(),
-            'customer_name' => $validated['customer_name'],
+            'customer_name' => strip_tags($validated['customer_name']),
             'rating' => $validated['rating'],
             'comment' => $validated['comment'],
             'is_approved' => auth()->check() && auth()->user()->isAdmin(),

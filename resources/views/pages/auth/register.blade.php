@@ -16,8 +16,17 @@
                 <h1 class="pg-title">Créer un compte</h1>
                 <p class="pg-subtitle">Quelques secondes suffisent pour rassembler vos livres au même endroit.</p>
 
-                <form action="{{ route('register') }}" method="POST" class="pg-form" style="margin-top: 2.25rem;" x-data="{ showPassword: false }">
+                <div style="margin-top: 2.25rem;">
+                    @include('pages.auth._google')
+                </div>
+
+                <form action="{{ route('register') }}" method="POST" class="pg-form" style="margin-top: 1.5rem;"
+                      x-data="{ showPassword: false, password: '',
+                        get checks() { return { length: this.password.length >= {{ app()->isProduction() ? 10 : 8 }}, letters: /[a-zA-Z]/.test(this.password), numbers: /[0-9]/.test(this.password){{ app()->isProduction() ? ', mixed: /[a-z]/.test(this.password) && /[A-Z]/.test(this.password)' : '' }} } },
+                        get score() { return Object.values(this.checks).filter(Boolean).length },
+                        get total() { return Object.keys(this.checks).length } }">
                     @csrf
+                    <input type="text" name="website" value="" tabindex="-1" autocomplete="off" class="pg-honeypot" aria-hidden="true">
 
                     <div class="pg-field">
                         <label class="pg-label" for="name">Nom complet</label>
@@ -42,12 +51,20 @@
                         <div class="pg-field">
                             <label class="pg-label" for="password">Mot de passe</label>
                             <div class="pg-password">
-                                <input id="password" :type="showPassword ? 'text' : 'password'" type="password" name="password" required minlength="8" autocomplete="new-password" class="pg-input @error('password') is-invalid @enderror">
+                                <input id="password" :type="showPassword ? 'text' : 'password'" type="password" name="password" required minlength="8" maxlength="255" autocomplete="new-password" x-model="password" class="pg-input @error('password') is-invalid @enderror">
                                 <button type="button" @click="showPassword = !showPassword" :aria-label="showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'" aria-label="Afficher le mot de passe">
                                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>
                                 </button>
                             </div>
-                            <span class="pg-hint">8 caractères minimum.</span>
+                            <div class="pg-strength" aria-hidden="true"><span :style="`width: ${password ? score / total * 100 : 0}%`" :class="score === total ? 'is-strong' : ''"></span></div>
+                            <ul class="pg-rules">
+                                <li :class="checks.length && 'is-ok'">{{ app()->isProduction() ? '10' : '8' }} caractères minimum</li>
+                                <li :class="checks.letters && 'is-ok'">Au moins une lettre</li>
+                                <li :class="checks.numbers && 'is-ok'">Au moins un chiffre</li>
+                                @if(app()->isProduction())
+                                    <li :class="checks.mixed && 'is-ok'">Majuscules et minuscules</li>
+                                @endif
+                            </ul>
                             @error('password')<span class="pg-error">{{ $message }}</span>@enderror
                         </div>
                         <div class="pg-field">
@@ -55,6 +72,12 @@
                             <input id="password_confirmation" :type="showPassword ? 'text' : 'password'" type="password" name="password_confirmation" required autocomplete="new-password" class="pg-input">
                         </div>
                     </div>
+
+                    <label class="pg-checkbox">
+                        <input type="checkbox" name="terms" value="1" required @checked(old('terms'))>
+                        <span>J'accepte les conditions d'utilisation et la politique de confidentialité de NSOROMMA.</span>
+                    </label>
+                    @error('terms')<span class="pg-error">{{ $message }}</span>@enderror
 
                     <button type="submit" class="pg-btn pg-btn-block">
                         <span>Créer mon compte</span>

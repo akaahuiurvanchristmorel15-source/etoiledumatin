@@ -150,6 +150,21 @@ class CartService
     }
 
     /**
+     * Titres des livres papier du panier dont la quantité demandée dépasse le stock disponible.
+     *
+     * @return array<int, string>
+     */
+    public function unavailableItems(): array
+    {
+        return collect($this->getCart()['items'])
+            ->filter(fn (array $item) => $item['format'] === 'physical'
+                && (! $item['book']->is_physical_available || $item['quantity'] > $item['book']->stock_physical))
+            ->map(fn (array $item) => $item['book']->title)
+            ->values()
+            ->all();
+    }
+
+    /**
      * Vide complètement le panier.
      */
     public function clear(): void

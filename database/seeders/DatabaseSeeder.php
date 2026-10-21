@@ -23,44 +23,48 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         // 1. Création des Utilisateurs
-        $admin = User::create([
+        $admin = User::forceCreate([
             'name' => 'Directeur NSOROMMA',
             'email' => 'admin@letoiledumatin.ci',
             'password' => Hash::make('Admin@123456'),
             'role' => 'super_admin',
+            'email_verified_at' => now(),
             'phone' => '+225 07 00 00 00 01',
             'address' => 'Plateau, Avenue Chardy',
             'city' => 'Abidjan',
             'country' => 'Côte d\'Ivoire',
         ]);
 
-        $manager = User::create([
+        $manager = User::forceCreate([
             'name' => 'Responsable Éditorial',
             'email' => 'catalogue@letoiledumatin.ci',
             'password' => Hash::make('Catalogue@123456'),
             'role' => 'manager',
+            'email_verified_at' => now(),
             'phone' => '+225 07 00 00 00 02',
             'address' => 'Cocody Angré',
             'city' => 'Abidjan',
             'country' => 'Côte d\'Ivoire',
         ]);
 
-        $logistics = User::create([
+        $logistics = User::forceCreate([
             'name' => 'Agent Logistique & Expéditions',
             'email' => 'logistique@letoiledumatin.ci',
             'password' => Hash::make('Logistique@123456'),
             'role' => 'logistics',
+            'email_verified_at' => now(),
             'phone' => '+225 07 00 00 00 03',
             'address' => 'Treichville Zone 3',
             'city' => 'Abidjan',
             'country' => 'Côte d\'Ivoire',
         ]);
 
-        $client = User::create([
+        $client = User::forceCreate([
             'name' => 'Kouamé Jean-Philippe',
             'email' => 'lecteur@gmail.com',
             'password' => Hash::make('Lecteur@123456'),
             'role' => 'customer',
+            'email_verified_at' => now(),
             'phone' => '+225 05 55 44 33 22',
             'address' => 'Riviera Palmeraie, Rue Ministre',
             'city' => 'Abidjan',

@@ -13,8 +13,11 @@ use App\Http\Controllers\CartController;
 use App\Http\Controllers\CatalogController;
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\DownloadController;
+use App\Http\Controllers\EmailVerificationController;
+use App\Http\Controllers\GoogleAuthController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\LibraryController;
+use App\Http\Controllers\PasswordResetController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -27,7 +30,7 @@ Route::get('/books', [HomeController::class, 'index'])->name('books.index');
 Route::get('/catalogue', [CatalogController::class, 'index'])->name('catalog.index');
 Route::get('/livre/{slug}', [CatalogController::class, 'show'])->name('catalog.show');
 Route::get('/livre/{book}/apercu-pdf', [CatalogController::class, 'previewPdf'])->name('catalog.preview-pdf');
-Route::post('/livre/{book}/avis', [CatalogController::class, 'addReview'])->name('books.review');
+Route::post('/livre/{book}/avis', [CatalogController::class, 'addReview'])->name('books.review')->middleware('throttle:reviews');
 Route::get('/suivi-commande', [LibraryController::class, 'guestLookup'])->name('orders.lookup')->middleware('throttle:10,1');
 
 /*
@@ -51,7 +54,7 @@ Route::prefix('panier')->name('cart.')->group(function () {
 */
 Route::prefix('commander')->name('checkout.')->group(function () {
     Route::get('/', [CheckoutController::class, 'index'])->name('index');
-    Route::post('/traiter', [CheckoutController::class, 'process'])->name('process');
+    Route::post('/traiter', [CheckoutController::class, 'process'])->name('process')->middleware('throttle:checkout');
     Route::get('/retour-paystack', [CheckoutController::class, 'callback'])->name('callback');
     Route::get('/confirmation/{order}', [CheckoutController::class, 'confirmation'])->name('confirmation');
     Route::get('/simulation/{order}', [CheckoutController::class, 'sandboxPayment'])->name('sandbox-payment');
@@ -79,11 +82,27 @@ Route::get('/telechargement/securise/{token}', [DownloadController::class, 'proc
 | Authentification
 |--------------------------------------------------------------------------
 */
-Route::get('/connexion', [AuthController::class, 'showLogin'])->name('login');
-Route::post('/connexion', [AuthController::class, 'login']);
+Route::middleware('guest')->group(function () {
+    Route::get('/connexion', [AuthController::class, 'showLogin'])->name('login');
+    Route::post('/connexion', [AuthController::class, 'login'])->middleware('throttle:login');
+    Route::get('/inscription', [AuthController::class, 'showRegister'])->name('register');
+    Route::post('/inscription', [AuthController::class, 'register'])->middleware('throttle:register');
+
+    Route::get('/mot-de-passe-oublie', [PasswordResetController::class, 'request'])->name('password.request');
+    Route::post('/mot-de-passe-oublie', [PasswordResetController::class, 'email'])->name('password.email')->middleware('throttle:password-reset');
+    Route::get('/reinitialiser-mot-de-passe/{token}', [PasswordResetController::class, 'edit'])->name('password.reset');
+    Route::post('/reinitialiser-mot-de-passe', [PasswordResetController::class, 'update'])->name('password.update')->middleware('throttle:password-reset');
+
+    Route::get('/auth/google', [GoogleAuthController::class, 'redirect'])->name('auth.google');
+    Route::get('/auth/google/callback', [GoogleAuthController::class, 'callback'])->name('auth.google.callback')->middleware('throttle:login');
+});
+
+Route::middleware('auth')->group(function () {
+    Route::get('/email/verification', [EmailVerificationController::class, 'notice'])->name('verification.notice');
+    Route::get('/email/verification/{id}/{hash}', [EmailVerificationController::class, 'verify'])->name('verification.verify')->middleware(['signed', 'throttle:6,1']);
+    Route::post('/email/verification/renvoyer', [EmailVerificationController::class, 'send'])->name('verification.send')->middleware('throttle:3,1');
+});
 Route::get('/admin/connexion', [AuthController::class, 'showAdminLogin'])->name('admin.login');
-Route::get('/inscription', [AuthController::class, 'showRegister'])->name('register');
-Route::post('/inscription', [AuthController::class, 'register']);
 Route::post('/deconnexion', [AuthController::class, 'logout'])->name('logout');
 
 /*

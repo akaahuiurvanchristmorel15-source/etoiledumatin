@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\EnsureUserIsAdmin;
+use App\Http\Middleware\SecurityHeaders;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -13,10 +14,16 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // Seul le webhook Paystack (signé HMAC) est exempté de la protection CSRF
         $middleware->validateCsrfTokens(except: [
             'paystack/webhook',
-            'checkout/webhook',
         ]);
+
+        $middleware->web(append: [
+            SecurityHeaders::class,
+        ]);
+
+        $middleware->redirectUsersTo(fn (Request $request) => $request->user()?->isStaff() ? route('admin.dashboard') : route('library.index'));
 
         $middleware->alias([
             'admin' => EnsureUserIsAdmin::class,
