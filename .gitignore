@@ -14,7 +14,7 @@
 /.zed
 /auth.json
 /node_modules
-/public/build
+# public/build est versionné : l'hébergement Namecheap n'a pas Node.js pour compiler les assets
 /public/fonts-manifest.dev.json
 /public/hot
 /public/storage

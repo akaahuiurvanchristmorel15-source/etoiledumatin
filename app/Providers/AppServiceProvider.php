@@ -16,6 +16,7 @@ use Illuminate\Http\Request;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
@@ -38,6 +39,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Hébergements mutualisés (MySQL/MariaDB anciens) : index limités à 1000 octets, soit 191 caractères en utf8mb4
+        Schema::defaultStringLength(191);
+
         $this->defineAdminAbilities();
         $this->applyShippingSettings();
         $this->configureSecurity();
