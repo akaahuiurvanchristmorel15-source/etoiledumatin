@@ -156,144 +156,104 @@
     </div>
 
     <!-- =========================================================================
-       3. TIROIR LATÉRAL MOBILE (SLIDE-OVER DRAWER)
+       3. TIROIR LATÉRAL MOBILE
        ========================================================================= -->
-    <div x-show="mobileMenuOpen" 
-         x-cloak 
-         class="mobile-drawer-backdrop" 
-         @click="mobileMenuOpen = false"
-         x-transition:enter="transition-opacity ease-out duration-250"
-         x-transition:enter-start="opacity-0"
-         x-transition:enter-end="opacity-100"
-         x-transition:leave="transition-opacity ease-in duration-200"
-         x-transition:leave-start="opacity-100"
-         x-transition:leave-end="opacity-0">
-    </div>
+    @php
+        $drawerCategories = \App\Models\Category::where('is_active', true)
+            ->whereHas('books', fn ($query) => $query->active())
+            ->withCount(['books' => fn ($query) => $query->active()])
+            ->orderBy('display_order')
+            ->orderBy('name')
+            ->get();
+        $drawerLinks = [
+            ['url' => route('home'), 'label' => 'Accueil', 'active' => $isHome],
+            ['url' => route('catalog.index'), 'label' => 'Catalogue', 'active' => $isCatalog && ! request('category') && request('format') !== 'audio'],
+            ['url' => route('catalog.index', ['format' => 'audio']), 'label' => 'Livres audio', 'active' => $isCatalog && request('format') === 'audio'],
+            ['url' => route('library.index'), 'label' => 'Ma bibliothèque', 'active' => $isLibrary],
+        ];
+    @endphp
 
-    <div x-show="mobileMenuOpen" 
-         x-cloak 
-         class="mobile-drawer-panel"
-         x-transition:enter="transition ease-out duration-250 transform"
-         x-transition:enter-start="-translate-x-full"
-         x-transition:enter-end="translate-x-0"
-         x-transition:leave="transition ease-in duration-200 transform"
-         x-transition:leave-start="translate-x-0"
-         x-transition:leave-end="-translate-x-full">
-        
-        <!-- Header du Tiroir -->
-        <div class="mobile-drawer-header">
-            <x-brand-logo :size="30" name-size="1.05rem" />
-            <button type="button" 
-                    @click="mobileMenuOpen = false" 
-                    style="background: #FAF5ED; border: none; width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #1E1D1B; cursor: pointer;"
-                    aria-label="Fermer le menu">
-                ✕
+    <div x-show="mobileMenuOpen" x-cloak class="drawer-backdrop" @click="mobileMenuOpen = false"
+         x-transition:enter="drawer-fade" x-transition:enter-start="drawer-fade-out" x-transition:enter-end="drawer-fade-in"
+         x-transition:leave="drawer-fade" x-transition:leave-start="drawer-fade-in" x-transition:leave-end="drawer-fade-out"></div>
+
+    <aside x-show="mobileMenuOpen" x-cloak class="drawer" role="dialog" aria-modal="true" aria-label="Menu"
+           x-transition:enter="drawer-slide" x-transition:enter-start="drawer-slide-out" x-transition:enter-end="drawer-slide-in"
+           x-transition:leave="drawer-slide" x-transition:leave-start="drawer-slide-in" x-transition:leave-end="drawer-slide-out">
+
+        <div class="drawer-head">
+            <a href="{{ route('home') }}" class="drawer-brand" aria-label="Accueil NSOROMMA">
+                <img src="{{ asset('images/brand/nsoromma-mark.png') }}" alt="" width="28" height="28">
+                <span>NSOROMMA</span>
+            </a>
+            <button type="button" class="drawer-close" @click="mobileMenuOpen = false" aria-label="Fermer le menu">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
             </button>
         </div>
 
-        <!-- Corps du Tiroir -->
-        <div class="mobile-drawer-body">
-            
-            <!-- Recherche rapide dans le tiroir -->
-            <form action="{{ route('catalog.index') }}" method="GET" style="position: relative;">
-                <input type="text" 
-                       name="search" 
-                       placeholder="Rechercher titre, auteur..." 
-                       style="width: 100%; background: #F8F1E5; border: 1px solid rgba(139,133,124,0.2); border-radius: 30px; padding: 0.65rem 2.2rem 0.65rem 1rem; font-size: 0.85rem; color: #1E1D1B; outline: none;">
-                <button type="submit" style="position: absolute; right: 0.85rem; top: 50%; transform: translateY(-50%); background: none; border: none; color: #8B857C; cursor: pointer;">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>
-                </button>
+        <div class="drawer-body">
+            <form action="{{ route('catalog.index') }}" method="GET" class="drawer-search" role="search">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+                <input type="search" name="search" placeholder="Titre, auteur, thème…" aria-label="Rechercher un livre">
             </form>
 
-            <!-- Navigation Principale -->
-            <div>
-                <span style="font-size: 0.7rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.12em; color: #D9AE5C; display: block; margin-bottom: 0.5rem; padding-left: 0.5rem;">
-                    Navigation
-                </span>
-                <div style="display: flex; flex-direction: column; gap: 0.25rem;">
-                    <a href="{{ route('home') }}" class="mobile-drawer-navlink {{ $isHome ? 'active' : '' }}">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
-                        <span>Accueil &amp; Nouveautés</span>
+            <nav class="drawer-nav" aria-label="Navigation principale">
+                @foreach($drawerLinks as $index => $link)
+                    <a href="{{ $link['url'] }}" class="drawer-link {{ $link['active'] ? 'is-active' : '' }}" style="--i: {{ $index }};" @if($link['active']) aria-current="page" @endif>
+                        <span>{{ $link['label'] }}</span>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="13 6 19 12 13 18"/></svg>
                     </a>
-                    <a href="{{ route('catalog.index') }}" class="mobile-drawer-navlink {{ $isCatalog ? 'active' : '' }}">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
-                        <span>Tout le Catalogue</span>
-                    </a>
-                    <a href="{{ route('home') . '#audio' }}" class="mobile-drawer-navlink">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 14h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7a9 9 0 0 1 18 0v7a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3"></path></svg>
-                        <span>Livres Audio</span>
-                    </a>
-                </div>
-            </div>
+                @endforeach
+            </nav>
 
-            <!-- Collections Africaines -->
-            <div>
-                <span style="font-size: 0.7rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.12em; color: #D9AE5C; display: block; margin-bottom: 0.5rem; padding-left: 0.5rem;">
-                    Collections Thématiques
-                </span>
-                <div style="display: flex; flex-direction: column; gap: 0.25rem;">
-                    <a href="{{ route('catalog.index', ['category' => 'spiritualite-africaine']) }}" class="mobile-drawer-navlink" style="font-size: 0.85rem; font-weight: 600;">
-                        <span>✨ Spiritualité africaine</span>
-                    </a>
-                    <a href="{{ route('catalog.index', ['category' => 'philosophie']) }}" class="mobile-drawer-navlink" style="font-size: 0.85rem; font-weight: 600;">
-                        <span>📜 Philosophie &amp; Pensée</span>
-                    </a>
-                    <a href="{{ route('catalog.index', ['category' => 'politique-panafricanisme']) }}" class="mobile-drawer-navlink" style="font-size: 0.85rem; font-weight: 600;">
-                        <span>🏛️ Politique &amp; Panafricanisme</span>
-                    </a>
-                    <a href="{{ route('catalog.index', ['category' => 'religion']) }}" class="mobile-drawer-navlink" style="font-size: 0.85rem; font-weight: 600;">
-                        <span>⚖️ Textes sacrés &amp; Religions</span>
-                    </a>
-                </div>
-            </div>
+            @if($drawerCategories->isNotEmpty())
+                <section class="drawer-section" style="--i: 4;">
+                    <h2 class="drawer-label">Collections</h2>
+                    <ul class="drawer-collections">
+                        @foreach($drawerCategories as $category)
+                            <li>
+                                <a href="{{ route('catalog.index', ['category' => $category->slug]) }}" class="{{ request('category') === $category->slug ? 'is-active' : '' }}">
+                                    <span>{{ $category->name }}</span>
+                                    <span class="drawer-count">{{ $category->books_count }}</span>
+                                </a>
+                            </li>
+                        @endforeach
+                    </ul>
+                </section>
+            @endif
 
-            <!-- Services & Assistance -->
-            <div style="margin-top: auto; padding-top: 1rem; border-top: 1px solid rgba(139,133,124,0.12);">
-                <div style="display: flex; flex-direction: column; gap: 0.35rem;">
-                    <a href="{{ route('library.index') }}" class="mobile-drawer-navlink" style="font-size: 0.85rem;">
-                        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"></path></svg>
-                        <span>Ma Bibliothèque Numérique</span>
-                    </a>
-                    <a href="{{ route('orders.lookup') }}" class="mobile-drawer-navlink" style="font-size: 0.85rem;">
-                        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-                        <span>Suivi de Colis sans compte</span>
-                    </a>
-                    <a href="https://wa.me/2250700000001" class="mobile-drawer-navlink" style="font-size: 0.85rem; color: #2F6F4E;">
-                        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
-                        <span>Assistance WhatsApp</span>
-                    </a>
-                </div>
-
-                <!-- Connexion / Compte -->
-                <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid rgba(139,133,124,0.12);">
-                    @auth
-                        <div style="margin-bottom: 0.75rem;">
-                            <div style="font-weight: 800; font-size: 0.9rem; color: #1E1D1B;">{{ auth()->user()->name }}</div>
-                            <div style="font-size: 0.75rem; color: #8B857C;">{{ auth()->user()->email }}</div>
-                        </div>
-                        <form action="{{ route('logout') }}" method="POST">
-                            @csrf
-                            <button type="submit" style="width: 100%; padding: 0.65rem; background: #FAF5ED; border: 1px solid rgba(225,29,72,0.2); border-radius: 12px; color: #BE123C; font-weight: 700; font-size: 0.82rem; cursor: pointer;">
-                                Déconnexion
-                            </button>
-                        </form>
-                    @else
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
-                            <a href="{{ route('login') }}" style="text-align: center; padding: 0.65rem; background: #191919; color: #D9AE5C; border-radius: 12px; font-weight: 800; font-size: 0.82rem; text-decoration: none;">
-                                Connexion
-                            </a>
-                            <a href="{{ route('register') }}" style="text-align: center; padding: 0.65rem; background: #FAF5ED; border: 1px solid rgba(217,174,92,0.3); color: #1E1D1B; border-radius: 12px; font-weight: 700; font-size: 0.82rem; text-decoration: none;">
-                                Inscription
-                            </a>
-                        </div>
-                    @endauth
-                </div>
-
-            </div>
-
+            <section class="drawer-section drawer-services" style="--i: 5;">
+                <a href="{{ route('orders.lookup') }}">Suivi de commande</a>
+                <a href="https://wa.me/2250700000001">Assistance WhatsApp</a>
+            </section>
         </div>
 
-    </div>
+        <div class="drawer-account">
+            @auth
+                <div class="drawer-user">
+                    <span class="drawer-avatar" aria-hidden="true">{{ mb_strtoupper(mb_substr(auth()->user()->name, 0, 1)) }}</span>
+                    <div class="drawer-user-info">
+                        <div class="drawer-user-name">{{ auth()->user()->name }}</div>
+                        <div class="drawer-user-email">{{ auth()->user()->email }}</div>
+                    </div>
+                </div>
+                <div class="drawer-actions">
+                    @if(auth()->user()->isStaff())
+                        <a href="{{ route('admin.dashboard') }}" class="drawer-btn drawer-btn-ghost">Administration</a>
+                    @endif
+                    <form action="{{ route('logout') }}" method="POST">
+                        @csrf
+                        <button type="submit" class="drawer-btn drawer-btn-ghost">Se déconnecter</button>
+                    </form>
+                </div>
+            @else
+                <div class="drawer-actions">
+                    <a href="{{ route('login') }}" class="drawer-btn">Se connecter</a>
+                    <a href="{{ route('register') }}" class="drawer-btn drawer-btn-ghost">Créer un compte</a>
+                </div>
+            @endauth
+        </div>
+    </aside>
 
     <!-- =========================================================================
        4. BARRE DE NAVIGATION INFÉRIEURE FLOTTANTE (MOBILE < 768px)

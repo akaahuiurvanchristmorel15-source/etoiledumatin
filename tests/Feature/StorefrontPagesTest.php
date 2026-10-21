@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Book;
+use App\Models\Category;
 use App\Models\Order;
 use App\Models\PurchasedDownload;
 use App\Models\User;
@@ -138,6 +139,18 @@ class StorefrontPagesTest extends TestCase
         }
 
         $this->actingAs($admin)->get(route('admin.books.edit', $book))->assertOk()->assertDontSee('target="_blank"', false);
+    }
+
+    public function test_mobile_menu_lists_the_real_collections(): void
+    {
+        $category = Category::whereHas('books', fn ($query) => $query->active())->firstOrFail();
+        $emptyCategory = Category::create(['name' => 'Collection vide', 'slug' => 'collection-vide', 'is_active' => true]);
+
+        $this->get(route('home'))
+            ->assertOk()
+            ->assertSee('class="drawer"', false)
+            ->assertSee(route('catalog.index', ['category' => $category->slug]), false)
+            ->assertDontSee(route('catalog.index', ['category' => $emptyCategory->slug]), false);
     }
 
     public function test_login_and_register_pages_render(): void
