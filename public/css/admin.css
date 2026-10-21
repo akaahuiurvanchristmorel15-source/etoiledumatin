@@ -1,19 +1,20 @@
 /* ==========================================================================
    NSOROMMA — Back-office
-   Design minimaliste : surfaces blanches, bordures fines, un seul accent.
+   Même identité que la boutique : fond crème, encre bleu nuit, titres serif, angles droits.
    ========================================================================== */
 
 :root {
-    --bg: #F7F7F5;
-    --surface: #FFFFFF;
-    --surface-muted: #FAFAF9;
-    --border: #E7E5E0;
-    --border-strong: #D6D3CC;
-    --text: #1C1B19;
-    --text-soft: #44403B;
-    --muted: #78736B;
-    --accent: #B8893A;
-    --accent-soft: #F6EFE2;
+    --bg: #EEECE3;
+    --surface: #FAF9F5;
+    --surface-muted: #F3F1EA;
+    --border: rgba(30, 34, 48, .1);
+    --border-strong: rgba(30, 34, 48, .22);
+    --text: #1E2230;
+    --text-soft: #4A4B52;
+    --muted: #8C897F;
+    --accent: #1E2230;
+    --accent-soft: rgba(30, 34, 48, .06);
+    --serif: 'Cormorant Garamond', 'Playfair Display', Georgia, serif;
     --success: #067647;
     --success-soft: #ECFDF3;
     --warning: #B54708;
@@ -22,11 +23,11 @@
     --danger-soft: #FEF3F2;
     --info: #175CD3;
     --info-soft: #EFF8FF;
-    --radius: 10px;
-    --radius-sm: 8px;
+    --radius: 0px;
+    --radius-sm: 0px;
     --sidebar-w: 248px;
     --topbar-h: 60px;
-    --focus: 0 0 0 3px rgba(184, 137, 58, .25);
+    --focus: 0 0 0 2px var(--bg), 0 0 0 4px #1E2230;
 }
 
 *, *::before, *::after { box-sizing: border-box; }
@@ -95,7 +96,7 @@ button { font: inherit; }
     height: var(--topbar-h);
     display: flex; align-items: center; gap: .75rem;
     padding: 0 2rem;
-    background: rgba(247, 247, 245, .92);
+    background: rgba(238, 236, 227, .92);
     backdrop-filter: blur(8px);
     border-bottom: 1px solid var(--border);
 }
@@ -279,6 +280,92 @@ button { font: inherit; }
 .pagination-links .is-active { background: var(--text); border-color: var(--text); color: #fff; }
 .pagination-links .is-disabled { opacity: .45; }
 
+/* ==========================================================================
+   Identité NSOROMMA
+   ========================================================================== */
+
+/* Barre latérale : fond crème, entrée active en relief comme la barre d'icônes du site */
+.sidebar { background: var(--bg); }
+.sidebar-brand, .sidebar-user { border-color: var(--border); }
+.sidebar-name { font-family: var(--serif); font-size: 1.15rem; font-weight: 600; letter-spacing: .1em; }
+.nav-link { border-radius: 12px; }
+.nav-link:hover { background: rgba(30, 34, 48, .05); }
+.nav-link.is-active { background: var(--surface); box-shadow: 0 6px 16px -10px rgba(30, 34, 48, .35); }
+.nav-link.is-active svg { color: var(--text); }
+.nav-count { background: var(--text); }
+.avatar { background: var(--text); color: #fff; }
+
+/* Titres en serif fin */
+.page-title { font-family: var(--serif); font-weight: 500; font-size: clamp(2rem, 3vw, 2.6rem); letter-spacing: -.005em; line-height: 1.1; }
+.page-subtitle { margin-top: .5rem; }
+.stat-value { font-family: var(--serif); font-weight: 600; font-size: 2rem; letter-spacing: 0; }
+.stat-value small { font-family: 'Plus Jakarta Sans', system-ui, sans-serif; }
+.form-section-title, .card-title { font-weight: 600; }
+.stat { border-color: transparent; }
+
+/* Cartes : panneaux clairs sans arrondi */
+.card { border-color: transparent; }
+.card-header, .card-footer, .toolbar, .pagination { border-color: var(--border); }
+.card-footer { background: transparent; }
+.table th { background: transparent; }
+.table tbody tr:hover td { background: rgba(30, 34, 48, .03); }
+
+/* Boutons en pilule */
+.btn { border-radius: 999px; padding-left: 1.15rem; padding-right: 1.15rem; }
+.btn-icon { padding: 0; }
+.btn-primary:hover { background: #33384A; }
+.btn-secondary { background: transparent; }
+.btn-secondary:hover { background: rgba(30, 34, 48, .05); border-color: var(--text); }
+.btn-danger { background: transparent; border-color: rgba(180, 35, 24, .3); }
+.link { color: var(--text); text-decoration: underline; text-underline-offset: 3px; font-weight: 500; }
+
+/* Champs soulignés */
+.input, .select, .textarea {
+    border: 0; border-bottom: 1px solid var(--border-strong);
+    background: transparent; padding-left: 0; padding-right: 0;
+}
+.input:focus, .select:focus, .textarea:focus { box-shadow: none; border-bottom-color: var(--text); }
+.input[type="file"] { padding: .55rem .65rem; border: 1px dashed var(--border-strong); background: var(--surface-muted); }
+.input-group .input { padding-left: 1.75rem; }
+.input-group svg { left: 0; }
+.stock-input { padding: .35rem .25rem; }
+
+/* Cases à cocher : cartes comme les choix de la boutique */
+.check { border-radius: 0; background: transparent; }
+.check:has(input:checked) { border-color: var(--text); background: var(--surface); }
+.check input { accent-color: var(--text); }
+
+/* Badges : texte et pastille de couleur, sans fond */
+.badge { background: transparent; border-color: var(--border); color: var(--text-soft); }
+.badge::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--muted); }
+.badge-success { color: var(--success); border-color: rgba(6, 118, 71, .25); }
+.badge-success::before { background: var(--success); }
+.badge-warning { color: var(--warning); border-color: rgba(181, 71, 8, .25); }
+.badge-warning::before { background: var(--warning); }
+.badge-danger { color: var(--danger); border-color: rgba(180, 35, 24, .25); }
+.badge-danger::before { background: var(--danger); }
+.badge-info { color: var(--info); border-color: rgba(23, 92, 211, .25); }
+.badge-info::before { background: var(--info); }
+.badge-accent { color: var(--text); border-color: var(--border-strong); }
+.badge-accent::before { background: var(--text); }
+
+/* Onglets, filtres segmentés, pagination */
+.segmented { background: transparent; border-radius: 999px; }
+.segmented a { border-radius: 999px; }
+.segmented a.is-active { background: var(--surface); box-shadow: 0 4px 12px -8px rgba(30, 34, 48, .4); }
+.pagination-links a, .pagination-links span { border-radius: 999px; border-color: transparent; }
+.pagination-links a:hover { background: rgba(30, 34, 48, .06); }
+.progress { border: 0; background: rgba(30, 34, 48, .08); }
+.progress span { background: var(--text); }
+.file-current { border-radius: 0; }
+
+/* Apparition douce du contenu */
+.content > * { animation: admin-fade .5s cubic-bezier(.2, .8, .2, 1) both; }
+.content > *:nth-child(2) { animation-delay: .05s; }
+.content > *:nth-child(3) { animation-delay: .1s; }
+@keyframes admin-fade { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .content > * { animation: none; } }
+
 /* ---------- Responsive ---------- */
 @media (max-width: 1200px) {
     .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -335,3 +422,6 @@ button { font: inherit; }
 @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { transition: none !important; }
 }
+
+/* Notifications sous la barre supérieure de l'admin */
+.toast-stack { top: calc(var(--topbar-h) + 1rem); }

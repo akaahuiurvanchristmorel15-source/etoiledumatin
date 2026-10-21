@@ -10,7 +10,8 @@
     <link rel="icon" type="image/png" href="{{ asset('images/brand/favicon.png') }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ asset('css/shell.css') }}?v={{ filemtime(public_path('css/shell.css')) }}">
     <link rel="stylesheet" href="{{ asset('css/admin.css') }}?v={{ filemtime(public_path('css/admin.css')) }}">
 
     @stack('styles')
@@ -93,21 +94,9 @@
             </a>
         </header>
 
+        <x-toasts />
+
         <main class="content">
-            @if(session('success'))
-                <div class="alert alert-success" role="status">
-                    <x-admin.icon name="check" />
-                    <span>{{ session('success') }}</span>
-                </div>
-            @endif
-
-            @if(session('error'))
-                <div class="alert alert-error" role="alert">
-                    <x-admin.icon name="alert" />
-                    <span>{{ session('error') }}</span>
-                </div>
-            @endif
-
             @yield('content')
         </main>
 

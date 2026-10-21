@@ -71,6 +71,19 @@ class AdminManagementTest extends TestCase
         }
     }
 
+    public function test_admin_flash_messages_use_the_shared_toasts(): void
+    {
+        $review = Review::where('is_approved', true)->firstOrFail();
+
+        $this->actingAs($this->userWithRole('manager'))
+            ->followingRedirects()
+            ->from(route('admin.reviews.index'))
+            ->post(route('admin.reviews.hide', $review))
+            ->assertOk()
+            ->assertSee('class="toast toast-success"', false)
+            ->assertSee('css/shell.css', false);
+    }
+
     public function test_book_created_with_visibility_unchecked_stays_hidden(): void
     {
         Storage::fake('public');
