@@ -12,7 +12,7 @@
         </div>
         <div class="page-actions">
             @if($book->is_active)
-                <a href="{{ route('catalog.show', $book->slug) }}" target="_blank" rel="noopener" class="btn btn-secondary">
+                <a href="{{ route('catalog.show', $book->slug) }}" class="btn btn-secondary">
                     <x-admin.icon name="external" />
                     <span>Voir la fiche</span>
                 </a>

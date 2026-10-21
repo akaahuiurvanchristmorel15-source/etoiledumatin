@@ -128,6 +128,18 @@ class StorefrontPagesTest extends TestCase
         $this->assertTrue($order->fresh()->isPaid());
     }
 
+    public function test_links_never_open_a_new_tab(): void
+    {
+        $book = Book::active()->firstOrFail();
+        $admin = User::where('role', 'super_admin')->firstOrFail();
+
+        foreach ([route('home'), route('catalog.index'), route('catalog.show', $book->slug), route('orders.lookup')] as $url) {
+            $this->get($url)->assertOk()->assertDontSee('target="_blank"', false);
+        }
+
+        $this->actingAs($admin)->get(route('admin.books.edit', $book))->assertOk()->assertDontSee('target="_blank"', false);
+    }
+
     public function test_login_and_register_pages_render(): void
     {
         $this->get(route('login'))->assertOk()->assertSee('Connexion')->assertSee('name="remember"', false);

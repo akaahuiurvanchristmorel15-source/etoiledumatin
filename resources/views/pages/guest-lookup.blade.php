@@ -43,7 +43,7 @@
             <div class="pg-empty">
                 <p class="pg-empty-title">Aucune commande trouvée</p>
                 <p>Vérifiez le numéro de commande et l'e-mail ou le téléphone saisis lors de l'achat.<br>Besoin d'aide ? Notre équipe répond sur WhatsApp.</p>
-                <a href="https://wa.me/2250700000001" target="_blank" rel="noopener" class="pg-btn pg-btn-ghost">Contacter l'assistance</a>
+                <a href="https://wa.me/2250700000001" class="pg-btn pg-btn-ghost">Contacter l'assistance</a>
             </div>
         @endif
     </div>

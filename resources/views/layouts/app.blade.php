@@ -54,7 +54,7 @@
             <nav class="site-footer-links" aria-label="Liens du pied de page">
                 <a href="{{ route('catalog.index') }}">Catalogue</a>
                 <a href="{{ route('orders.lookup') }}">Suivi de commande</a>
-                <a href="https://wa.me/2250700000001" target="_blank" rel="noopener">Assistance</a>
+                <a href="https://wa.me/2250700000001">Assistance</a>
             </nav>
         </footer>
     </main>

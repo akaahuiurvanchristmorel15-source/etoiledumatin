@@ -47,7 +47,7 @@
                 <a href="{{ route('catalog.index', ['format' => 'audio']) }}" class="nav-dropdown-item">Livres audio</a>
                 <div class="nav-dropdown-divider"></div>
                 <a href="{{ route('orders.lookup') }}" class="nav-dropdown-item">Suivi de commande</a>
-                <a href="https://wa.me/2250700000001" target="_blank" rel="noopener" class="nav-dropdown-item">Assistance WhatsApp</a>
+                <a href="https://wa.me/2250700000001" class="nav-dropdown-item">Assistance WhatsApp</a>
             </div>
         </div>
     </aside>
@@ -258,7 +258,7 @@
                         <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
                         <span>Suivi de Colis sans compte</span>
                     </a>
-                    <a href="https://wa.me/2250700000001" target="_blank" class="mobile-drawer-navlink" style="font-size: 0.85rem; color: #2F6F4E;">
+                    <a href="https://wa.me/2250700000001" class="mobile-drawer-navlink" style="font-size: 0.85rem; color: #2F6F4E;">
                         <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
                         <span>Assistance WhatsApp</span>
                     </a>

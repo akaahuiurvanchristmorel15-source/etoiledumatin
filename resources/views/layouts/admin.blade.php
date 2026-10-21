@@ -58,7 +58,7 @@
                     <x-admin.icon name="settings" />
                     <span>Paramètres</span>
                 </a>
-                <a href="{{ route('home') }}" class="nav-link" target="_blank" rel="noopener">
+                <a href="{{ route('home') }}" class="nav-link">
                     <x-admin.icon name="external" />
                     <span>Voir la boutique</span>
                 </a>
@@ -88,7 +88,7 @@
                 <x-admin.icon name="menu" />
             </button>
             <div class="topbar-title">@yield('title', 'Administration')</div>
-            <a href="{{ route('home') }}" class="btn btn-ghost btn-sm topbar-site" target="_blank" rel="noopener">
+            <a href="{{ route('home') }}" class="btn btn-ghost btn-sm topbar-site">
                 <x-admin.icon name="external" />
                 <span>Voir la boutique</span>
             </a>
