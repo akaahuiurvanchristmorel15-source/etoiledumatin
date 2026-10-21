@@ -100,6 +100,34 @@ class StorefrontPagesTest extends TestCase
             ->assertSee('a été ajouté à votre panier');
     }
 
+    public function test_sandbox_payment_page_lists_channels_and_validates_the_order(): void
+    {
+        $book = Book::active()->where('is_pdf_available', true)->firstOrFail();
+        $this->post(route('cart.add'), ['book_id' => $book->id, 'format' => 'pdf']);
+
+        $redirect = $this->post(route('checkout.process'), [
+            'name' => 'Awa Diabaté',
+            'email' => 'awa.diabate@test.ci',
+            'phone' => '+225 05 11 22 33 44',
+            'payment_channel' => 'paystack_momo',
+        ])->headers->get('Location');
+
+        $order = Order::where('customer_email', 'awa.diabate@test.ci')->firstOrFail();
+
+        $this->get($redirect)
+            ->assertOk()
+            ->assertSee('Simulation de paiement')
+            ->assertSee('value="Orange Money"', false)
+            ->assertSee('value="'.$order->payment_reference.'"', false);
+
+        $this->post(route('checkout.sandbox-confirm', $order), [
+            'payment_channel' => 'Wave',
+            'reference' => $order->payment_reference,
+        ])->assertRedirect(route('checkout.confirmation', $order));
+
+        $this->assertTrue($order->fresh()->isPaid());
+    }
+
     public function test_login_and_register_pages_render(): void
     {
         $this->get(route('login'))->assertOk()->assertSee('Connexion')->assertSee('name="remember"', false);
