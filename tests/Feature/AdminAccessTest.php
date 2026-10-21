@@ -20,7 +20,39 @@ class AdminAccessTest extends TestCase
     public function test_guest_is_redirected_to_login(): void
     {
         $response = $this->get('/admin');
-        $response->assertRedirect('/connexion');
+        $response->assertRedirect(route('admin.login'));
+    }
+
+    public function test_admin_login_page_renders(): void
+    {
+        $this->get(route('admin.login'))
+            ->assertOk()
+            ->assertSee('Connexion')
+            ->assertSee('Administration')
+            ->assertSee('action="'.route('login').'"', false);
+    }
+
+    public function test_logged_in_staff_skip_the_admin_login_page(): void
+    {
+        $admin = User::where('role', 'super_admin')->first();
+
+        $this->actingAs($admin)->get(route('admin.login'))->assertRedirect(route('admin.dashboard'));
+    }
+
+    public function test_staff_reach_the_requested_admin_page_after_signing_in(): void
+    {
+        $this->get(route('admin.orders.index'))->assertRedirect(route('admin.login'));
+
+        $this->post(route('login'), ['email' => 'logistique@letoiledumatin.ci', 'password' => 'Logistique@123456'])
+            ->assertRedirect(route('admin.orders.index'));
+    }
+
+    public function test_customer_signing_in_from_admin_is_sent_to_their_library(): void
+    {
+        $this->get(route('admin.dashboard'));
+
+        $this->post(route('login'), ['email' => 'lecteur@gmail.com', 'password' => 'Lecteur@123456'])
+            ->assertRedirect(route('library.index'));
     }
 
     public function test_customer_cannot_access_admin_dashboard(): void

@@ -81,6 +81,7 @@ Route::get('/telechargement/securise/{token}', [DownloadController::class, 'proc
 */
 Route::get('/connexion', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/connexion', [AuthController::class, 'login']);
+Route::get('/admin/connexion', [AuthController::class, 'showAdminLogin'])->name('admin.login');
 Route::get('/inscription', [AuthController::class, 'showRegister'])->name('register');
 Route::post('/inscription', [AuthController::class, 'register']);
 Route::post('/deconnexion', [AuthController::class, 'logout'])->name('logout');

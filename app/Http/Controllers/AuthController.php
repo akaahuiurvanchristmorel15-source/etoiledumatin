@@ -18,6 +18,15 @@ class AuthController extends Controller
         return view('pages.auth.login');
     }
 
+    public function showAdminLogin(): View|RedirectResponse
+    {
+        if (Auth::user()?->isStaff()) {
+            return redirect()->route('admin.dashboard');
+        }
+
+        return view('admin.auth.login');
+    }
+
     public function login(Request $request): RedirectResponse
     {
         $credentials = $request->validate([
@@ -34,6 +43,11 @@ class AuthController extends Controller
 
             if (Auth::user()->isStaff()) {
                 return redirect()->intended(route('admin.dashboard'));
+            }
+
+            // Un lecteur ne doit pas être renvoyé vers une page d'administration qui lui est interdite
+            if (str_contains((string) $request->session()->get('url.intended'), '/admin')) {
+                $request->session()->forget('url.intended');
             }
 
             return redirect()->intended(route('library.index'))->with('success', 'Bienvenue sur votre espace.');
