@@ -1,6 +1,10 @@
 @extends('layouts.app')
 @section('title', ($selectedCategory ? $selectedCategory->name.' — ' : '').'Catalogue — NSOROMMA')
-@section('meta_description', 'Parcourez le catalogue NSOROMMA : spiritualité africaine, philosophie, religion et politique panafricaine en papier, PDF et audio.')
+@section('meta_description', $selectedCategory?->description ? Str::limit(strip_tags($selectedCategory->description), 160) : 'Parcourez le catalogue NSOROMMA : spiritualité africaine, philosophie, religion et politique panafricaine en papier, PDF et audio.')
+@section('canonical', route('catalog.index', array_filter(['category' => request('category'), 'page' => (int) request('page') > 1 ? (int) request('page') : null])))
+@if(request()->anyFilled(['search', 'author', 'language', 'format', 'price_min', 'price_max', 'sort']))
+    @section('robots', 'noindex, follow')
+@endif
 
 @push('styles')
     <link rel="stylesheet" href="{{ asset('css/catalog-page.css') }}?v={{ filemtime(public_path('css/catalog-page.css')) }}">

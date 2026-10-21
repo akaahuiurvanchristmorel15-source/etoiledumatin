@@ -1,5 +1,6 @@
 @extends('layouts.app')
 @section('title', 'Panier — NSOROMMA')
+@section('robots', 'noindex, nofollow')
 @section('meta_description', 'Consultez et validez les livres numériques ou papier de votre panier.')
 
 @push('styles')

@@ -1,5 +1,6 @@
 @extends('layouts.app')
 @section('title', 'Mot de passe oublié — NSOROMMA')
+@section('robots', 'noindex, nofollow')
 @section('meta_description', 'Recevez un lien pour réinitialiser le mot de passe de votre compte NSOROMMA.')
 
 @push('styles')

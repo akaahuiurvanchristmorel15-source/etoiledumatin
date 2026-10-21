@@ -1,5 +1,6 @@
 @extends('layouts.app')
 @section('title', 'Paiement — NSOROMMA')
+@section('robots', 'noindex, nofollow')
 @section('meta_description', 'Renseignez vos coordonnées pour le paiement sécurisé de vos livres.')
 
 @push('styles')

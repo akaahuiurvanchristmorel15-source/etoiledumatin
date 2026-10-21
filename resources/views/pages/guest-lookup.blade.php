@@ -1,5 +1,6 @@
 @extends('layouts.app')
 @section('title', 'Suivi de commande — NSOROMMA')
+@section('robots', 'noindex, nofollow')
 @section('meta_description', 'Suivez la livraison de votre colis ou retrouvez vos e-books achetés sans compte.')
 
 @push('styles')

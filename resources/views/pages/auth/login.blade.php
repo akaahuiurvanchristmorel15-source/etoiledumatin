@@ -1,5 +1,6 @@
 @extends('layouts.app')
 @section('title', 'Connexion — NSOROMMA')
+@section('robots', 'noindex, nofollow')
 @section('meta_description', 'Connectez-vous à votre espace lecteur pour accéder à votre bibliothèque et à vos commandes.')
 
 @push('styles')

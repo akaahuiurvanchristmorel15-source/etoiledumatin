@@ -6,6 +6,20 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'Librairie NSOROMMA — Spiritualité, Philosophie & Savoirs Africains')</title>
     <meta name="description" content="@yield('meta_description', 'Librairie en ligne panafricaine spécialisée en spiritualité africaine, philosophie, religion et politique. Achat de livres en téléchargement PDF immédiat ou livraison de livres physiques.')">
+    <meta name="robots" content="@yield('robots', 'index, follow')">
+    <link rel="canonical" href="@yield('canonical', url()->current())">
+
+    {{-- Aperçus de partage (WhatsApp, Facebook, X…) --}}
+    <meta property="og:site_name" content="NSOROMMA">
+    <meta property="og:locale" content="fr_FR">
+    <meta property="og:type" content="@yield('og_type', 'website')">
+    <meta property="og:title" content="@yield('title', 'Librairie NSOROMMA — Spiritualité, Philosophie & Savoirs Africains')">
+    <meta property="og:description" content="@yield('meta_description', 'Librairie en ligne panafricaine : spiritualité, philosophie, religion et savoirs africains en papier, PDF et audio.')">
+    <meta property="og:url" content="@yield('canonical', url()->current())">
+    <meta property="og:image" content="@yield('og_image', asset('images/brand/nsoromma-logo.png'))">
+    <meta name="twitter:card" content="@yield('twitter_card', 'summary')">
+
+    @stack('structured-data')
 
     <link rel="icon" type="image/png" href="{{ asset('images/brand/favicon.png') }}">
 

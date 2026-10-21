@@ -1,5 +1,6 @@
 @extends('layouts.app')
 @section('title', 'Créer un compte — NSOROMMA')
+@section('robots', 'noindex, nofollow')
 @section('meta_description', 'Créez votre compte lecteur pour télécharger vos e-books et suivre vos commandes de livres.')
 
 @push('styles')

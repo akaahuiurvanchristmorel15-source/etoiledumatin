@@ -1,5 +1,6 @@
 @extends('layouts.app')
 @section('title', 'Commande '.$order->order_number.' — NSOROMMA')
+@section('robots', 'noindex, nofollow')
 @section('meta_description', 'Le récapitulatif de votre commande NSOROMMA.')
 
 @push('styles')

@@ -1,5 +1,6 @@
 @extends('layouts.app')
 @section('title', 'Confirmez votre e-mail — NSOROMMA')
+@section('robots', 'noindex, nofollow')
 @section('meta_description', 'Confirmez votre adresse e-mail pour sécuriser votre compte NSOROMMA.')
 
 @push('styles')

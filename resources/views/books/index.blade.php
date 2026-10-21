@@ -3,6 +3,36 @@
 @section('title', 'NSOROMMA — Librairie panafricaine : livres papier, PDF & audio')
 @section('meta_description', 'NSOROMMA : spiritualité, philosophie, religion et savoirs africains en livre papier, e-book PDF et livre audio.')
 @section('body_class', 'broks-page home-page')
+@section('canonical', route('home'))
+
+@push('structured-data')
+    @php
+        $siteSchema = [
+            '@context' => 'https://schema.org',
+            '@graph' => [
+                [
+                    '@type' => 'WebSite',
+                    'name' => 'NSOROMMA',
+                    'url' => route('home'),
+                    'inLanguage' => 'fr',
+                    'potentialAction' => [
+                        '@type' => 'SearchAction',
+                        'target' => ['@type' => 'EntryPoint', 'urlTemplate' => route('catalog.index').'?search={search_term_string}'],
+                        'query-input' => 'required name=search_term_string',
+                    ],
+                ],
+                [
+                    '@type' => 'BookStore',
+                    'name' => 'NSOROMMA',
+                    'url' => route('home'),
+                    'logo' => asset('images/brand/nsoromma-logo.png'),
+                    'description' => 'Librairie panafricaine : spiritualité, philosophie, religion et savoirs africains en papier, PDF et audio.',
+                ],
+            ],
+        ];
+    @endphp
+    <script type="application/ld+json">{!! json_encode($siteSchema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP) !!}</script>
+@endpush
 
 @push('styles')
     <link rel="stylesheet" href="{{ asset('css/home.css') }}?v={{ filemtime(public_path('css/home.css')) }}">

@@ -1,5 +1,6 @@
 @extends('layouts.app')
 @section('title', 'Ma bibliothèque — NSOROMMA')
+@section('robots', 'noindex, nofollow')
 @section('meta_description', 'Accédez à vos e-books et livres audio, et suivez vos commandes de livres papier.')
 
 @push('styles')

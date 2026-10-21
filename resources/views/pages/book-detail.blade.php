@@ -1,6 +1,50 @@
 @extends('layouts.app')
 @section('title', $book->title.' — NSOROMMA')
 @section('meta_description', Str::limit(strip_tags($book->description), 160))
+@section('canonical', route('catalog.show', $book->slug))
+@section('og_type', 'book')
+@section('og_image', $book->cover_image ? asset($book->cover_image) : asset('images/brand/nsoromma-logo.png'))
+@section('twitter_card', 'summary_large_image')
+
+@push('structured-data')
+    @php
+        $offers = collect([
+            'pdf' => ['available' => $book->is_pdf_available, 'price' => $book->price_pdf, 'name' => 'e-Book PDF', 'inStock' => true],
+            'physical' => ['available' => $book->is_physical_available, 'price' => $book->price_physical, 'name' => 'Livre papier', 'inStock' => $book->stock_physical > 0],
+            'audio' => ['available' => $book->is_audio_available, 'price' => $book->price_audio, 'name' => 'Livre audio', 'inStock' => true],
+        ])->filter(fn (array $offer) => $offer['available'])->map(fn (array $offer) => [
+            '@type' => 'Offer',
+            'name' => $offer['name'],
+            'price' => (string) $offer['price'],
+            'priceCurrency' => 'XOF',
+            'availability' => $offer['inStock'] ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+            'url' => route('catalog.show', $book->slug),
+        ])->values();
+        $approvedReviews = $book->approvedReviews;
+        $bookSchema = array_filter([
+            '@context' => 'https://schema.org',
+            '@type' => ['Book', 'Product'],
+            'name' => $book->title,
+            'author' => ['@type' => 'Person', 'name' => $book->author],
+            'description' => Str::limit(strip_tags($book->description), 500),
+            'image' => $book->cover_image ? asset($book->cover_image) : null,
+            'url' => route('catalog.show', $book->slug),
+            'isbn' => $book->isbn ?: null,
+            'numberOfPages' => $book->pages_count ?: null,
+            'inLanguage' => $book->language,
+            'publisher' => $book->publisher ? ['@type' => 'Organization', 'name' => $book->publisher] : null,
+            'datePublished' => $book->published_year ? (string) $book->published_year : null,
+            'genre' => $book->category?->name,
+            'offers' => $offers->isNotEmpty() ? $offers->all() : null,
+            'aggregateRating' => $approvedReviews->isNotEmpty() ? [
+                '@type' => 'AggregateRating',
+                'ratingValue' => round($approvedReviews->avg('rating'), 1),
+                'reviewCount' => $approvedReviews->count(),
+            ] : null,
+        ]);
+    @endphp
+    <script type="application/ld+json">{!! json_encode($bookSchema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP) !!}</script>
+@endpush
 
 @push('styles')
     <link rel="stylesheet" href="{{ asset('css/home.css') }}?v={{ filemtime(public_path('css/home.css')) }}">
