@@ -242,6 +242,10 @@ button { font: inherit; }
 .book-cell { display: flex; align-items: center; gap: .75rem; min-width: 0; }
 .book-thumb { width: 36px; height: 52px; border-radius: 0; object-fit: cover; flex-shrink: 0; background: var(--surface-muted); border: 1px solid var(--border); }
 
+.stock-count { font-size: 1.15rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+.stock-form { display: flex; justify-content: flex-end; align-items: center; gap: .4rem; }
+.stock-input { width: 96px; min-height: 32px; padding: .35rem .5rem; text-align: center; }
+
 .empty { padding: 3rem 1rem; text-align: center; color: var(--muted); }
 .empty-title { font-weight: 600; color: var(--text); margin-bottom: .25rem; }
 

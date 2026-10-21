@@ -40,7 +40,7 @@ class StorefrontPagesTest extends TestCase
 
         $response = $this->get(route('catalog.show', $book->slug))
             ->assertOk()
-            ->assertSee('Rupture de stock');
+            ->assertSee('Épuisé — rupture de stock');
 
         $this->assertMatchesRegularExpression('/value="physical"[^>]*\bdisabled\b/', $response->getContent());
     }

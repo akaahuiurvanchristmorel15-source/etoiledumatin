@@ -21,6 +21,7 @@
             ['route' => 'admin.dashboard', 'match' => 'admin.dashboard', 'icon' => 'dashboard', 'label' => 'Tableau de bord', 'can' => null],
             ['route' => 'admin.orders.index', 'match' => 'admin.orders.*', 'icon' => 'bag', 'label' => 'Commandes', 'can' => 'manage-orders'],
             ['route' => 'admin.books.index', 'match' => 'admin.books.*', 'icon' => 'book', 'label' => 'Livres', 'can' => 'manage-catalog'],
+            ['route' => 'admin.stock.index', 'match' => 'admin.stock.*', 'icon' => 'box', 'label' => 'Stock', 'can' => 'manage-catalog', 'count' => $outOfStockCount ?? 0],
             ['route' => 'admin.categories.index', 'match' => 'admin.categories.*', 'icon' => 'folder', 'label' => 'Catégories', 'can' => 'manage-catalog'],
             ['route' => 'admin.reviews.index', 'match' => 'admin.reviews.*', 'icon' => 'star', 'label' => 'Avis clients', 'can' => 'manage-catalog', 'count' => $pendingReviewsCount ?? 0],
         ];

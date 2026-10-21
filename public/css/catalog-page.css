@@ -124,6 +124,12 @@
 .catalog-card:hover .catalog-book-title { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 4px; }
 .catalog-book-author { margin-top: .35rem; font-size: .85rem; color: var(--ink-soft); }
 .catalog-price { margin-top: .6rem; font-size: .85rem; font-weight: 600; color: var(--ink); }
+.catalog-stock { display: inline-flex; align-items: center; gap: .4rem; margin-top: .35rem; font-size: .76rem; color: var(--ink-soft); }
+.catalog-stock::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: #0B6B3A; }
+.catalog-stock.is-low { color: #B54708; }
+.catalog-stock.is-low::before { background: #B54708; }
+.catalog-stock.is-out { color: var(--muted); }
+.catalog-stock.is-out::before { background: var(--muted); }
 
 /* ---------- Pagination ---------- */
 .site-pagination { display: flex; flex-wrap: wrap; justify-content: center; gap: .35rem; margin-top: 4rem; padding-top: 2rem; border-top: 1px solid var(--line); }

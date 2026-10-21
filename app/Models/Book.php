@@ -14,6 +14,11 @@ class Book extends Model
 {
     use HasFactory, SoftDeletes;
 
+    /**
+     * Seuil en dessous duquel le stock papier est considéré comme faible.
+     */
+    public const LOW_STOCK_THRESHOLD = 5;
+
     protected $fillable = [
         'category_id',
         'title',
@@ -128,5 +133,29 @@ class Book extends Model
     public function hasStock(): bool
     {
         return $this->is_physical_available && $this->stock_physical > 0;
+    }
+
+    /**
+     * Niveau de stock papier : « out » (épuisé), « low » (faible) ou « ok ».
+     */
+    public function stockLevel(): string
+    {
+        return match (true) {
+            $this->stock_physical <= 0 => 'out',
+            $this->stock_physical <= self::LOW_STOCK_THRESHOLD => 'low',
+            default => 'ok',
+        };
+    }
+
+    /**
+     * Libellé affiché aux lecteurs, avec la quantité restante exacte.
+     */
+    public function stockLabel(): string
+    {
+        return match ($this->stockLevel()) {
+            'out' => 'Épuisé',
+            'low' => 'Plus que '.$this->stock_physical.' '.($this->stock_physical > 1 ? 'exemplaires' : 'exemplaire'),
+            default => $this->stock_physical.' exemplaires en stock',
+        };
     }
 }

@@ -176,6 +176,9 @@
                                     @if($price !== null)
                                         <span class="catalog-price">{{ $price > 0 ? 'Dès '.number_format($price, 0, ',', ' ').' FCFA' : 'Gratuit' }}</span>
                                     @endif
+                                    @if($book->is_physical_available)
+                                        <span class="catalog-stock is-{{ $book->stockLevel() }}">Papier : {{ $book->stockLevel() === 'out' ? 'épuisé' : Str::lcfirst($book->stockLabel()) }}</span>
+                                    @endif
                                 </a>
                             </li>
                         @endforeach

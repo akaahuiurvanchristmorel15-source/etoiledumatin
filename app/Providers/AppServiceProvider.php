@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Contracts\PaymentGatewayInterface;
+use App\Models\Book;
 use App\Models\Review;
 use App\Models\Setting;
 use App\Models\User;
@@ -34,7 +35,12 @@ class AppServiceProvider extends ServiceProvider
         $this->applyShippingSettings();
 
         View::composer('layouts.admin', function ($view): void {
-            $view->with('pendingReviewsCount', Gate::allows('manage-catalog') ? Review::where('is_approved', false)->count() : 0);
+            $canManageCatalog = Gate::allows('manage-catalog');
+
+            $view->with([
+                'pendingReviewsCount' => $canManageCatalog ? Review::where('is_approved', false)->count() : 0,
+                'outOfStockCount' => $canManageCatalog ? Book::where('is_physical_available', true)->where('stock_physical', '<=', 0)->count() : 0,
+            ]);
         });
     }
 

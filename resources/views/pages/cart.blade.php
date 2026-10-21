@@ -64,6 +64,7 @@
                                                 @endfor
                                             </select>
                                         </form>
+                                        <span class="pg-stock {{ $book->stockLevel() !== 'ok' ? 'is-low' : '' }}">{{ $book->stockLabel() }}</span>
                                     @else
                                         <span class="pg-hint">{{ $item['format'] === 'audio' ? 'Téléchargement MP3 après paiement' : 'Téléchargement immédiat après paiement' }}</span>
                                     @endif

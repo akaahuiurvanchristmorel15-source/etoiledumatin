@@ -144,6 +144,7 @@
 .spotlight-details { margin: 0; display: flex; flex-direction: column; gap: 2rem; }
 .spotlight-details dt { font-size: .98rem; font-weight: 600; color: var(--ink); margin-bottom: .75rem; }
 .spotlight-details dd { margin: 0; font-size: .85rem; line-height: 1.7; color: var(--ink-soft); }
+.spotlight-stock { color: var(--muted); }
 
 /* Transition entre deux livres */
 .slide-enter { transition: opacity .55s ease, transform .55s cubic-bezier(.2, .8, .2, 1); }

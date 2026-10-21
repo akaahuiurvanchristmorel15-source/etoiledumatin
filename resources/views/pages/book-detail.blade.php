@@ -16,7 +16,7 @@
     @php
         $formats = collect([
             'pdf' => ['available' => $book->is_pdf_available, 'label' => 'e-Book PDF', 'sub' => 'Téléchargement immédiat, exemplaire personnalisé', 'price' => $book->formatted_price_pdf],
-            'physical' => ['available' => $book->is_physical_available, 'label' => 'Livre papier', 'sub' => $book->stock_physical > 0 ? ($book->stock_physical <= 5 ? 'Plus que '.$book->stock_physical.' en stock' : 'En stock — expédié sous 48 h') : 'Rupture de stock', 'price' => $book->formatted_price_physical, 'disabled' => $book->stock_physical <= 0],
+            'physical' => ['available' => $book->is_physical_available, 'label' => 'Livre papier', 'sub' => $book->stock_physical > 0 ? $book->stockLabel().' · expédié sous 48 h' : 'Épuisé — rupture de stock', 'price' => $book->formatted_price_physical, 'disabled' => $book->stock_physical <= 0],
             'audio' => ['available' => $book->is_audio_available, 'label' => 'Livre audio', 'sub' => 'MP3'.($book->audio_duration ? ' · '.$book->audio_duration : ''), 'price' => $book->formatted_price_audio],
         ])->filter(fn (array $format) => $format['available']);
         $defaultFormat = $formats->filter(fn (array $format) => empty($format['disabled']))->keys()->first();

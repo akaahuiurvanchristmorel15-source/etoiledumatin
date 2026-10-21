@@ -133,7 +133,7 @@
                                         <dt>Disponible en</dt>
                                         <dd>
                                             @if($book->is_pdf_available)e-Book PDF · {{ $book->formatted_price_pdf }}<br>@endif
-                                            @if($book->is_physical_available)Papier · {{ $book->formatted_price_physical }}<br>@endif
+                                            @if($book->is_physical_available)Papier · {{ $book->formatted_price_physical }} <span class="spotlight-stock">({{ Str::lcfirst($book->stockLabel()) }})</span><br>@endif
                                             @if($book->is_audio_available)Audio · {{ $book->formatted_price_audio }}@endif
                                         </dd>
                                     </div>

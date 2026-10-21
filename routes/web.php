@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\OrderController as AdminOrderController;
 use App\Http\Controllers\Admin\ReviewController as AdminReviewController;
 use App\Http\Controllers\Admin\SettingsController as AdminSettingsController;
+use App\Http\Controllers\Admin\StockController as AdminStockController;
 use App\Http\Controllers\Admin\TeamController as AdminTeamController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CartController;
@@ -107,6 +108,9 @@ Route::prefix('admin')->name('admin.')->middleware('admin')->group(function () {
             ->except(['show']);
 
         Route::resource('categories', AdminCategoryController::class)->except(['show']);
+
+        Route::get('/stock', [AdminStockController::class, 'index'])->name('stock.index');
+        Route::patch('/stock/{book}', [AdminStockController::class, 'update'])->name('stock.update');
 
         Route::get('/avis', [AdminReviewController::class, 'index'])->name('reviews.index');
         Route::post('/avis/{review}/approuver', [AdminReviewController::class, 'approve'])->name('reviews.approve');
