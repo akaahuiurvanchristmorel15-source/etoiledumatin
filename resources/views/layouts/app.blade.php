@@ -21,7 +21,9 @@
 
     @stack('structured-data')
 
+    <link rel="icon" href="{{ asset('favicon.ico') }}" sizes="any">
     <link rel="icon" type="image/png" href="{{ asset('images/brand/favicon.png') }}">
+    <link rel="apple-touch-icon" href="{{ asset('images/brand/apple-touch-icon.png') }}">
 
     {{-- Masque les éléments Alpine (menus, recherche, tiroirs) tant qu'Alpine n'est pas initialisé --}}
     <style>[x-cloak] { display: none !important; }</style>
