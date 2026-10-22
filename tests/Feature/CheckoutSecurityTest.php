@@ -99,6 +99,46 @@ class CheckoutSecurityTest extends TestCase
         $this->assertTrue($order->fresh()->isPaid());
     }
 
+    public function test_callback_rejects_a_payment_made_in_another_currency(): void
+    {
+        $this->useRealPaystackKeys();
+        $order = $this->createPendingPdfOrder();
+        $this->fakeVerifiedPayment($order->total_amount, 'NGN');
+
+        $this->get(route('checkout.callback', ['reference' => $order->payment_reference]))
+            ->assertRedirect(route('cart.index'));
+
+        $this->assertFalse($order->fresh()->isPaid());
+    }
+
+    public function test_checkout_sends_the_order_to_paystack_in_xof_with_the_chosen_channel(): void
+    {
+        $this->useRealPaystackKeys();
+        Http::fake(['*/transaction/initialize' => Http::response([
+            'status' => true,
+            'data' => ['authorization_url' => 'https://checkout.paystack.com/abc123', 'access_code' => 'abc123'],
+        ])]);
+
+        $book = Book::active()->where('is_pdf_available', true)->firstOrFail();
+        $this->post(route('cart.add'), ['book_id' => $book->id, 'format' => 'pdf']);
+
+        $this->post(route('checkout.process'), [
+            'name' => 'Awa Diabaté',
+            'email' => 'awa.diabate@test.ci',
+            'phone' => '+225 05 11 22 33 44',
+            'payment_channel' => 'paystack_card',
+        ])->assertRedirect('https://checkout.paystack.com/abc123');
+
+        $order = Order::where('customer_email', 'awa.diabate@test.ci')->firstOrFail();
+
+        Http::assertSent(fn ($request) => $request->url() === 'https://api.paystack.co/transaction/initialize'
+            && $request['amount'] === $order->total_amount * 100
+            && $request['currency'] === 'XOF'
+            && $request['channels'] === ['card']
+            && $request['reference'] === $order->payment_reference
+            && $request['callback_url'] === route('checkout.callback'));
+    }
+
     public function test_webhook_rejects_unsigned_payload_when_real_keys_are_configured(): void
     {
         $this->useRealPaystackKeys();
@@ -242,13 +282,14 @@ class CheckoutSecurityTest extends TestCase
         config(['paystack.secret_key' => 'sk_test_0123456789abcdef', 'paystack.sandbox_mode' => true]);
     }
 
-    private function fakeVerifiedPayment(int $amountInFcfa): void
+    private function fakeVerifiedPayment(int $amountInFcfa, string $currency = 'XOF'): void
     {
         Http::fake(['*/transaction/verify/*' => Http::response([
             'status' => true,
             'data' => [
                 'status' => 'success',
                 'amount' => $amountInFcfa * 100,
+                'currency' => $currency,
                 'channel' => 'mobile_money',
                 'gateway_response' => 'Approved',
             ],

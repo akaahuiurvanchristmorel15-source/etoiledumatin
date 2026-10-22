@@ -31,6 +31,9 @@
         <env name="SESSION_DRIVER" value="array"/>
         <env name="PULSE_ENABLED" value="false"/>
         <env name="TELESCOPE_ENABLED" value="false"/>
+        <env name="PAYSTACK_PUBLIC_KEY" value=""/>
+        <env name="PAYSTACK_SECRET_KEY" value=""/>
+        <env name="PAYSTACK_CA_BUNDLE" value=""/>
         <env name="NIGHTWATCH_ENABLED" value="false"/>
     </php>
 </phpunit>

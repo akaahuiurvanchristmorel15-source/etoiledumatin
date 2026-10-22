@@ -221,7 +221,9 @@ class CheckoutController extends Controller
 
             $amountPaid = (int) (($result['data']['amount'] ?? 0) / 100);
 
-            if ($order && ! $order->isPaid() && $this->coversOrderTotal($order, $amountPaid)) {
+            $currency = $result['data']['currency'] ?? null;
+
+            if ($order && ! $order->isPaid() && $this->coversOrderTotal($order, $amountPaid) && strtoupper((string) $currency) === strtoupper((string) config('paystack.currency', 'XOF'))) {
                 $orderService->completeOrderPayment(
                     $order,
                     $result['reference'],

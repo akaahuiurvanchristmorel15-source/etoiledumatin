@@ -122,6 +122,7 @@ class PaystackPaymentTest extends TestCase
             'data' => [
                 'reference' => 'PAY_WEBHOOK_REF_999',
                 'amount' => $book->price_pdf * 100,
+                'currency' => 'XOF',
                 'channel' => 'mobile_money',
                 'status' => 'success',
             ],

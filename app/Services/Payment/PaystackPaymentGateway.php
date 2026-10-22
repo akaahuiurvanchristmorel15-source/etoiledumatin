@@ -4,6 +4,7 @@ namespace App\Services\Payment;
 
 use App\Contracts\PaymentGatewayInterface;
 use App\Models\Order;
+use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -43,15 +44,14 @@ class PaystackPaymentGateway implements PaymentGatewayInterface
         }
 
         try {
-            // Paystack gère les montants en sous-unités (centimes/kobo)
-            // Pour le XOF (Franc CFA), Paystack attend le montant multiplié par 100
+            // Le XOF n'a pas de sous-unité, mais Paystack exige tout de même le montant multiplié par 100
             $payload = [
                 'email' => $order->customer_email,
-                'amount' => $order->total_amount * 100,
+                'amount' => (int) $order->total_amount * 100,
                 'currency' => config('paystack.currency', 'XOF'),
                 'reference' => $reference,
                 'callback_url' => $callbackUrl,
-                'channels' => ['card', 'mobile_money'],
+                'channels' => $this->channelsFor($order),
                 'metadata' => [
                     'order_id' => $order->id,
                     'order_number' => $order->order_number,
@@ -67,7 +67,7 @@ class PaystackPaymentGateway implements PaymentGatewayInterface
                 ],
             ];
 
-            $response = Http::withToken($this->secretKey)
+            $response = $this->client()
                 ->timeout(15)
                 ->post("{$this->paymentUrl}/transaction/initialize", $payload);
 
@@ -100,13 +100,13 @@ class PaystackPaymentGateway implements PaymentGatewayInterface
     public function verifyTransaction(string $reference): array
     {
         try {
-            $response = Http::withToken($this->secretKey)
+            $response = $this->client()
                 ->timeout(15)
                 ->get("{$this->paymentUrl}/transaction/verify/{$reference}");
 
             if ($response->successful() && $response->json('status') === true) {
                 $data = $response->json('data');
-                $isSuccessful = ($data['status'] === 'success');
+                $isSuccessful = ($data['status'] ?? null) === 'success' && $this->isExpectedCurrency($data['currency'] ?? null);
 
                 return [
                     'success' => $isSuccessful,
@@ -178,6 +178,42 @@ class PaystackPaymentGateway implements PaymentGatewayInterface
             'reference' => $payload['data']['reference'] ?? null,
             'data' => $payload['data'] ?? [],
         ];
+    }
+
+    /**
+     * Client HTTP authentifié auprès de l'API Paystack.
+     */
+    protected function client(): PendingRequest
+    {
+        $client = Http::withToken($this->secretKey);
+
+        if ($caBundle = config('paystack.ca_bundle')) {
+            $client->withOptions(['verify' => $caBundle]);
+        }
+
+        return $client;
+    }
+
+    /**
+     * Le moyen choisi au moment de commander détermine ce que la page Paystack propose.
+     *
+     * @return list<string>
+     */
+    protected function channelsFor(Order $order): array
+    {
+        return match ($order->payment_method) {
+            'paystack_momo' => ['mobile_money'],
+            'paystack_card' => ['card'],
+            default => ['mobile_money', 'card'],
+        };
+    }
+
+    /**
+     * Un paiement encaissé dans une autre devise que celle de la boutique n'est jamais accepté.
+     */
+    protected function isExpectedCurrency(?string $currency): bool
+    {
+        return strtoupper((string) $currency) === strtoupper((string) config('paystack.currency', 'XOF'));
     }
 
     /**
