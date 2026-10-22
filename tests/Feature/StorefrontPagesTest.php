@@ -90,6 +90,16 @@ class StorefrontPagesTest extends TestCase
         $this->assertMatchesRegularExpression('/x-show="mobileMenuOpen"\s+x-cloak/', $content);
     }
 
+    public function test_pages_declare_the_nsoromma_favicon(): void
+    {
+        $this->get(route('home'))
+            ->assertOk()
+            ->assertSee('<link rel="icon" href="'.asset('favicon.ico').'?v=2" sizes="any">', false)
+            ->assertSee(asset('apple-touch-icon.png'), false);
+
+        $this->assertStringStartsWith("\x00\x00\x01\x00", file_get_contents(public_path('favicon.ico')));
+    }
+
     public function test_flash_messages_are_shown_as_toasts(): void
     {
         $book = Book::active()->where('is_pdf_available', true)->firstOrFail();

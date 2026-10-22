@@ -6,7 +6,9 @@
     <meta name="robots" content="noindex, follow">
     <title>Extrait — {{ $book->title }} — NSOROMMA</title>
     <link rel="canonical" href="{{ route('catalog.show', $book->slug) }}">
-    <link rel="icon" type="image/png" href="{{ asset('images/brand/favicon.png') }}">
+    <link rel="icon" href="{{ asset('favicon.ico') }}?v=2" sizes="any">
+    <link rel="icon" type="image/png" href="{{ asset('images/brand/favicon.png') }}?v=2">
+    <link rel="apple-touch-icon" href="{{ asset('apple-touch-icon.png') }}?v=2">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
