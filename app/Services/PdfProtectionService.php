@@ -49,7 +49,7 @@ class PdfProtectionService
             : null;
 
         $watermarkText = sprintf(
-            'Exemplaire personnel de %s (%s) - Réf: %s - Diffusion interdite',
+            'Exemplaire personnel de %s (%s) - Réf : %s - Diffusion interdite',
             $download->customer_name,
             $download->customer_email,
             $download->order->order_number ?? 'EDM'
@@ -58,62 +58,50 @@ class PdfProtectionService
         $filename = Str::slug($book->title).'-edition-securisee.pdf';
 
         return response()->stream(function () use ($sourceFullPath, $book, $watermarkText) {
-            $pdf = new Fpdi;
+            $pdf = new WatermarkedPdf('Librairie NSOROMMA — Édition numérique certifiée', $watermarkText);
+            $pdf->SetTitle($pdf->encode($book->title));
+            $pdf->SetAuthor($pdf->encode($book->author));
+            $pdf->SetCreator('NSOROMMA');
 
             if ($sourceFullPath && file_exists($sourceFullPath)) {
+                // Les pages importées occupent toute la feuille : aucun saut automatique ne doit s'ajouter
+                $pdf->SetAutoPageBreak(false);
                 $pageCount = $pdf->setSourceFile($sourceFullPath);
 
                 for ($pageNo = 1; $pageNo <= $pageCount; $pageNo++) {
                     $templateId = $pdf->importPage($pageNo);
                     $size = $pdf->getTemplateSize($templateId);
 
-                    $orientation = $size['width'] > $size['height'] ? 'L' : 'P';
-                    $pdf->AddPage($orientation, [$size['width'], $size['height']]);
+                    $pdf->AddPage($size['width'] > $size['height'] ? 'L' : 'P', [$size['width'], $size['height']]);
                     $pdf->useTemplate($templateId);
-
-                    // Filigrane discret en pied de page
-                    $pdf->SetFont('Helvetica', 'I', 8);
-                    $pdf->SetTextColor(130, 130, 130);
-                    $pdf->SetXY(10, $size['height'] - 10);
-                    $pdf->Cell(0, 5, utf8_decode($watermarkText), 0, 0, 'C');
-
-                    // En-tête haut de page
-                    $pdf->SetXY(10, 5);
-                    $pdf->SetFont('Helvetica', '', 7);
-                    $pdf->SetTextColor(160, 160, 160);
-                    $pdf->Cell(0, 5, utf8_decode('Librairie NSOROMMA — Édition numérique certifiée'), 0, 0, 'R');
                 }
             } else {
-                // Génération d'un document complet représentatif
+                // Génération d'un document complet représentatif ; les pages suivantes reçoivent aussi les mentions
+                $pdf->SetAutoPageBreak(true, 20);
                 $pdf->AddPage('P', 'A4');
                 $pdf->SetFont('Helvetica', 'B', 20);
-                $pdf->SetTextColor(30, 41, 59);
-                $pdf->Cell(0, 20, utf8_decode($book->title), 0, 1, 'C');
+                $pdf->SetTextColor(30, 34, 48);
+                $pdf->MultiCell(0, 10, $pdf->encode($book->title), 0, 'C');
+                $pdf->Ln(2);
 
                 $pdf->SetFont('Helvetica', 'I', 13);
-                $pdf->SetTextColor(100, 116, 139);
-                $pdf->Cell(0, 10, utf8_decode('Par '.$book->author), 0, 1, 'C');
+                $pdf->SetTextColor(95, 94, 90);
+                $pdf->Cell(0, 10, $pdf->encode('Par '.$book->author), 0, 1, 'C');
                 $pdf->Ln(15);
 
                 $pdf->SetFont('Helvetica', 'B', 12);
-                $pdf->SetTextColor(15, 23, 42);
-                $pdf->Cell(0, 10, utf8_decode("Notice d'authenticité et de protection numérique"), 0, 1, 'L');
+                $pdf->SetTextColor(30, 34, 48);
+                $pdf->Cell(0, 10, $pdf->encode("Notice d'authenticité et de protection numérique"), 0, 1, 'L');
 
                 $pdf->SetFont('Helvetica', '', 10);
-                $pdf->SetTextColor(51, 65, 85);
+                $pdf->SetTextColor(51, 51, 51);
                 $notice = "Cet ouvrage numérique vous a été délivré par la librairie en ligne « NSOROMMA ».\n\n"
                     ."Résumé de l'œuvre :\n".$book->description."\n\n"
                     ."Extrait sélectionné :\n".($book->excerpt ?: 'Consultez les écrits et sagesses ancestrales dans cette édition originale.')."\n\n"
                     .'Rappel légal : Conformément au Code de la propriété intellectuelle et aux conditions générales de vente, '
                     .'cet exemplaire est concédé pour un usage strictement individuel et privé. Toute reproduction, partage public, '
                     .'téléversement sur des réseaux ou revente est rigoureusement prohibé et passible de poursuites.';
-                $pdf->MultiCell(0, 6, utf8_decode($notice));
-
-                // Pied de page sécurisé
-                $pdf->SetFont('Helvetica', 'I', 8);
-                $pdf->SetTextColor(130, 130, 130);
-                $pdf->SetXY(10, 280);
-                $pdf->Cell(0, 5, utf8_decode($watermarkText), 0, 0, 'C');
+                $pdf->MultiCell(0, 6, $pdf->encode($notice));
             }
 
             echo $pdf->Output('S');
