@@ -138,8 +138,20 @@ class CatalogController extends Controller
         return back()->with('success', $message);
     }
 
+    /**
+     * Liseuse de l'extrait gratuit, aux couleurs de la librairie.
+     */
+    public function preview(string $slug): View
+    {
+        $book = Book::active()->where('slug', $slug)->where('is_pdf_available', true)->firstOrFail();
+
+        return view('pages.book-preview', compact('book'));
+    }
+
     public function previewPdf(Book $book, PdfProtectionService $pdfProtectionService): StreamedResponse
     {
+        abort_unless($book->is_active && $book->is_pdf_available, 404);
+
         return $pdfProtectionService->streamPreviewPdf($book);
     }
 }

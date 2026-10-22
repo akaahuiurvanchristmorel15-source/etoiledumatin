@@ -140,7 +140,7 @@
                                             <span class="spotlight-tool-tip" data-share-label>Partager</span>
                                         </button>
                                         @if($book->is_pdf_available)
-                                            <a href="{{ route('catalog.preview-pdf', $book) }}" class="spotlight-tool" aria-label="Lire un extrait">
+                                            <a href="{{ route('catalog.preview', $book->slug) }}" class="spotlight-tool" aria-label="Lire un extrait">
                                                 <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11"/><polyline points="7 10 12 15 17 10"/><path d="M5 20h14"/></svg>
                                                 <span class="spotlight-tool-tip">Lire un extrait</span>
                                             </a>

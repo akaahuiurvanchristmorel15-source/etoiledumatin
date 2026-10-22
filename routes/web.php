@@ -34,6 +34,7 @@ Route::get('/books', [HomeController::class, 'index'])->name('books.index');
 Route::get('/catalogue', [CatalogController::class, 'index'])->name('catalog.index');
 Route::get('/recherche/suggestions', [SearchController::class, 'suggestions'])->name('search.suggestions')->middleware('throttle:60,1');
 Route::get('/livre/{slug}', [CatalogController::class, 'show'])->name('catalog.show');
+Route::get('/livre/{slug}/extrait', [CatalogController::class, 'preview'])->name('catalog.preview');
 Route::get('/livre/{book}/apercu-pdf', [CatalogController::class, 'previewPdf'])->name('catalog.preview-pdf');
 Route::post('/livre/{book}/avis', [CatalogController::class, 'addReview'])->name('books.review')->middleware(['verified.account', 'throttle:reviews']);
 Route::get('/suivi-commande', [LibraryController::class, 'guestLookup'])->name('orders.lookup')->middleware('throttle:10,1');

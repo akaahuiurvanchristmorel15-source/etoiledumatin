@@ -12,6 +12,17 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class PdfProtectionService
 {
+    /** Palette NSOROMMA (RVB) pour la mise en page des extraits */
+    private const INK = [30, 34, 48];
+
+    private const INK_SOFT = [95, 94, 90];
+
+    private const MUTED = [154, 151, 143];
+
+    private const CREAM = [250, 249, 245];
+
+    private const LINE = [215, 213, 205];
+
     /**
      * Génère un lien de téléchargement temporaire signé.
      */
@@ -115,7 +126,7 @@ class PdfProtectionService
     }
 
     /**
-     * Génère et diffuse un extrait / aperçu PDF limité (3 premières pages ou document de présentation).
+     * Extrait gratuit : les 3 premières pages du PDF, ou une plaquette générée si le fichier est absent.
      */
     public function streamPreviewPdf(Book $book): StreamedResponse
     {
@@ -124,103 +135,32 @@ class PdfProtectionService
             ? Storage::disk('local')->path($relativePath)
             : null;
 
-        $watermarkText = 'EXTRAIT SPÉCIMEN — APERÇU LIMITÉ — NSOROMMA';
         $filename = 'extrait-'.Str::slug($book->title).'.pdf';
 
-        return response()->stream(function () use ($sourceFullPath, $book, $watermarkText) {
+        return response()->stream(function () use ($sourceFullPath, $book) {
             $pdf = new Fpdi;
+            $pdf->SetAutoPageBreak(false);
+            $pdf->SetTitle($this->latin('Extrait — '.$book->title));
+            $pdf->SetAuthor($this->latin($book->author));
+            $pdf->SetCreator('NSOROMMA');
 
             if ($sourceFullPath && file_exists($sourceFullPath)) {
-                $totalAvailable = $pdf->setSourceFile($sourceFullPath);
-                // Aperçu limité aux 3 premières pages maximum
-                $pageLimit = min($totalAvailable, 3);
+                $pageLimit = min($pdf->setSourceFile($sourceFullPath), 3);
 
                 for ($pageNo = 1; $pageNo <= $pageLimit; $pageNo++) {
                     $templateId = $pdf->importPage($pageNo);
                     $size = $pdf->getTemplateSize($templateId);
 
-                    $orientation = $size['width'] > $size['height'] ? 'L' : 'P';
-                    $pdf->AddPage($orientation, [$size['width'], $size['height']]);
+                    $pdf->AddPage($size['width'] > $size['height'] ? 'L' : 'P', [$size['width'], $size['height']]);
                     $pdf->useTemplate($templateId);
-
-                    // Bandeau filigrane haut et bas
-                    $pdf->SetFont('Helvetica', 'B', 8);
-                    $pdf->SetTextColor(180, 80, 50);
-                    $pdf->SetXY(10, 5);
-                    $pdf->Cell(0, 5, utf8_decode('EXTRAIT DE CONSULTATION GRATUITE — ÉDITION LIMITÉE'), 0, 0, 'C');
-
-                    $pdf->SetXY(10, $size['height'] - 10);
-                    $pdf->SetFont('Helvetica', 'I', 8);
-                    $pdf->SetTextColor(120, 120, 120);
-                    $pdf->Cell(0, 5, utf8_decode($watermarkText.' — letoiledumatin.ci'), 0, 0, 'C');
+                    $this->drawPreviewFooter($pdf, $size['width'], $size['height'], $pageNo, $pageLimit);
                 }
+
+                $this->drawPreviewClosingPage($pdf, $book);
             } else {
-                // Page 1 : Couverture & Informations
-                $pdf->AddPage('P', 'A4');
-                $pdf->SetFillColor(244, 235, 221);
-                $pdf->Rect(0, 0, 210, 297, 'F');
-
-                $pdf->SetFont('Helvetica', 'B', 11);
-                $pdf->SetTextColor(190, 140, 50);
-                $pdf->SetXY(20, 25);
-                $pdf->Cell(0, 8, utf8_decode('LIBRAIRIE ÉDITIONS NSOROMMA'), 0, 1, 'C');
-
-                $pdf->SetFont('Helvetica', 'B', 20);
-                $pdf->SetTextColor(30, 29, 27);
-                $pdf->SetXY(20, 45);
-                $pdf->MultiCell(170, 11, utf8_decode($book->title), 0, 'C');
-
-                $pdf->Ln(5);
-                $pdf->SetFont('Helvetica', 'I', 13);
-                $pdf->SetTextColor(120, 107, 90);
-                $pdf->Cell(0, 10, utf8_decode('Par '.$book->author), 0, 1, 'C');
-
-                if ($book->category) {
-                    $pdf->SetFont('Helvetica', '', 10);
-                    $pdf->SetTextColor(139, 133, 124);
-                    $pdf->Cell(0, 8, utf8_decode('Collection : '.$book->category->name), 0, 1, 'C');
-                }
-
-                $pdf->Ln(15);
-                $pdf->SetFillColor(255, 253, 249);
-                $pdf->Rect(20, 110, 170, 65, 'F');
-                $pdf->SetXY(25, 116);
-                $pdf->SetFont('Helvetica', 'B', 12);
-                $pdf->SetTextColor(25, 25, 25);
-                $pdf->Cell(0, 8, utf8_decode("Notice de l'Aperçu"), 0, 1, 'L');
-                $pdf->SetXY(25, 126);
-                $pdf->SetFont('Helvetica', '', 10);
-                $pdf->SetTextColor(60, 60, 60);
-                $noticeText = "Vous consultez l'aperçu gratuit et limité de cet ouvrage.\n\n"
-                    ."Cet extrait vous permet de découvrir les premières lignes et la démarche de l'auteur. "
-                    ."L'intégralité de l'œuvre est disponible en téléchargement immédiat au format PDF ou en livraison physique reliée sur notre librairie en ligne.";
-                $pdf->MultiCell(160, 6, utf8_decode($noticeText));
-
-                // Page 2 : Résumé & Extrait
-                $pdf->AddPage('P', 'A4');
-                $pdf->SetFont('Helvetica', 'B', 14);
-                $pdf->SetTextColor(30, 29, 27);
-                $pdf->Cell(0, 12, utf8_decode("Résumé de l'œuvre"), 0, 1, 'L');
-
-                $pdf->SetFont('Helvetica', '', 10);
-                $pdf->SetTextColor(50, 50, 50);
-                $pdf->MultiCell(0, 6, utf8_decode($book->description));
-
-                $pdf->Ln(10);
-                $pdf->SetFont('Helvetica', 'B', 14);
-                $pdf->SetTextColor(30, 29, 27);
-                $pdf->Cell(0, 12, utf8_decode('Extrait choisi'), 0, 1, 'L');
-
-                $pdf->SetFont('Helvetica', 'I', 11);
-                $pdf->SetTextColor(60, 45, 25);
-                $excerpt = $book->excerpt ?: "L'auteur nous plonge ici au cœur d'une réflexion singulière...";
-                $pdf->MultiCell(0, 7, utf8_decode($excerpt));
-
-                // Bas de page
-                $pdf->SetXY(10, 280);
-                $pdf->SetFont('Helvetica', 'I', 8);
-                $pdf->SetTextColor(130, 130, 130);
-                $pdf->Cell(0, 5, utf8_decode($watermarkText.' — www.letoiledumatin.ci'), 0, 0, 'C');
+                $this->drawPreviewCoverPage($pdf, $book);
+                $this->drawPreviewSummaryPage($pdf, $book);
+                $this->drawPreviewClosingPage($pdf, $book);
             }
 
             echo $pdf->Output('S');
@@ -230,5 +170,182 @@ class PdfProtectionService
             'Cache-Control' => 'no-store, no-cache, must-revalidate, max-age=0',
             'Pragma' => 'no-cache',
         ]);
+    }
+
+    /**
+     * Couverture de la plaquette : fond crème, titre en serif, filets fins.
+     */
+    protected function drawPreviewCoverPage(Fpdi $pdf, Book $book): void
+    {
+        $pdf->AddPage('P', 'A4');
+        $this->fill($pdf, self::CREAM);
+        $pdf->Rect(0, 0, 210, 297, 'F');
+
+        $pdf->SetFont('Helvetica', 'B', 9);
+        $this->text($pdf, self::INK);
+        $pdf->SetXY(0, 30);
+        $pdf->Cell(210, 6, 'N S O R O M M A', 0, 1, 'C');
+        $this->rule($pdf, 95, 40, 20);
+
+        $pdf->SetFont('Helvetica', '', 8);
+        $this->text($pdf, self::MUTED);
+        $pdf->SetXY(0, 78);
+        $pdf->Cell(210, 5, 'EXTRAIT GRATUIT', 0, 1, 'C');
+
+        $pdf->SetFont('Times', 'B', 30);
+        $this->text($pdf, self::INK);
+        $pdf->SetXY(25, 92);
+        $pdf->MultiCell(160, 13, $this->latin($book->title), 0, 'C');
+
+        $pdf->Ln(6);
+        $pdf->SetFont('Times', 'I', 16);
+        $this->text($pdf, self::INK_SOFT);
+        $pdf->Cell(0, 9, $this->latin($book->author), 0, 1, 'C');
+
+        if ($book->category) {
+            $pdf->Ln(4);
+            $pdf->SetFont('Helvetica', '', 8);
+            $this->text($pdf, self::MUTED);
+            $pdf->Cell(0, 6, $this->latin(mb_strtoupper($book->category->name)), 0, 1, 'C');
+        }
+
+        $this->rule($pdf, 25, 250, 160);
+        $pdf->SetFont('Helvetica', '', 8.5);
+        $this->text($pdf, self::INK_SOFT);
+        $pdf->SetXY(25, 256);
+        $pdf->MultiCell(160, 5, $this->latin("Vous lisez un extrait gratuit de ce livre. L'ouvrage complet est disponible en e-book PDF, en livre papier ou en livre audio sur ".$this->siteHost().'.'), 0, 'C');
+    }
+
+    /**
+     * Résumé et passage choisi, mis en page comme une page de livre.
+     */
+    protected function drawPreviewSummaryPage(Fpdi $pdf, Book $book): void
+    {
+        $pdf->AddPage('P', 'A4');
+
+        $pdf->SetFont('Helvetica', '', 8);
+        $this->text($pdf, self::MUTED);
+        $pdf->SetXY(25, 30);
+        $pdf->Cell(0, 5, $this->latin('À PROPOS DU LIVRE'), 0, 1);
+
+        $pdf->SetFont('Times', 'B', 22);
+        $this->text($pdf, self::INK);
+        $pdf->SetX(25);
+        $pdf->Cell(0, 12, $this->latin('Résumé'), 0, 1);
+
+        $pdf->Ln(3);
+        $pdf->SetFont('Times', '', 12);
+        $this->text($pdf, self::INK_SOFT);
+        $pdf->SetX(25);
+        $pdf->MultiCell(160, 6.5, $this->latin(Str::limit(strip_tags((string) $book->description), 1400)));
+
+        $pdf->Ln(10);
+        $pdf->SetFont('Helvetica', '', 8);
+        $this->text($pdf, self::MUTED);
+        $pdf->SetX(25);
+        $pdf->Cell(0, 5, 'EXTRAIT', 0, 1);
+        $pdf->Ln(3);
+
+        $excerptTop = $pdf->GetY();
+        $pdf->SetFont('Times', 'I', 13);
+        $this->text($pdf, self::INK);
+        $pdf->SetX(32);
+        $pdf->MultiCell(153, 7.5, $this->latin(Str::limit(strip_tags((string) ($book->excerpt ?: "L'auteur nous plonge ici au cœur d'une réflexion singulière…")), 1200)));
+        $this->draw($pdf, self::INK);
+        $pdf->SetLineWidth(0.6);
+        $pdf->Line(25, $excerptTop + 1, 25, $pdf->GetY() - 1);
+
+        $this->drawPreviewFooter($pdf, 210, 297, 2, 3);
+    }
+
+    /**
+     * Dernière page : invitation à lire la suite, avec lien vers la fiche du livre.
+     */
+    protected function drawPreviewClosingPage(Fpdi $pdf, Book $book): void
+    {
+        $pdf->AddPage('P', 'A4');
+        $this->fill($pdf, self::INK);
+        $pdf->Rect(0, 0, 210, 297, 'F');
+
+        $pdf->SetFont('Helvetica', 'B', 9);
+        $this->text($pdf, self::CREAM);
+        $pdf->SetXY(0, 30);
+        $pdf->Cell(210, 6, 'N S O R O M M A', 0, 1, 'C');
+
+        $pdf->SetFont('Times', 'I', 30);
+        $pdf->SetXY(25, 118);
+        $pdf->MultiCell(160, 13, 'Envie de lire la suite ?', 0, 'C');
+
+        $pdf->Ln(6);
+        $pdf->SetFont('Helvetica', '', 10);
+        $this->text($pdf, self::MUTED);
+        $pdf->SetX(30);
+        $pdf->MultiCell(150, 6, $this->latin('« '.$book->title.' » de '.$book->author.' vous attend en intégralité.'), 0, 'C');
+
+        $pdf->Ln(10);
+        $pdf->SetFont('Helvetica', 'B', 11);
+        $this->text($pdf, self::CREAM);
+        $pdf->SetX(0);
+        $pdf->Cell(210, 8, $this->siteHost(), 0, 1, 'C', false, route('catalog.show', $book->slug));
+    }
+
+    /**
+     * Pied de page discret : mention d'extrait et pagination.
+     */
+    protected function drawPreviewFooter(Fpdi $pdf, float $width, float $height, int $pageNo, int $pageCount): void
+    {
+        $this->draw($pdf, self::LINE);
+        $pdf->SetLineWidth(0.2);
+        $pdf->Line(15, $height - 14, $width - 15, $height - 14);
+
+        $pdf->SetFont('Helvetica', '', 7);
+        $this->text($pdf, self::MUTED);
+        $pdf->SetXY(15, $height - 12);
+        $pdf->Cell(($width - 30) / 2, 5, $this->latin('Extrait gratuit · NSOROMMA · '.$this->siteHost()), 0, 0, 'L');
+        $pdf->Cell(($width - 30) / 2, 5, $pageNo.' / '.$pageCount, 0, 0, 'R');
+    }
+
+    /**
+     * @param  array{int, int, int}  $color
+     */
+    private function text(Fpdi $pdf, array $color): void
+    {
+        $pdf->SetTextColor(...$color);
+    }
+
+    /**
+     * @param  array{int, int, int}  $color
+     */
+    private function fill(Fpdi $pdf, array $color): void
+    {
+        $pdf->SetFillColor(...$color);
+    }
+
+    /**
+     * @param  array{int, int, int}  $color
+     */
+    private function draw(Fpdi $pdf, array $color): void
+    {
+        $pdf->SetDrawColor(...$color);
+    }
+
+    private function rule(Fpdi $pdf, float $x, float $y, float $length): void
+    {
+        $this->draw($pdf, self::INK);
+        $pdf->SetLineWidth(0.3);
+        $pdf->Line($x, $y, $x + $length, $y);
+    }
+
+    /**
+     * Les polices intégrées de FPDF attendent du Windows-1252 (accents, guillemets, tirets, œ).
+     */
+    private function latin(string $text): string
+    {
+        return (string) iconv('UTF-8', 'windows-1252//TRANSLIT', $text);
+    }
+
+    private function siteHost(): string
+    {
+        return (string) parse_url((string) config('app.url'), PHP_URL_HOST) ?: 'etoilematin.com';
     }
 }
