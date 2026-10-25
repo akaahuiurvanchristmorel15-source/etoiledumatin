@@ -24,6 +24,11 @@ use Illuminate\Validation\Rules\Password;
 class AppServiceProvider extends ServiceProvider
 {
     /**
+     * Nombre maximum de requêtes par seconde acceptées depuis une même adresse IP.
+     */
+    public const MAX_REQUESTS_PER_SECOND = 100;
+
+    /**
      * Register any application services.
      */
     public function register(): void
@@ -76,6 +81,14 @@ class AppServiceProvider extends ServiceProvider
         Password::defaults(fn () => $this->app->isProduction()
             ? Password::min(10)->letters()->mixedCase()->numbers()->uncompromised()
             : Password::min(8)->letters()->numbers());
+
+        // Plafond appliqué à toutes les pages, par adresse IP : un robot ne peut pas saturer le site à lui seul.
+        // Le webhook Paystack en est exempté pour ne jamais perdre une confirmation de paiement.
+        RateLimiter::for('global', fn (Request $request) => $request->is('paystack/webhook')
+            ? Limit::none()
+            : Limit::perSecond(self::MAX_REQUESTS_PER_SECOND)->by($request->ip())->response(
+                fn (Request $request, array $headers) => response('Trop de requêtes : veuillez patienter quelques secondes avant de réessayer.', 429, $headers)
+            ));
 
         RateLimiter::for('login', fn (Request $request) => Limit::perMinute(30)->by($request->ip()));
         RateLimiter::for('register', fn (Request $request) => Limit::perHour(10)->by($request->ip()));

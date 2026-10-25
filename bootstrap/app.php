@@ -22,6 +22,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->web(append: [
             SecurityHeaders::class,
+            'throttle:global',
         ]);
 
         $middleware->redirectUsersTo(fn (Request $request) => $request->user()?->isStaff() ? route('admin.dashboard') : route('library.index'));
