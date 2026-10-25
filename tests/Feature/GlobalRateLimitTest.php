@@ -8,6 +8,11 @@ use Tests\TestCase;
 
 class GlobalRateLimitTest extends TestCase
 {
+    /**
+     * Adresse d'un serveur Cloudflare (plage 162.158.0.0/15).
+     */
+    private const CLOUDFLARE_IP = '162.158.1.1';
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -42,6 +47,36 @@ class GlobalRateLimitTest extends TestCase
         $this->withServerVariables(['REMOTE_ADDR' => '198.51.100.20'])->get(route('seo.robots'))->assertOk();
     }
 
+    public function test_visitors_behind_cloudflare_are_counted_by_their_real_ip(): void
+    {
+        $this->sendRequests(AppServiceProvider::MAX_REQUESTS_PER_SECOND + 1, '203.0.113.10', self::CLOUDFLARE_IP);
+
+        $this->withServerVariables(['REMOTE_ADDR' => self::CLOUDFLARE_IP])
+            ->withHeader('X-Forwarded-For', '198.51.100.20')
+            ->get(route('seo.robots'))
+            ->assertOk();
+
+        $this->withServerVariables(['REMOTE_ADDR' => self::CLOUDFLARE_IP])
+            ->withHeader('X-Forwarded-For', '203.0.113.10')
+            ->get(route('seo.robots'))
+            ->assertTooManyRequests();
+    }
+
+    public function test_forwarded_ip_is_ignored_when_not_sent_by_cloudflare(): void
+    {
+        foreach (range(1, AppServiceProvider::MAX_REQUESTS_PER_SECOND) as $attempt) {
+            $this->withServerVariables(['REMOTE_ADDR' => '203.0.113.10'])
+                ->withHeader('X-Forwarded-For', '198.51.100.'.$attempt)
+                ->get(route('seo.robots'))
+                ->assertOk();
+        }
+
+        $this->withServerVariables(['REMOTE_ADDR' => '203.0.113.10'])
+            ->withHeader('X-Forwarded-For', '192.0.2.99')
+            ->get(route('seo.robots'))
+            ->assertTooManyRequests();
+    }
+
     public function test_paystack_webhook_is_never_throttled(): void
     {
         foreach (range(1, AppServiceProvider::MAX_REQUESTS_PER_SECOND + 5) as $attempt) {
@@ -56,9 +91,10 @@ class GlobalRateLimitTest extends TestCase
     /**
      * @return Collection<int, int>
      */
-    private function sendRequests(int $count, string $ip): Collection
+    private function sendRequests(int $count, string $ip, ?string $viaProxy = null): Collection
     {
-        return collect(range(1, $count))->map(fn () => $this->withServerVariables(['REMOTE_ADDR' => $ip])
+        return collect(range(1, $count))->map(fn () => $this->withServerVariables(['REMOTE_ADDR' => $viaProxy ?? $ip])
+            ->withHeaders($viaProxy ? ['X-Forwarded-For' => $ip] : [])
             ->get(route('seo.robots'))
             ->getStatusCode());
     }
