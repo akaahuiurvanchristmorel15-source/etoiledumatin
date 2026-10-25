@@ -5,6 +5,7 @@
     $isCatalog = request()->routeIs('catalog.*');
     $isLibrary = request()->routeIs('library.*');
     $isCart = request()->routeIs('cart.*');
+    $isNews = request()->routeIs('news.*');
 @endphp
 
 <div x-data="{ mobileMenuOpen: false, searchModalOpen: false, userMenuOpen: false, moreMenuOpen: false }" 
@@ -18,6 +19,7 @@
             ['url' => route('home'), 'active' => $isHome, 'label' => 'Accueil', 'icon' => '<path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/>'],
             ['url' => route('catalog.index'), 'active' => $isCatalog, 'label' => 'Catalogue', 'icon' => '<path d="M5 3h11a3 3 0 0 1 3 3v15H8a3 3 0 0 1-3-3z"/><path d="M9 3v18"/>'],
             ['url' => route('catalog.index', ['format' => 'audio']), 'active' => false, 'label' => 'Livres audio', 'icon' => '<path d="M4 15v-3a8 8 0 0 1 16 0v3"/><rect x="3" y="14" width="4" height="7" rx="1.5"/><rect x="17" y="14" width="4" height="7" rx="1.5"/>'],
+            ['url' => route('news.index'), 'active' => $isNews, 'label' => 'Actualités', 'icon' => '<path d="M4 5h13a2 2 0 0 1 2 2v12a2 2 0 0 0 2-2V9h-2"/><path d="M4 5v12a2 2 0 0 0 2 2h13"/><path d="M8 9h7M8 13h7M8 17h4"/>'],
             ['url' => auth()->check() ? route('library.index') : route('login'), 'active' => $isLibrary, 'label' => 'Ma bibliothèque', 'icon' => '<path d="M6 3h12v18l-6-4-6 4z"/>'],
             ['url' => route('orders.lookup'), 'active' => request()->routeIs('orders.lookup'), 'label' => 'Suivi de commande', 'icon' => '<rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>'],
         ];
@@ -46,6 +48,7 @@
                 <a href="{{ route('catalog.index', ['format' => 'physical']) }}" class="nav-dropdown-item">Livres papier</a>
                 <a href="{{ route('catalog.index', ['format' => 'audio']) }}" class="nav-dropdown-item">Livres audio</a>
                 <div class="nav-dropdown-divider"></div>
+                <a href="{{ route('news.index') }}" class="nav-dropdown-item">Actualités</a>
                 <a href="{{ route('orders.lookup') }}" class="nav-dropdown-item">Suivi de commande</a>
                 <a href="https://wa.me/2250700000001" class="nav-dropdown-item">Assistance WhatsApp</a>
             </div>
@@ -169,6 +172,7 @@
             ['url' => route('home'), 'label' => 'Accueil', 'active' => $isHome],
             ['url' => route('catalog.index'), 'label' => 'Catalogue', 'active' => $isCatalog && ! request('category') && request('format') !== 'audio'],
             ['url' => route('catalog.index', ['format' => 'audio']), 'label' => 'Livres audio', 'active' => $isCatalog && request('format') === 'audio'],
+            ['url' => route('news.index'), 'label' => 'Actualités', 'active' => $isNews],
             ['url' => route('library.index'), 'label' => 'Ma bibliothèque', 'active' => $isLibrary],
         ];
     @endphp
@@ -207,7 +211,7 @@
             </nav>
 
             @if($drawerCategories->isNotEmpty())
-                <section class="drawer-section" style="--i: 4;">
+                <section class="drawer-section" style="--i: 5;">
                     <h2 class="drawer-label">Collections</h2>
                     <ul class="drawer-collections">
                         @foreach($drawerCategories as $category)
@@ -222,7 +226,7 @@
                 </section>
             @endif
 
-            <section class="drawer-section drawer-services" style="--i: 5;">
+            <section class="drawer-section drawer-services" style="--i: 6;">
                 <a href="{{ route('orders.lookup') }}">Suivi de commande</a>
                 <a href="https://wa.me/2250700000001">Assistance WhatsApp</a>
             </section>

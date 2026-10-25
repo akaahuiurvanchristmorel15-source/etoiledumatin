@@ -26,6 +26,7 @@
             ['route' => 'admin.books.index', 'match' => 'admin.books.*', 'icon' => 'book', 'label' => 'Livres', 'can' => 'manage-catalog'],
             ['route' => 'admin.stock.index', 'match' => 'admin.stock.*', 'icon' => 'box', 'label' => 'Stock', 'can' => 'manage-catalog', 'count' => $outOfStockCount ?? 0],
             ['route' => 'admin.categories.index', 'match' => 'admin.categories.*', 'icon' => 'folder', 'label' => 'Catégories', 'can' => 'manage-catalog'],
+            ['route' => 'admin.news.index', 'match' => 'admin.news.*', 'icon' => 'news', 'label' => 'Actualités', 'can' => 'manage-catalog'],
             ['route' => 'admin.reviews.index', 'match' => 'admin.reviews.*', 'icon' => 'star', 'label' => 'Avis clients', 'can' => 'manage-catalog', 'count' => $pendingReviewsCount ?? 0],
         ];
     @endphp

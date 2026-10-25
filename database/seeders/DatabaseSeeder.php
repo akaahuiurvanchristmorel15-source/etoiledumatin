@@ -388,6 +388,8 @@ class DatabaseSeeder extends Seeder
             'max_downloads' => 15,
         ]);
 
+        $this->call(NewsSeeder::class);
+
         // Audit Log initial
         AuditLog::log($admin->id, 'system_seeded', [
             'books_count' => count($booksData),

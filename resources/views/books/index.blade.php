@@ -36,6 +36,9 @@
 
 @push('styles')
     <link rel="stylesheet" href="{{ asset('css/home.css') }}?v={{ filemtime(public_path('css/home.css')) }}">
+    @if($latestNews->isNotEmpty())
+        <link rel="stylesheet" href="{{ asset('css/news.css') }}?v={{ filemtime(public_path('css/news.css')) }}">
+    @endif
 @endpush
 
 @push('scripts')
@@ -223,6 +226,20 @@
                     </section>
                 @endforeach
             </div>
+        @endif
+
+        @if($latestNews->isNotEmpty())
+            <section class="home-news" aria-labelledby="home-news-title">
+                <div class="home-news-head">
+                    <h2 class="home-news-title" id="home-news-title">Dernières actualités</h2>
+                    <a href="{{ route('news.index') }}" class="home-news-link">Toutes les actualités →</a>
+                </div>
+                <ul class="news-grid">
+                    @foreach($latestNews as $item)
+                        <li>@include('pages.news._card', ['item' => $item])</li>
+                    @endforeach
+                </ul>
+            </section>
         @endif
     </div>
 @endsection

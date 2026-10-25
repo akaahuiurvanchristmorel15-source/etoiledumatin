@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\BookController as AdminBookController;
 use App\Http\Controllers\Admin\CategoryController as AdminCategoryController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
+use App\Http\Controllers\Admin\NewsController as AdminNewsController;
 use App\Http\Controllers\Admin\OrderController as AdminOrderController;
 use App\Http\Controllers\Admin\ReviewController as AdminReviewController;
 use App\Http\Controllers\Admin\SettingsController as AdminSettingsController;
@@ -17,6 +18,7 @@ use App\Http\Controllers\EmailVerificationController;
 use App\Http\Controllers\GoogleAuthController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\LibraryController;
+use App\Http\Controllers\NewsController;
 use App\Http\Controllers\PasswordResetController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\SeoController;
@@ -37,6 +39,8 @@ Route::get('/livre/{slug}', [CatalogController::class, 'show'])->name('catalog.s
 Route::get('/livre/{slug}/extrait', [CatalogController::class, 'preview'])->name('catalog.preview');
 Route::get('/livre/{book}/apercu-pdf', [CatalogController::class, 'previewPdf'])->name('catalog.preview-pdf');
 Route::post('/livre/{book}/avis', [CatalogController::class, 'addReview'])->name('books.review')->middleware(['verified.account', 'throttle:reviews']);
+Route::get('/actualites', [NewsController::class, 'index'])->name('news.index');
+Route::get('/actualites/{slug}', [NewsController::class, 'show'])->name('news.show');
 Route::get('/suivi-commande', [LibraryController::class, 'guestLookup'])->name('orders.lookup')->middleware('throttle:10,1');
 
 /*
@@ -136,6 +140,18 @@ Route::prefix('admin')->name('admin.')->middleware('admin')->group(function () {
             ->except(['show']);
 
         Route::resource('categories', AdminCategoryController::class)->except(['show']);
+
+        Route::resource('actualites', AdminNewsController::class)
+            ->parameters(['actualites' => 'news'])
+            ->names([
+                'index' => 'news.index',
+                'create' => 'news.create',
+                'store' => 'news.store',
+                'edit' => 'news.edit',
+                'update' => 'news.update',
+                'destroy' => 'news.destroy',
+            ])
+            ->except(['show']);
 
         Route::get('/stock', [AdminStockController::class, 'index'])->name('stock.index');
         Route::patch('/stock/{book}', [AdminStockController::class, 'update'])->name('stock.update');

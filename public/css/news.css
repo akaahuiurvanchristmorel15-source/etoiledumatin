@@ -1,0 +1,127 @@
+/* ==========================================================================
+   NSOROMMA — Actualités
+   Fond crème, accents dorés, titres en Cinzel.
+   ========================================================================== */
+
+.news, .home-news {
+    --ink: #191919;
+    --ink-soft: var(--shell-ink-soft, #5F5E5A);
+    --muted: var(--shell-muted, #9A978F);
+    --line: rgba(25, 25, 25, .1);
+    --cream: #F4EBDD;
+    --gold: #D9AE5C;
+    --gold-deep: #A9822F;
+    --title: 'Cinzel', Georgia, serif;
+}
+
+.news {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: .5rem clamp(1.5rem, 4vw, 4rem) 5rem;
+    color: var(--ink);
+}
+
+.news-eyebrow { margin: 0; font-size: .78rem; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; color: var(--gold-deep); }
+.news-title { margin: .5rem 0 0; font-family: var(--title); font-weight: 700; font-size: clamp(2.1rem, 4.5vw, 3.6rem); line-height: 1.1; color: var(--ink); }
+.news-subtitle { margin: 1rem 0 0; font-size: .95rem; color: var(--ink-soft); max-width: 62ch; line-height: 1.6; }
+
+/* ---------- En-tête & filtres ---------- */
+.news-header { padding: 1.5rem 0 2rem; border-bottom: 1px solid var(--line); margin-bottom: 2.5rem; }
+.news-filters { display: flex; flex-wrap: wrap; gap: .5rem; margin: 1.75rem 0 0; padding: 0; list-style: none; }
+.news-filter {
+    display: inline-flex; align-items: center; padding: .5rem 1rem; border-radius: 999px;
+    border: 1px solid var(--line); background: #fff; color: var(--ink);
+    font-size: .85rem; font-weight: 500; text-decoration: none; transition: border-color .2s, background .2s;
+}
+.news-filter:hover { border-color: var(--gold); }
+.news-filter.is-active { background: var(--ink); border-color: var(--ink); color: var(--cream); }
+.news-filter:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+
+/* ---------- Mise en page ---------- */
+.news-layout { display: grid; grid-template-columns: minmax(0, 1fr); gap: 3rem; }
+@media (min-width: 1024px) { .news-layout.has-aside { grid-template-columns: minmax(0, 1fr) 300px; } }
+
+/* ---------- Grille de cartes ---------- */
+.news-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 2rem 1.75rem; margin: 0; padding: 0; list-style: none; }
+.news-card { display: flex; flex-direction: column; height: 100%; color: inherit; text-decoration: none; }
+.news-card-media { position: relative; aspect-ratio: 16 / 10; overflow: hidden; border-radius: 14px; background: var(--cream); }
+.news-card-media img { width: 100%; height: 100%; object-fit: cover; transition: transform .5s cubic-bezier(.2, .8, .2, 1); }
+.news-card:hover .news-card-media img { transform: scale(1.04); }
+.news-badge {
+    display: inline-block; padding: .3rem .7rem; border-radius: 999px;
+    background: var(--ink); color: var(--gold);
+    font-size: .7rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase;
+}
+.news-card-media .news-badge { position: absolute; top: .85rem; left: .85rem; }
+.news-card-body { display: flex; flex-direction: column; gap: .5rem; padding-top: 1rem; }
+.news-card-date { font-size: .8rem; color: var(--muted); }
+.news-card-title { margin: 0; font-family: var(--title); font-weight: 700; font-size: 1.15rem; line-height: 1.3; color: var(--ink); }
+.news-card:hover .news-card-title { color: var(--gold-deep); }
+.news-card-excerpt { margin: 0; font-size: .9rem; line-height: 1.55; color: var(--ink-soft); }
+.news-card-event { display: flex; flex-wrap: wrap; gap: .35rem .9rem; font-size: .8rem; font-weight: 500; color: var(--ink); }
+.news-card-event span { display: inline-flex; align-items: center; gap: .3rem; }
+
+/* ---------- Agenda (colonne latérale) ---------- */
+.news-aside { align-self: start; padding: 1.5rem; border-radius: 16px; background: var(--ink); color: var(--cream); }
+.news-aside-title { margin: 0 0 1rem; font-family: var(--title); font-size: 1.05rem; color: var(--gold); }
+.news-agenda { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 1rem; }
+.news-agenda a { display: flex; gap: .9rem; color: inherit; text-decoration: none; }
+.news-agenda-date {
+    flex: none; width: 52px; padding: .4rem 0; border-radius: 10px; text-align: center;
+    background: rgba(217, 174, 92, .15); color: var(--gold); line-height: 1.1;
+}
+.news-agenda-date strong { display: block; font-family: var(--title); font-size: 1.3rem; }
+.news-agenda-date small { font-size: .68rem; text-transform: uppercase; letter-spacing: .08em; }
+.news-agenda-name { font-size: .9rem; font-weight: 600; line-height: 1.35; }
+.news-agenda-place { display: block; margin-top: .2rem; font-size: .78rem; color: rgba(244, 235, 221, .65); }
+.news-agenda a:hover .news-agenda-name { color: var(--gold); }
+
+/* ---------- État vide ---------- */
+.news-empty { padding: 4rem 1rem; text-align: center; color: var(--ink-soft); border: 1px dashed var(--line); border-radius: 16px; }
+.news-empty-title { margin: 0 0 .5rem; font-family: var(--title); font-size: 1.3rem; color: var(--ink); }
+.news-empty a { color: var(--gold-deep); font-weight: 600; }
+
+/* ---------- Article ---------- */
+.news-article { max-width: 780px; margin: 0 auto; }
+.news-back { display: inline-flex; align-items: center; gap: .4rem; margin: 1rem 0 1.5rem; font-size: .85rem; font-weight: 500; color: var(--ink-soft); text-decoration: none; }
+.news-back:hover { color: var(--ink); }
+.news-article-meta { display: flex; flex-wrap: wrap; align-items: center; gap: .75rem; margin-top: 1.25rem; font-size: .85rem; color: var(--muted); }
+.news-article-cover { margin: 2rem 0; border-radius: 18px; overflow: hidden; background: var(--cream); }
+.news-article-cover img { display: block; width: 100%; max-height: 480px; object-fit: cover; }
+.news-event-box {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;
+    margin: 2rem 0; padding: 1.25rem 1.5rem; border-radius: 14px;
+    background: var(--cream); border-left: 4px solid var(--gold);
+}
+.news-event-box dt { font-size: .72rem; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--gold-deep); }
+.news-event-box dd { margin: .25rem 0 0; font-weight: 600; color: var(--ink); }
+.news-article-lead { margin: 1.5rem 0 0; font-size: 1.15rem; line-height: 1.6; color: var(--ink); font-weight: 500; }
+.news-article-content { margin-top: 1.5rem; font-size: 1.02rem; line-height: 1.8; color: #2c2c2c; }
+.news-article-content p { margin: 0 0 1.25rem; }
+
+.news-book {
+    display: flex; align-items: center; gap: 1.25rem; margin: 2.5rem 0;
+    padding: 1.25rem; border-radius: 16px; border: 1px solid var(--line); background: #fff;
+    color: inherit; text-decoration: none; transition: border-color .2s;
+}
+.news-book:hover { border-color: var(--gold); }
+.news-book img { flex: none; width: 72px; aspect-ratio: 2 / 3; object-fit: cover; border-radius: 4px; box-shadow: 0 8px 20px -12px rgba(0, 0, 0, .5); }
+.news-book-label { display: block; font-size: .72rem; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--gold-deep); }
+.news-book-title { display: block; margin-top: .3rem; font-family: var(--title); font-weight: 700; color: var(--ink); }
+.news-book-author { display: block; margin-top: .15rem; font-size: .85rem; color: var(--ink-soft); }
+.news-book-cta { margin-left: auto; padding: .6rem 1rem; border-radius: 999px; background: var(--ink); color: var(--gold); font-size: .8rem; font-weight: 600; white-space: nowrap; }
+
+.news-related { margin-top: 4rem; padding-top: 2.5rem; border-top: 1px solid var(--line); }
+.news-related-title { margin: 0 0 1.5rem; font-family: var(--title); font-size: 1.5rem; }
+
+@media (max-width: 640px) {
+    .news-book { flex-wrap: wrap; }
+    .news-book-cta { margin-left: 0; }
+}
+
+/* ---------- Bloc « Dernières actualités » de l'accueil ---------- */
+.home-news { margin: 3rem 0 1rem; }
+.home-news-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 1rem; margin-bottom: 1.5rem; }
+.home-news-title { margin: 0; font-family: var(--title); font-weight: 700; font-size: clamp(1.4rem, 2.5vw, 1.9rem); color: var(--ink); }
+.home-news-link { font-size: .85rem; font-weight: 600; color: var(--gold-deep); text-decoration: none; white-space: nowrap; }
+.home-news-link:hover { text-decoration: underline; }

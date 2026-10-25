@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Book;
 use App\Models\Category;
+use App\Models\News;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
 
@@ -20,6 +21,7 @@ class HomeController extends Controller
             'spotlightBooks' => $this->spotlightBooks(),
             'shelves' => $this->shelves(),
             'booksCount' => Book::active()->count(),
+            'latestNews' => News::published()->with('book')->latest('published_at')->take(3)->get(),
         ]);
     }
 

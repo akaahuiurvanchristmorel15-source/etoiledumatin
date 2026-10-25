@@ -4,12 +4,13 @@ namespace App\Http\Controllers;
 
 use App\Models\Book;
 use App\Models\Category;
+use App\Models\News;
 use Illuminate\Http\Response;
 
 class SeoController extends Controller
 {
     /**
-     * Plan du site pour les moteurs de recherche : pages publiques, collections et livres publiés.
+     * Plan du site pour les moteurs de recherche : pages publiques, collections, livres et actualités publiés.
      */
     public function sitemap(): Response
     {
@@ -20,11 +21,14 @@ class SeoController extends Controller
             ->select(['id', 'slug', 'updated_at'])
             ->get();
 
+        $news = News::published()->select(['slug', 'updated_at'])->latest('published_at')->get();
+
         $lastUpdate = $books->max('updated_at') ?? now();
 
         $urls = collect([
             ['loc' => route('home'), 'lastmod' => $lastUpdate, 'changefreq' => 'daily', 'priority' => '1.0'],
             ['loc' => route('catalog.index'), 'lastmod' => $lastUpdate, 'changefreq' => 'daily', 'priority' => '0.9'],
+            ['loc' => route('news.index'), 'lastmod' => $news->max('updated_at') ?? $lastUpdate, 'changefreq' => 'daily', 'priority' => '0.7'],
         ])
             ->merge($categories->map(fn (Category $category) => [
                 'loc' => route('catalog.index', ['category' => $category->slug]),
@@ -37,6 +41,12 @@ class SeoController extends Controller
                 'lastmod' => $book->updated_at,
                 'changefreq' => 'weekly',
                 'priority' => '0.8',
+            ]))
+            ->merge($news->map(fn (News $article) => [
+                'loc' => route('news.show', $article->slug),
+                'lastmod' => $article->updated_at,
+                'changefreq' => 'monthly',
+                'priority' => '0.6',
             ]));
 
         return response()
