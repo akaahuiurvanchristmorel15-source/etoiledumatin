@@ -7,6 +7,7 @@ use App\Http\Requests\Admin\BookRequest;
 use App\Models\AuditLog;
 use App\Models\Book;
 use App\Models\Category;
+use App\Services\PdfProtectionService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -15,6 +16,8 @@ use Illuminate\Support\Str;
 
 class BookController extends Controller
 {
+    public function __construct(protected PdfProtectionService $pdfService) {}
+
     /**
      * Champs fichier du formulaire : [colonne en base, dossier, disque, préfixe public].
      *
@@ -117,6 +120,12 @@ class BookController extends Controller
             if ($book?->{$column}) {
                 Storage::disk($disk)->delete(Str::after($book->{$column}, $publicPrefix));
             }
+        }
+
+        // Le nombre de pages suit le PDF importé ; la saisie manuelle ne sert que si le fichier est illisible
+        if ($request->hasFile('pdf_file')) {
+            $data['pages_count'] = $this->pdfService->countPages(Storage::disk('local')->path($data['pdf_path']))
+                ?? $data['pages_count'] ?? null;
         }
 
         return $data;

@@ -163,6 +163,21 @@ class PdfProtectionService
     /**
      * Couverture de la plaquette : fond crème, titre en serif, filets fins.
      */
+    /**
+     * Nombre de pages d'un PDF, ou null s'il est illisible.
+     * Repli sur le décompte des objets « /Type /Page » pour les PDF que l'analyseur gratuit de FPDI refuse (flux d'objets compressés).
+     */
+    public function countPages(string $fullPath): ?int
+    {
+        try {
+            return (new Fpdi)->setSourceFile($fullPath) ?: null;
+        } catch (\Throwable) {
+            $pageCount = preg_match_all('#/Type\s*/Page(?![a-zA-Z])#', (string) file_get_contents($fullPath));
+
+            return $pageCount ?: null;
+        }
+    }
+
     protected function drawPreviewCoverPage(Fpdi $pdf, Book $book): void
     {
         $pdf->AddPage('P', 'A4');

@@ -12,6 +12,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
+use setasign\Fpdi\Fpdi;
 use Tests\TestCase;
 
 class AdminManagementTest extends TestCase
@@ -124,6 +125,27 @@ class AdminManagementTest extends TestCase
         Storage::disk('public')->assertMissing($oldPath);
         Storage::disk('public')->assertExists(str_replace('storage/', '', $book->fresh()->cover_image));
         $this->assertTrue($book->fresh()->is_active);
+    }
+
+    public function test_page_count_is_read_from_the_uploaded_pdf(): void
+    {
+        Storage::fake('local');
+
+        $pdf = new Fpdi;
+        foreach (range(1, 7) as $page) {
+            $pdf->AddPage();
+        }
+        $pdfPath = tempnam(sys_get_temp_dir(), 'livre');
+        $pdf->Output('F', $pdfPath);
+
+        $this->actingAs($this->userWithRole('manager'))
+            ->post(route('admin.books.store'), $this->bookPayload([
+                'pages_count' => 999,
+                'pdf_file' => new UploadedFile($pdfPath, 'livre.pdf', 'application/pdf', null, true),
+            ]))
+            ->assertRedirect(route('admin.books.index'));
+
+        $this->assertSame(7, Book::where('title', 'Les Soleils des indépendances')->firstOrFail()->pages_count);
     }
 
     public function test_book_form_reports_validation_errors(): void

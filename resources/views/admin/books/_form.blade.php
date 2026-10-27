@@ -68,6 +68,7 @@
                     <div class="field">
                         <label class="label" for="pages_count">Nombre de pages</label>
                         <input type="number" id="pages_count" name="pages_count" value="{{ old('pages_count', $book->pages_count) }}" min="1" class="input @error('pages_count') is-invalid @enderror">
+                        <p class="help">Calculé automatiquement à l'import du PDF. À saisir seulement pour un livre sans PDF.</p>
                         @error('pages_count')<p class="error">{{ $message }}</p>@enderror
                     </div>
 
