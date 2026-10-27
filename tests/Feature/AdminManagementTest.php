@@ -8,6 +8,7 @@ use App\Models\Order;
 use App\Models\Review;
 use App\Models\Setting;
 use App\Models\User;
+use App\Services\PdfProtectionService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Hash;
@@ -146,6 +147,17 @@ class AdminManagementTest extends TestCase
             ->assertRedirect(route('admin.books.index'));
 
         $this->assertSame(7, Book::where('title', 'Les Soleils des indépendances')->firstOrFail()->pages_count);
+    }
+
+    public function test_page_count_is_read_from_a_pdf_with_compressed_object_streams(): void
+    {
+        $pages = collect(range(10, 21))->map(fn (int $number) => "{$number} 0 R")->implode(' ');
+        $objects = "<< /Type /Catalog /Pages 2 0 R >>\n<< /Type /Pages /Kids [{$pages}] /Count 12 >>\n";
+        $stream = gzcompress("1 0 2 34 \n".$objects);
+        $pdfPath = tempnam(sys_get_temp_dir(), 'livre');
+        file_put_contents($pdfPath, "%PDF-1.5\n3 0 obj\n<< /Type /ObjStm /N 2 /First 10 /Filter /FlateDecode /Length ".strlen($stream)." >>\nstream\n{$stream}\nendstream\nendobj\n%%EOF\n");
+
+        $this->assertSame(12, app(PdfProtectionService::class)->countPages($pdfPath));
     }
 
     public function test_book_form_reports_validation_errors(): void

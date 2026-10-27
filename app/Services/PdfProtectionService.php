@@ -172,10 +172,43 @@ class PdfProtectionService
         try {
             return (new Fpdi)->setSourceFile($fullPath) ?: null;
         } catch (\Throwable) {
-            $pageCount = preg_match_all('#/Type\s*/Page(?![a-zA-Z])#', (string) file_get_contents($fullPath));
-
-            return $pageCount ?: null;
+            return $this->countPagesFromRawPdf((string) file_get_contents($fullPath));
         }
+    }
+
+    /**
+     * Lecture directe de l'arbre des pages, flux d'objets compressés (/ObjStm) compris.
+     * Même méthode que le comptage fait dans le navigateur du formulaire d'administration.
+     */
+    protected function countPagesFromRawPdf(string $raw): ?int
+    {
+        $sources = [$raw];
+
+        preg_match_all('/stream\r?\n/', $raw, $matches, PREG_OFFSET_CAPTURE);
+
+        foreach ($matches[0] as [$keyword, $offset]) {
+            $dictionary = substr($raw, max(0, $offset - 600), min(600, $offset));
+            $dictionary = substr($dictionary, (int) strrpos($dictionary, ' obj'));
+
+            if (! preg_match('#/ObjStm\b#', $dictionary) || ! str_contains($dictionary, '/FlateDecode')) {
+                continue;
+            }
+
+            $start = $offset + strlen($keyword);
+            $end = strpos($raw, 'endstream', $start);
+
+            if ($end !== false && ($inflated = @gzuncompress(rtrim(substr($raw, $start, $end - $start)))) !== false) {
+                $sources[] = $inflated;
+            }
+        }
+
+        $text = implode("\n", $sources);
+
+        // Le nœud racine /Pages porte le total dans /Count ; à défaut, on compte les objets /Page
+        preg_match_all('#<<(?:(?!<<|>>).)*?/Type\s*/Pages\b(?:(?!<<|>>).)*?>>#s', $text, $pagesNodes);
+        $total = collect($pagesNodes[0])->map(fn (string $node) => preg_match('#/Count\s+(\d+)#', $node, $count) ? (int) $count[1] : 0)->max();
+
+        return $total ?: (preg_match_all('#/Type\s*/Page(?![a-zA-Z])#', $text) ?: null);
     }
 
     protected function drawPreviewCoverPage(Fpdi $pdf, Book $book): void

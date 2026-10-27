@@ -68,7 +68,7 @@
                     <div class="field">
                         <label class="label" for="pages_count">Nombre de pages</label>
                         <input type="number" id="pages_count" name="pages_count" value="{{ old('pages_count', $book->pages_count) }}" min="1" class="input @error('pages_count') is-invalid @enderror">
-                        <p class="help">Calculé automatiquement à l'import du PDF. À saisir seulement pour un livre sans PDF.</p>
+                        <p class="help" id="pages_count_help" aria-live="polite">Calculé automatiquement à l'import du PDF. À saisir seulement pour un livre sans PDF.</p>
                         @error('pages_count')<p class="error">{{ $message }}</p>@enderror
                     </div>
 
@@ -237,3 +237,84 @@
         </div>
     </aside>
 </div>
+
+@push('scripts')
+    <script>
+        /**
+         * Compte les pages du PDF dès sa sélection et remplit « Nombre de pages ».
+         * Les PDF récents rangent leurs objets dans des flux compressés (/ObjStm) : on les décompresse avant de lire l'arbre des pages.
+         */
+        (() => {
+            const fileInput = document.getElementById('pdf_file');
+            const pagesInput = document.getElementById('pages_count');
+            const help = document.getElementById('pages_count_help');
+
+            if (! fileInput || ! pagesInput) {
+                return;
+            }
+
+            const inflate = async (bytes) => {
+                const reader = new Blob([bytes]).stream().pipeThrough(new DecompressionStream('deflate')).getReader();
+                const chunks = [];
+
+                try {
+                    for (let result = await reader.read(); ! result.done; result = await reader.read()) {
+                        chunks.push(result.value);
+                    }
+                } catch {
+                    // Octets parasites après la fin du flux : ce qui a déjà été décompressé reste exploitable
+                }
+
+                return new TextDecoder('latin1').decode(await new Blob(chunks).arrayBuffer());
+            };
+
+            const countPages = async (file) => {
+                const bytes = new Uint8Array(await file.arrayBuffer());
+                const raw = new TextDecoder('latin1').decode(bytes);
+                const sources = [raw];
+
+                for (const match of raw.matchAll(/stream\r?\n/g)) {
+                    const dictionary = raw.slice(Math.max(0, match.index - 600), match.index);
+
+                    if (! /\/ObjStm\b/.test(dictionary.slice(dictionary.lastIndexOf(' obj'))) || ! dictionary.includes('/FlateDecode')) {
+                        continue;
+                    }
+
+                    const start = match.index + match[0].length;
+                    const end = raw.indexOf('endstream', start);
+
+                    if (end > start) {
+                        sources.push(await inflate(bytes.subarray(start, end)));
+                    }
+                }
+
+                const text = sources.join('\n');
+
+                // Le nœud racine /Pages porte le total dans /Count ; à défaut, on compte les objets /Page
+                const totals = [...text.matchAll(/<<(?:(?!<<|>>)[\s\S])*?\/Type\s*\/Pages\b(?:(?!<<|>>)[\s\S])*?>>/g)]
+                    .map((dict) => Number(dict[0].match(/\/Count\s+(\d+)/)?.[1] ?? 0));
+
+                return Math.max(0, ...totals) || text.match(/\/Type\s*\/Page(?![a-zA-Z])/g)?.length || null;
+            };
+
+            fileInput.addEventListener('change', async () => {
+                const file = fileInput.files[0];
+
+                if (! file) {
+                    return;
+                }
+
+                help.textContent = 'Comptage des pages…';
+
+                const pages = await countPages(file).catch(() => null);
+
+                if (pages) {
+                    pagesInput.value = pages;
+                    help.textContent = pages + ' pages détectées dans le PDF.';
+                } else {
+                    help.textContent = 'Nombre de pages non détecté : saisissez-le.';
+                }
+            });
+        })();
+    </script>
+@endpush
