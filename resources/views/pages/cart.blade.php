@@ -9,7 +9,6 @@
 
 @section('content')
     @php
-        $formatLabels = ['pdf' => 'e-Book PDF', 'physical' => 'Livre papier', 'audio' => 'Livre audio MP3'];
         $subtotal = $cart['subtotal_pdf'] + $cart['subtotal_physical'] + ($cart['subtotal_audio'] ?? 0);
     @endphp
 
@@ -47,7 +46,7 @@
                             </a>
 
                             <div>
-                                <span class="pg-line-format">{{ $formatLabels[$item['format']] ?? $item['format'] }}</span>
+                                <span class="pg-line-format">{{ $item['format_label'] }}</span>
                                 <a href="{{ route('catalog.show', $book->slug) }}" class="pg-line-title">{{ $book->title }}</a>
                                 <p class="pg-line-author">{{ $book->author }}</p>
 
@@ -67,14 +66,14 @@
                                         </form>
                                         <span class="pg-stock {{ $book->stockLevel() !== 'ok' ? 'is-low' : '' }}">{{ $book->stockLabel() }}</span>
                                     @else
-                                        <span class="pg-hint">{{ $item['format'] === 'audio' ? 'Téléchargement MP3 après paiement' : 'Téléchargement immédiat après paiement' }}</span>
+                                        <span class="pg-hint">{{ $item['format'] === 'audio' ? 'Écoute en streaming depuis votre bibliothèque' : 'Téléchargement immédiat après paiement' }}</span>
                                     @endif
 
                                     <form action="{{ route('cart.remove') }}" method="POST">
                                         @csrf
                                         @method('DELETE')
                                         <input type="hidden" name="book_id" value="{{ $book->id }}">
-                                        <input type="hidden" name="format" value="{{ $item['format'] }}">
+                                        <input type="hidden" name="format" value="{{ $item['cart_key'] }}">
                                         <button type="submit" class="pg-link pg-link-danger" aria-label="Retirer {{ $book->title }} du panier">Retirer</button>
                                     </form>
                                 </div>
@@ -105,7 +104,7 @@
                             <div class="pg-row"><span>e-Books PDF</span><strong>{{ number_format($cart['subtotal_pdf'], 0, ',', ' ') }} FCFA</strong></div>
                         @endif
                         @if(($cart['subtotal_audio'] ?? 0) > 0)
-                            <div class="pg-row"><span>Livres audio</span><strong>{{ number_format($cart['subtotal_audio'], 0, ',', ' ') }} FCFA</strong></div>
+                            <div class="pg-row"><span>Écoute audio</span><strong>{{ number_format($cart['subtotal_audio'], 0, ',', ' ') }} FCFA</strong></div>
                         @endif
                         @if($cart['subtotal_physical'] > 0)
                             <div class="pg-row"><span>Livres papier</span><strong>{{ number_format($cart['subtotal_physical'], 0, ',', ' ') }} FCFA</strong></div>

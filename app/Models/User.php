@@ -76,4 +76,14 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->hasMany(Review::class);
     }
+
+    public function audioSubscriptions(): HasMany
+    {
+        return $this->hasMany(AudioSubscription::class);
+    }
+
+    public function canListenTo(BookPart $part): bool
+    {
+        return $this->audioSubscriptions()->active()->where('book_part_id', $part->id)->exists();
+    }
 }

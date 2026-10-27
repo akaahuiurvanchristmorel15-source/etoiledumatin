@@ -37,6 +37,7 @@ class Book extends Model
         'price_pdf',
         'price_physical',
         'price_audio',
+        'audio_plan_prices',
         'stock_physical',
         'is_pdf_available',
         'is_physical_available',
@@ -54,6 +55,7 @@ class Book extends Model
             'price_pdf' => 'integer',
             'price_physical' => 'integer',
             'price_audio' => 'integer',
+            'audio_plan_prices' => 'array',
             'stock_physical' => 'integer',
             'weight_grams' => 'integer',
             'pages_count' => 'integer',
@@ -100,6 +102,11 @@ class Book extends Model
         return $this->hasMany(PurchasedDownload::class);
     }
 
+    public function parts(): HasMany
+    {
+        return $this->hasMany(BookPart::class)->orderBy('position')->orderBy('id');
+    }
+
     public function scopeActive(Builder $query): Builder
     {
         return $query->where('is_active', true);
@@ -123,6 +130,30 @@ class Book extends Model
     public function getFormattedPriceAudioAttribute(): string
     {
         return number_format($this->price_audio, 0, ',', ' ').' FCFA';
+    }
+
+    /**
+     * Formules d'abonnement audio en vente pour ce livre (durée en jours => prix), dans l'ordre de la configuration.
+     *
+     * @return array<int, int>
+     */
+    public function audioPlans(): array
+    {
+        $prices = $this->audio_plan_prices ?? [];
+
+        return collect(config('audio.plans'))
+            ->keys()
+            ->mapWithKeys(fn (int $days) => [$days => (int) ($prices[$days] ?? 0)])
+            ->filter(fn (int $price) => $price > 0)
+            ->all();
+    }
+
+    /**
+     * L'écoute par abonnement est proposée : format audio activé et au moins une formule tarifée.
+     */
+    public function offersAudioSubscription(): bool
+    {
+        return $this->is_audio_available && $this->audioPlans() !== [];
     }
 
     public function getAverageRatingAttribute(): float

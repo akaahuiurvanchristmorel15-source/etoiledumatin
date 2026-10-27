@@ -10,7 +10,6 @@
 
 @section('content')
     @php
-        $formatLabels = ['pdf' => 'e-Book PDF', 'physical' => 'Livre papier', 'audio' => 'Livre audio'];
         $channels = [
             'Wave' => 'Paiement instantané par QR code ou numéro',
             'Orange Money' => 'Validation par code OTP (#144#)',
@@ -71,7 +70,7 @@
                                 <img src="{{ $item->book?->cover_image ? asset($item->book->cover_image) : asset('images/books/fallback-book.jpg') }}" alt="">
                                 <div style="min-width: 0;">
                                     <div class="pg-mini-title">{{ $item->book?->title ?? 'Livre' }}</div>
-                                    <div class="pg-mini-sub">{{ $formatLabels[$item->format] ?? $item->format }} × {{ $item->quantity }}</div>
+                                    <div class="pg-mini-sub">{{ $item->formatLabel() }} × {{ $item->quantity }}</div>
                                 </div>
                                 <div class="pg-mini-price">{{ number_format($item->total_price, 0, ',', ' ') }} F</div>
                             </div>

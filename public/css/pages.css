@@ -306,6 +306,23 @@ a.pg-line-title:hover { text-decoration: underline; text-decoration-thickness: 1
     .pg-auth-perks { display: none; }
 }
 
+/* Écoute audio par abonnement */
+.pg-audio-parts { display: grid; gap: .75rem; margin: 0; padding: 0; list-style: none; }
+.pg-audio-part { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem 1.5rem; padding: 1.15rem 1.25rem; border: 1px solid var(--line); transition: border-color .2s, background .2s; }
+.pg-audio-part.is-playing { border-color: var(--ink); background: var(--panel); }
+.pg-audio-part-head { flex: 1 1 18rem; min-width: 0; }
+.pg-audio-part-buy, .pg-audio-renew { display: flex; flex-wrap: wrap; align-items: center; gap: .75rem; }
+.pg-audio-part-buy .pg-select { width: auto; min-width: 12rem; }
+.pg-audio-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem 1rem; margin-bottom: 1.5rem; }
+.pg-audio-toolbar .pg-select { width: auto; min-width: 12rem; }
+.pg-audio-dock { position: sticky; bottom: 1rem; z-index: 20; margin-top: 1.5rem; padding: .75rem; background: var(--panel); border: 1px solid var(--line); box-shadow: 0 12px 32px -18px rgba(30, 34, 48, .45); }
+.pg-audio-dock audio { display: block; width: 100%; }
+@media (max-width: 640px) {
+    .pg-audio-part-buy, .pg-audio-renew, .pg-audio-part-buy .pg-select { width: 100%; }
+    .pg-audio-part-buy .pg-btn { flex: 1; justify-content: center; }
+    .pg-audio-dock { bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px)); }
+}
+
 @media (prefers-reduced-motion: reduce) {
     .pg *, .pg-head { animation: none !important; transition: none !important; }
 }

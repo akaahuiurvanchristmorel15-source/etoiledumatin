@@ -8,11 +8,7 @@
 @endpush
 
 @section('content')
-    @php
-        $formatLabels = ['pdf' => 'e-Book PDF', 'physical' => 'Livre papier', 'audio' => 'Livre audio'];
-    @endphp
-
-    <div class="pg" x-data="{ tab: @js(request('onglet') === 'commandes' ? 'orders' : 'books') }">
+    <div class="pg" x-data="{ tab: @js(match (request('onglet')) { 'commandes' => 'orders', 'ecoute' => 'audio', default => 'books' }) }">
         <header class="pg-head">
             <p class="pg-eyebrow">Espace lecteur</p>
             <h1 class="pg-title">Ma bibliothèque</h1>
@@ -38,6 +34,9 @@
             <nav class="pg-tabs" role="tablist" aria-label="Sections de la bibliothèque">
                 <button type="button" role="tab" class="pg-tab" :class="{ 'is-active': tab === 'books' }" :aria-selected="(tab === 'books').toString()" @click="tab = 'books'">
                     Livres numériques<span class="pg-tab-count">{{ $downloads->count() }}</span>
+                </button>
+                <button type="button" role="tab" class="pg-tab" :class="{ 'is-active': tab === 'audio' }" :aria-selected="(tab === 'audio').toString()" @click="tab = 'audio'">
+                    Écoute audio<span class="pg-tab-count">{{ $audioBooks->count() }}</span>
                 </button>
                 <button type="button" role="tab" class="pg-tab" :class="{ 'is-active': tab === 'orders' }" :aria-selected="(tab === 'orders').toString()" @click="tab = 'orders'">
                     Commandes<span class="pg-tab-count">{{ $orders->count() }}</span>
@@ -79,6 +78,37 @@
                 @endif
             </section>
 
+            {{-- Écoute audio par abonnement --}}
+            <section x-show="tab === 'audio'" x-cloak role="tabpanel" aria-label="Écoute audio" style="display: none;">
+                @if($audioBooks->isNotEmpty())
+                    <ul class="pg-shelf">
+                        @foreach($audioBooks as $index => $entry)
+                            @php $book = $entry['book']; $isActive = $entry['active_parts'] > 0; @endphp
+                            <li class="pg-owned" style="--i: {{ $index }};">
+                                <a href="{{ route('library.listen', $book) }}" class="pg-owned-cover" tabindex="-1" aria-hidden="true">
+                                    <img src="{{ $book->cover_image ? asset($book->cover_image) : asset('images/books/fallback-book.jpg') }}" alt="" loading="lazy">
+                                </a>
+                                <span class="pg-owned-meta">{{ $isActive ? $entry['active_parts'].' '.Str::plural('partie', $entry['active_parts']).' en écoute' : 'Abonnement terminé' }}</span>
+                                <h2 class="pg-owned-title"><a href="{{ route('library.listen', $book) }}">{{ $book->title }}</a></h2>
+                                <p class="pg-owned-author">{{ $book->author }}</p>
+
+                                <a href="{{ route('library.listen', $book) }}" class="pg-btn {{ $isActive ? '' : 'pg-btn-ghost' }}">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="6 4 20 12 6 20 6 4"/></svg>
+                                    <span>{{ $isActive ? 'Écouter' : 'Se réabonner' }}</span>
+                                </a>
+                                <span class="pg-owned-quota">{{ $isActive ? 'Accès jusqu\'au '.$entry['expires_at']->format('d/m/Y') : 'Terminé le '.$entry['expires_at']->format('d/m/Y') }}</span>
+                            </li>
+                        @endforeach
+                    </ul>
+                @else
+                    <div class="pg-empty">
+                        <p class="pg-empty-title">Aucune écoute en cours</p>
+                        <p>Abonnez-vous à une partie d'un livre audio pour l'écouter ici, en français, en anglais ou en langue nationale.</p>
+                        <a href="{{ route('catalog.index', ['format' => 'audio']) }}" class="pg-btn">Découvrir les livres audio</a>
+                    </div>
+                @endif
+            </section>
+
             {{-- Commandes --}}
             <section x-show="tab === 'orders'" x-cloak role="tabpanel" aria-label="Commandes" style="display: none;">
                 @if($orders->isNotEmpty())
@@ -103,7 +133,7 @@
                                         <img src="{{ $item->book?->cover_image ? asset($item->book->cover_image) : asset('images/books/fallback-book.jpg') }}" alt="">
                                         <div style="min-width: 0;">
                                             <div class="pg-mini-title">{{ $item->book?->title ?? 'Livre' }}</div>
-                                            <div class="pg-mini-sub">{{ $formatLabels[$item->format] ?? $item->format }} × {{ $item->quantity }}</div>
+                                            <div class="pg-mini-sub">{{ $item->formatLabel() }} × {{ $item->quantity }}</div>
                                         </div>
                                         <div class="pg-mini-price">{{ number_format($item->unit_price * $item->quantity, 0, ',', ' ') }} F</div>
                                     </div>

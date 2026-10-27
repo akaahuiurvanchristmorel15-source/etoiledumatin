@@ -23,6 +23,12 @@ class CheckoutController extends Controller
             return redirect()->route('cart.index')->with('info', 'Votre panier est vide.');
         }
 
+        if ($cart['has_audio'] && ! auth()->check()) {
+            session()->put('url.intended', route('checkout.index'));
+
+            return redirect()->route('login')->with('info', 'Connectez-vous pour finaliser : l\'écoute audio se fait depuis votre bibliothèque.');
+        }
+
         $zones = config('shipping.zones');
         $user = auth()->user();
 
@@ -39,6 +45,12 @@ class CheckoutController extends Controller
 
         if (empty($cart['items'])) {
             return redirect()->route('cart.index')->with('error', 'Votre panier est vide.');
+        }
+
+        if ($cart['has_audio'] && ! auth()->check()) {
+            session()->put('url.intended', route('checkout.index'));
+
+            return redirect()->route('login')->with('info', 'Connectez-vous pour finaliser : l\'écoute audio se fait depuis votre bibliothèque.');
         }
 
         // Règles de validation

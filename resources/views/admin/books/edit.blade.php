@@ -25,4 +25,6 @@
         @method('PUT')
         @include('admin.books._form')
     </form>
+
+    @include('admin.books._audio-parts')
 @endsection

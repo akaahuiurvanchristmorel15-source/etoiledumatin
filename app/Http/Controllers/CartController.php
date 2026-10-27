@@ -24,18 +24,20 @@ class CartController extends Controller
             'book_id' => ['required', 'exists:books,id'],
             'format' => ['required', 'in:pdf,physical,audio'],
             'quantity' => ['nullable', 'integer', 'min:1', 'max:20'],
+            'book_part_id' => ['required_if:format,audio', 'nullable', 'integer'],
+            'access_days' => ['required_if:format,audio', 'nullable', 'integer'],
         ]);
 
         $book = Book::findOrFail($validated['book_id']);
         $format = $validated['format'];
         $quantity = (int) ($validated['quantity'] ?? 1);
 
-        if ($format === 'pdf' && ! $book->is_pdf_available) {
-            return back()->with('error', 'Le format PDF n\'est pas disponible pour ce titre.');
+        if ($format === 'audio') {
+            return $this->addAudioSubscription($book, (int) $validated['book_part_id'], (int) $validated['access_days'], $cartService);
         }
 
-        if ($format === 'audio' && ! $book->is_audio_available) {
-            return back()->with('error', 'Le format Audio n\'est pas disponible pour ce titre.');
+        if ($format === 'pdf' && ! $book->is_pdf_available) {
+            return back()->with('error', 'Le format PDF n\'est pas disponible pour ce titre.');
         }
 
         if ($format === 'physical') {
@@ -46,13 +48,33 @@ class CartController extends Controller
 
         $cartService->add($book, $format, $quantity);
 
-        $formatLabel = match ($format) {
-            'pdf' => 'e-Book PDF (téléchargement immédiat)',
-            'audio' => 'Livre Audio MP3 (écoute & téléchargement)',
-            default => 'Livre papier broché',
-        };
+        $formatLabel = $format === 'pdf' ? 'e-Book PDF (téléchargement immédiat)' : 'Livre papier broché';
 
         return redirect()->route('cart.index')->with('success', "« {$book->title} » ({$formatLabel}) a été ajouté à votre panier.");
+    }
+
+    /**
+     * L'écoute se fait depuis la bibliothèque du lecteur : un compte est indispensable.
+     */
+    protected function addAudioSubscription(Book $book, int $partId, int $days, CartService $cartService): RedirectResponse
+    {
+        if (! auth()->check()) {
+            session()->put('url.intended', route('catalog.show', $book->slug));
+
+            return redirect()->route('login')->with('info', 'Connectez-vous pour vous abonner à l\'écoute : elle se fait depuis votre bibliothèque.');
+        }
+
+        $part = $book->parts()->find($partId);
+
+        if (! $part || ! $book->offersAudioSubscription() || ! array_key_exists($days, $book->audioPlans())) {
+            return back()->with('error', 'Cette formule d\'écoute n\'est pas disponible pour ce titre.');
+        }
+
+        $cartService->addAudioSubscription($part, $days);
+
+        $planLabel = config('audio.plans.'.$days);
+
+        return redirect()->route('cart.index')->with('success', "Écoute de « {$book->title} » — {$part->label()} ({$planLabel}) ajoutée à votre panier.");
     }
 
     public function update(Request $request, CartService $cartService): RedirectResponse
@@ -72,7 +94,7 @@ class CartController extends Controller
     {
         $validated = $request->validate([
             'book_id' => ['required', 'integer'],
-            'format' => ['required', 'in:pdf,physical,audio'],
+            'format' => ['required', 'regex:/^(pdf|physical|audio(:\d+)?)$/'],
         ]);
 
         $cartService->remove($validated['book_id'], $validated['format']);

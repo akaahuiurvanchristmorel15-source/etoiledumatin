@@ -23,7 +23,6 @@ class BookController extends Controller
     protected const FILE_FIELDS = [
         'cover_file' => ['cover_image', 'covers', 'public', 'storage/'],
         'pdf_file' => ['pdf_path', 'books', 'local', ''],
-        'audio_file' => ['audio_path', 'audiobooks', 'local', ''],
         'audio_sample_file' => ['audio_sample_path', 'audio_samples', 'public', 'storage/'],
     ];
 
@@ -74,6 +73,8 @@ class BookController extends Controller
     public function edit(Book $book): View
     {
         $categories = Category::orderBy('name')->get();
+
+        $book->load('parts.tracks');
 
         return view('admin.books.edit', compact('book', 'categories'));
     }

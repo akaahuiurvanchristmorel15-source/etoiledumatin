@@ -11,7 +11,6 @@
         $offers = collect([
             'pdf' => ['available' => $book->is_pdf_available, 'price' => $book->price_pdf, 'name' => 'e-Book PDF', 'inStock' => true],
             'physical' => ['available' => $book->is_physical_available, 'price' => $book->price_physical, 'name' => 'Livre papier', 'inStock' => $book->stock_physical > 0],
-            'audio' => ['available' => $book->is_audio_available, 'price' => $book->price_audio, 'name' => 'Livre audio', 'inStock' => true],
         ])->filter(fn (array $offer) => $offer['available'])->map(fn (array $offer) => [
             '@type' => 'Offer',
             'name' => $offer['name'],
@@ -61,12 +60,13 @@
         $formats = collect([
             'pdf' => ['available' => $book->is_pdf_available, 'label' => 'e-Book PDF', 'sub' => 'Téléchargement immédiat, exemplaire personnalisé', 'price' => $book->formatted_price_pdf],
             'physical' => ['available' => $book->is_physical_available, 'label' => 'Livre papier', 'sub' => $book->stock_physical > 0 ? $book->stockLabel().' · expédié sous 48 h' : 'Épuisé — rupture de stock', 'price' => $book->formatted_price_physical, 'disabled' => $book->stock_physical <= 0],
-            'audio' => ['available' => $book->is_audio_available, 'label' => 'Livre audio', 'sub' => 'MP3'.($book->audio_duration ? ' · '.$book->audio_duration : ''), 'price' => $book->formatted_price_audio],
         ])->filter(fn (array $format) => $format['available']);
         $defaultFormat = $formats->filter(fn (array $format) => empty($format['disabled']))->keys()->first();
         $reviews = $book->approvedReviews;
         $averageRating = $reviews->isNotEmpty() ? round($reviews->avg('rating'), 1) : null;
         $paragraphs = collect(preg_split('/\R{2,}/', trim($book->description)))->filter();
+        $audioPlans = $book->audioPlans();
+        $audioParts = $book->offersAudioSubscription() ? $book->parts->filter(fn ($part) => $part->tracks->isNotEmpty()) : collect();
     @endphp
 
     <div class="pg pg-detail">
@@ -216,6 +216,44 @@
                 </div>
             </article>
         </section>
+
+        {{-- Écoute audio par abonnement --}}
+        @if($audioParts->isNotEmpty())
+            <section class="pg-section" id="ecoute" aria-labelledby="listen-title">
+                <h2 id="listen-title" class="pg-related-title">Écouter ce livre</h2>
+                <p class="pg-subtitle" style="margin-top: -.5rem;">Abonnez-vous à la partie de votre choix, puis écoutez-la en streaming depuis votre bibliothèque, dans la langue qui vous convient.</p>
+
+                <div class="pg-audio-parts">
+                    @foreach($audioParts as $part)
+                        <form action="{{ route('cart.add') }}" method="POST" class="pg-audio-part">
+                            @csrf
+                            <input type="hidden" name="book_id" value="{{ $book->id }}">
+                            <input type="hidden" name="format" value="audio">
+                            <input type="hidden" name="book_part_id" value="{{ $part->id }}">
+
+                            <div class="pg-audio-part-head">
+                                <span class="pg-owned-meta">Partie {{ $part->position }}</span>
+                                <h3 class="pg-owned-title" style="margin-top: .2rem;">{{ $part->title }}</h3>
+                                @if($part->summary)
+                                    <p class="pg-hint" style="margin: .4rem 0 0;">{{ $part->summary }}</p>
+                                @endif
+                                <p class="pg-hint" style="margin: .5rem 0 0;">{{ implode(' · ', $part->availableLanguages()) }}</p>
+                            </div>
+
+                            <div class="pg-audio-part-buy">
+                                <label class="sr-only" for="plan_{{ $part->id }}">Durée d'abonnement</label>
+                                <select id="plan_{{ $part->id }}" name="access_days" class="pg-select">
+                                    @foreach($audioPlans as $days => $price)
+                                        <option value="{{ $days }}">{{ config('audio.plans.'.$days) }} — {{ number_format($price, 0, ',', ' ') }} FCFA</option>
+                                    @endforeach
+                                </select>
+                                <button type="submit" class="pg-btn">S'abonner</button>
+                            </div>
+                        </form>
+                    @endforeach
+                </div>
+            </section>
+        @endif
 
         {{-- Avis --}}
         <section class="pg-section" aria-labelledby="reviews-title">

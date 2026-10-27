@@ -3,7 +3,6 @@
 
 @section('content')
     @php
-        $formatLabels = ['pdf' => 'e-Book PDF', 'audio' => 'Livre audio', 'physical' => 'Livre papier'];
         $shipping = $order->shippingAddress;
     @endphp
 
@@ -40,7 +39,7 @@
                                 <img src="{{ $item->book?->cover_image ? asset($item->book->cover_image) : asset('images/books/fallback-book.jpg') }}" alt="" class="book-thumb">
                                 <div style="min-width: 0;">
                                     <div class="cell-title">{{ $item->book_title }}</div>
-                                    <div class="cell-sub">{{ $formatLabels[$item->format] ?? $item->format }} · {{ number_format($item->unit_price, 0, ',', ' ') }} F × {{ $item->quantity }}</div>
+                                    <div class="cell-sub">{{ $item->formatLabel() }} · {{ number_format($item->unit_price, 0, ',', ' ') }} F × {{ $item->quantity }}</div>
                                 </div>
                             </div>
                             <div class="text-strong" style="white-space: nowrap;">{{ number_format($item->subtotal, 0, ',', ' ') }} F</div>

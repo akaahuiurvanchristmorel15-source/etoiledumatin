@@ -18,6 +18,8 @@ class OrderService
      */
     public const SESSION_ACCESS_KEY = 'letoile_accessible_orders';
 
+    public function __construct(protected AudioSubscriptionService $audioSubscriptions) {}
+
     /**
      * Autorise la session courante à consulter la commande (utile pour les clients invités).
      */
@@ -62,7 +64,9 @@ class OrderService
                 OrderItem::create([
                     'order_id' => $order->id,
                     'book_id' => $item['book_id'],
+                    'book_part_id' => $item['book_part_id'] ?? null,
                     'format' => $item['format'],
+                    'access_days' => $item['access_days'] ?? null,
                     'quantity' => $item['quantity'],
                     'unit_price' => $item['unit_price'],
                     'total_price' => $item['total_price'],
@@ -100,7 +104,7 @@ class OrderService
     /**
      * Valide le paiement de la commande et déclenche les actions post-achat :
      * 1. Décrémentation des stocks physiques.
-     * 2. Génération des accès aux livres PDF dans « Ma Bibliothèque ».
+     * 2. Génération des accès aux livres PDF et des abonnements d'écoute dans « Ma Bibliothèque ».
      * 3. Traces d'audit.
      */
     public function completeOrderPayment(Order $order, string $paymentReference, string $paymentMethod = 'paystack'): void
@@ -129,6 +133,11 @@ class OrderService
                 if ($item->isPhysical()) {
                     // Décrémenter le stock disponible
                     $item->book()->decrement('stock_physical', min($item->book->stock_physical, $item->quantity));
+                } elseif ($item->isAudioSubscription()) {
+                    // Ouvrir l'écoute de la partie dans « Ma Bibliothèque » pour la durée achetée
+                    if ($order->user && $item->part) {
+                        $this->audioSubscriptions->grant($order->user, $item->part, $item->access_days, $order);
+                    }
                 } elseif ($item->isPdf() || $item->isAudio()) {
                     // Créer l'accès de téléchargement ou écoute sécurisé
                     PurchasedDownload::firstOrCreate(

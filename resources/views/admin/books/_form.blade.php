@@ -117,11 +117,6 @@
                         @error('price_physical')<p class="error">{{ $message }}</p>@enderror
                     </div>
                     <div class="field">
-                        <label class="label" for="price_audio">Prix audio</label>
-                        <input type="number" id="price_audio" name="price_audio" value="{{ old('price_audio', $book->price_audio ?? 0) }}" min="0" class="input @error('price_audio') is-invalid @enderror">
-                        @error('price_audio')<p class="error">{{ $message }}</p>@enderror
-                    </div>
-                    <div class="field">
                         <label class="label" for="stock_physical">Stock papier <span class="req">*</span></label>
                         <input type="number" id="stock_physical" name="stock_physical" value="{{ old('stock_physical', $book->stock_physical ?? 0) }}" min="0" required class="input @error('stock_physical') is-invalid @enderror">
                         @error('stock_physical')<p class="error">{{ $message }}</p>@enderror
@@ -142,8 +137,28 @@
         <section class="card">
             <div class="card-header">
                 <div>
+                    <h2 class="form-section-title">Abonnement d'écoute audio</h2>
+                    <p class="form-section-help">Prix d'une partie du livre pour chaque durée, en FCFA. Laissez vide une durée à ne pas proposer.</p>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="form-grid form-grid-3">
+                    @foreach(config('audio.plans') as $days => $planLabel)
+                        <div class="field">
+                            <label class="label" for="audio_plan_{{ $days }}">{{ $planLabel }}</label>
+                            <input type="number" id="audio_plan_{{ $days }}" name="audio_plan_prices[{{ $days }}]" value="{{ old('audio_plan_prices.'.$days, ($book->audio_plan_prices[$days] ?? null) ?: null) }}" min="0" class="input @error('audio_plan_prices.'.$days) is-invalid @enderror">
+                            @error('audio_plan_prices.'.$days)<p class="error">{{ $message }}</p>@enderror
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+        </section>
+
+        <section class="card">
+            <div class="card-header">
+                <div>
                     <h2 class="form-section-title">Fichiers</h2>
-                    <p class="form-section-help">Le PDF et l'audio intégral restent privés : ils ne sont livrés qu'aux acheteurs.</p>
+                    <p class="form-section-help">Le PDF reste privé : il n'est livré qu'aux acheteurs. Les pistes audio se gèrent partie par partie, plus bas.</p>
                 </div>
             </div>
             <div class="card-body">
@@ -166,16 +181,6 @@
                         <input type="file" id="pdf_file" name="pdf_file" accept="application/pdf" class="input @error('pdf_file') is-invalid @enderror">
                         <p class="help">PDF · 50 Mo max.</p>
                         @error('pdf_file')<p class="error">{{ $message }}</p>@enderror
-                    </div>
-
-                    <div class="field">
-                        <label class="label" for="audio_file">Livre audio intégral</label>
-                        @if($book->audio_path)
-                            <div class="file-current"><x-admin.icon name="check" /><span>{{ basename($book->audio_path) }}</span></div>
-                        @endif
-                        <input type="file" id="audio_file" name="audio_file" accept="audio/*" class="input @error('audio_file') is-invalid @enderror">
-                        <p class="help">MP3, M4A, WAV… · 100 Mo max.</p>
-                        @error('audio_file')<p class="error">{{ $message }}</p>@enderror
                     </div>
 
                     <div class="field">
@@ -220,7 +225,7 @@
                 </label>
                 <label class="check">
                     <input type="checkbox" name="is_audio_available" value="1" @checked($checked('is_audio_available'))>
-                    <span><span class="check-title">Livre audio</span><span class="check-help">Téléchargement MP3.</span></span>
+                    <span><span class="check-title">Écoute audio</span><span class="check-help">Streaming par abonnement, partie par partie.</span></span>
                 </label>
             </div>
         </section>

@@ -13,7 +13,9 @@ class OrderItem extends Model
     protected $fillable = [
         'order_id',
         'book_id',
+        'book_part_id',
         'format',
+        'access_days',
         'quantity',
         'unit_price',
         'total_price',
@@ -23,6 +25,7 @@ class OrderItem extends Model
     {
         return [
             'quantity' => 'integer',
+            'access_days' => 'integer',
             'unit_price' => 'integer',
             'total_price' => 'integer',
         ];
@@ -38,6 +41,11 @@ class OrderItem extends Model
         return $this->belongsTo(Book::class)->withTrashed();
     }
 
+    public function part(): BelongsTo
+    {
+        return $this->belongsTo(BookPart::class, 'book_part_id');
+    }
+
     public function isPdf(): bool
     {
         return $this->format === 'pdf';
@@ -51,6 +59,34 @@ class OrderItem extends Model
     public function isAudio(): bool
     {
         return $this->format === 'audio';
+    }
+
+    /**
+     * Abonnement d'écoute à une partie du livre (par opposition à l'ancien achat MP3 définitif).
+     */
+    public function isAudioSubscription(): bool
+    {
+        return $this->isAudio() && $this->access_days !== null;
+    }
+
+    /**
+     * Libellé du format affiché dans les récapitulatifs de commande.
+     */
+    public function formatLabel(): string
+    {
+        if ($this->isAudioSubscription()) {
+            return collect([
+                'Écoute audio',
+                $this->part ? 'Partie '.$this->part->position : null,
+                config('audio.plans.'.$this->access_days, $this->access_days.' jours'),
+            ])->filter()->implode(' · ');
+        }
+
+        return match ($this->format) {
+            'pdf' => 'e-Book PDF',
+            'audio' => 'Livre audio',
+            default => 'Livre papier',
+        };
     }
 
     public function getBookTitleAttribute(): string

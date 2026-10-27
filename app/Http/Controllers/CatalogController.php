@@ -96,7 +96,7 @@ class CatalogController extends Controller
     {
         $book = Book::active()
             ->where('slug', $slug)
-            ->with(['category', 'approvedReviews.user'])
+            ->with(['category', 'approvedReviews.user', 'parts.tracks'])
             ->firstOrFail();
 
         // Livres similaires : même catégorie + même auteur, dédupliqués

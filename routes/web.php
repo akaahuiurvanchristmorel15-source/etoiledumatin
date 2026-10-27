@@ -1,6 +1,8 @@
 <?php
 
+use App\Http\Controllers\Admin\AudioTrackController as AdminAudioTrackController;
 use App\Http\Controllers\Admin\BookController as AdminBookController;
+use App\Http\Controllers\Admin\BookPartController as AdminBookPartController;
 use App\Http\Controllers\Admin\CategoryController as AdminCategoryController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\NewsController as AdminNewsController;
@@ -9,6 +11,7 @@ use App\Http\Controllers\Admin\ReviewController as AdminReviewController;
 use App\Http\Controllers\Admin\SettingsController as AdminSettingsController;
 use App\Http\Controllers\Admin\StockController as AdminStockController;
 use App\Http\Controllers\Admin\TeamController as AdminTeamController;
+use App\Http\Controllers\AudioListeningController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\CatalogController;
@@ -84,6 +87,12 @@ Route::middleware('verified.account')->group(function () {
     Route::get('/ma-bibliotheque/generer-lien/{download}', [LibraryController::class, 'generateDownloadLink'])->name('library.download');
 });
 
+// Écoute audio par abonnement (streaming réservé aux abonnés en cours)
+Route::middleware(['auth', 'verified.account'])->group(function () {
+    Route::get('/ma-bibliotheque/ecoute/{book:slug}', [AudioListeningController::class, 'show'])->name('library.listen');
+    Route::get('/ma-bibliotheque/ecoute/piste/{track}', [AudioListeningController::class, 'stream'])->name('library.listen.stream');
+});
+
 // Téléchargement sécurisé signé (expirant et protégé par filigrane FPDI)
 Route::get('/telechargement/securise/{token}', [DownloadController::class, 'process'])
     ->name('downloads.process')
@@ -138,6 +147,13 @@ Route::prefix('admin')->name('admin.')->middleware('admin')->group(function () {
                 'destroy' => 'books.destroy',
             ])
             ->except(['show']);
+
+        // Découpage en parties & pistes audio par langue
+        Route::post('/livres/{book}/parties', [AdminBookPartController::class, 'store'])->name('books.parts.store');
+        Route::put('/parties/{part}', [AdminBookPartController::class, 'update'])->name('parts.update');
+        Route::delete('/parties/{part}', [AdminBookPartController::class, 'destroy'])->name('parts.destroy');
+        Route::post('/parties/{part}/pistes', [AdminAudioTrackController::class, 'store'])->name('parts.tracks.store');
+        Route::delete('/pistes/{track}', [AdminAudioTrackController::class, 'destroy'])->name('tracks.destroy');
 
         Route::resource('categories', AdminCategoryController::class)->except(['show']);
 
