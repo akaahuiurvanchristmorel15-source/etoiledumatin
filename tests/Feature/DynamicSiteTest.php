@@ -34,9 +34,22 @@ class DynamicSiteTest extends TestCase
         $this->get(route('catalog.show', $book->slug))
             ->assertOk()
             ->assertSee('data-live="book"', false)
-            ->assertSee('data-live-stay', false);
+            ->assertSee('data-live-stay data-fly-to-cart', false)
+            ->assertSee('js/motion.js', false);
 
         $this->get(route('cart.index'))->assertOk()->assertSee('data-live="cart"', false);
+    }
+
+    public function test_pages_offer_a_day_and_night_toggle_applied_before_display(): void
+    {
+        $html = $this->get(route('home'))->assertOk()->getContent();
+
+        $this->assertStringContainsString('data-theme-toggle', $html);
+        $this->assertStringContainsString('css/theme-dark.css', $html);
+        $this->assertStringContainsString('<meta name="color-scheme" content="light dark">', $html);
+
+        // Le thème est choisi dans <head>, avant le rendu de la page, pour éviter un flash clair
+        $this->assertLessThan(strpos($html, '<body'), strpos($html, 'window.toggleTheme'));
     }
 
     public function test_store_admin_edits_announcement_footer_and_home_titles(): void

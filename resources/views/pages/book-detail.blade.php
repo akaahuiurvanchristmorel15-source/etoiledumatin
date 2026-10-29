@@ -100,7 +100,7 @@
                         @endif
 
                         @if($formats->isNotEmpty())
-                            <form action="{{ route('cart.add') }}" method="POST" data-live-stay class="pg-detail-formats" x-data="{ format: @js($defaultFormat) }">
+                            <form action="{{ route('cart.add') }}" method="POST" data-live-stay data-fly-to-cart class="pg-detail-formats" x-data="{ format: @js($defaultFormat) }">
                                 @csrf
                                 <input type="hidden" name="book_id" value="{{ $book->id }}">
 
@@ -225,7 +225,7 @@
 
                 <div class="pg-audio-parts">
                     @foreach($audioParts as $part)
-                        <form action="{{ route('cart.add') }}" method="POST" data-live-stay class="pg-audio-part">
+                        <form action="{{ route('cart.add') }}" method="POST" data-live-stay data-fly-to-cart class="pg-audio-part">
                             @csrf
                             <input type="hidden" name="book_id" value="{{ $book->id }}">
                             <input type="hidden" name="format" value="audio">

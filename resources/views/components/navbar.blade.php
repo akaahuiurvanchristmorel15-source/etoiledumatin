@@ -62,6 +62,7 @@
         </form>
 
         <div class="site-topbar-actions">
+            <x-theme-toggle class="site-icon-btn" />
             <a href="{{ route('cart.index') }}" data-live-sync="cart-desktop" class="site-icon-btn {{ $isCart ? 'is-active' : '' }}" aria-label="Panier{{ $cartCount > 0 ? ' ('.$cartCount.')' : '' }}">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 7h12l1 13H5z"/><path d="M9 7a3 3 0 0 1 6 0"/></svg>
                 <span class="cart-badge site-cart-badge" id="cart-counter" style="{{ $cartCount > 0 ? '' : 'display:none;' }}">{{ $cartCount }}</span>
@@ -132,6 +133,8 @@
 
         <!-- Actions Droite Mobile : Recherche & Panier -->
         <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <x-theme-toggle class="action-btn" style="width: 38px; height: 38px;" />
+
             <button type="button" 
                     class="action-btn" 
                     style="width: 38px; height: 38px;"

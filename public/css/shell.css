@@ -385,6 +385,32 @@ img[src*="/images/books/"],
     .site-rail-logo img, .site-rail-tip, .site-rail-link { transition: none; }
 }
 
+/* ---------- Barres de défilement ---------- */
+/* Fines et arrondies, couleur de l'encre (dorées au survol là où le navigateur le permet). Suivent le mode jour / nuit. */
+:root {
+    --scroll-thumb: rgba(30, 34, 48, .22);
+    --scroll-thumb-hover: #D9AE5C;
+    --scroll-track: var(--shell-bg);
+}
+html[data-theme="dark"] {
+    --scroll-thumb: rgba(236, 232, 223, .2);
+    --scroll-thumb-hover: #D9AE5C;
+}
+
+/* Firefox, Chrome et Edge récents */
+@supports (scrollbar-color: auto) {
+    html, body, * { scrollbar-width: thin; scrollbar-color: var(--scroll-thumb) var(--scroll-track); }
+}
+
+/* Safari et anciens navigateurs Chromium */
+@supports not (scrollbar-color: auto) {
+    ::-webkit-scrollbar { width: 10px; height: 10px; }
+    ::-webkit-scrollbar-track { background: var(--scroll-track); }
+    ::-webkit-scrollbar-thumb { border: 3px solid transparent; border-radius: 999px; background: var(--scroll-thumb) padding-box; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--scroll-thumb-hover) padding-box; }
+    ::-webkit-scrollbar-corner { background: transparent; }
+}
+
 /* ---------- Mises à jour sans rechargement (js/live.js) ---------- */
 [data-live] { transition: opacity .25s ease; }
 [data-live].is-live-loading { opacity: .55; pointer-events: none; cursor: progress; }
@@ -401,12 +427,42 @@ a.site-announcement-text:hover { text-decoration: underline; text-underline-offs
 .site-announcement-close:hover { opacity: 1; background: rgba(250, 249, 245, .1); }
 
 /* ---------- Animations ---------- */
-/* Fondu enchaîné entre deux pages (navigateurs compatibles, sans effet ailleurs) */
+/* Transition entre deux pages : l'en-tête et les barres restent en place, le contenu glisse.
+   Navigateurs récents (Chrome, Edge, Safari) ; ailleurs, simple apparition du contenu (.no-page-transition). */
 @view-transition { navigation: auto; }
-::view-transition-old(root) { animation: .22s ease both page-fade-out; }
-::view-transition-new(root) { animation: .32s cubic-bezier(.2, .8, .2, 1) both page-fade-in; }
-@keyframes page-fade-out { to { opacity: 0; } }
-@keyframes page-fade-in { from { opacity: 0; transform: translateY(8px); } }
+
+.site-topbar { view-transition-name: site-header; }
+.mobile-topbar { view-transition-name: site-header-mobile; }
+.site-rail { view-transition-name: site-rail; }
+.mobile-bottom-bar { view-transition-name: site-tabbar; }
+
+/* Barres fixes : ni fondu ni déplacement, elles ne « clignotent » pas */
+::view-transition-group(site-header), ::view-transition-group(site-header-mobile),
+::view-transition-group(site-rail), ::view-transition-group(site-tabbar) { animation: none; }
+::view-transition-old(site-header), ::view-transition-old(site-header-mobile),
+::view-transition-old(site-rail), ::view-transition-old(site-tabbar) { display: none; }
+::view-transition-new(site-header), ::view-transition-new(site-header-mobile),
+::view-transition-new(site-rail), ::view-transition-new(site-tabbar) { animation: none; }
+
+/* Contenu : l'ancienne page s'efface vers la gauche, la nouvelle arrive depuis la droite */
+::view-transition-old(root) { animation: .28s cubic-bezier(.4, 0, 1, 1) both page-out; }
+::view-transition-new(root) { animation: .5s cubic-bezier(.2, .8, .2, 1) .08s both page-in; }
+@keyframes page-out { to { opacity: 0; transform: translateX(-36px) scale(.985); filter: blur(2px); } }
+@keyframes page-in { from { opacity: 0; transform: translateX(48px) scale(.985); } }
+
+/* Retour arrière du navigateur : même mouvement, dans l'autre sens */
+html:active-view-transition-type(back)::view-transition-old(root) { animation-name: page-out-back; }
+html:active-view-transition-type(back)::view-transition-new(root) { animation-name: page-in-back; }
+@keyframes page-out-back { to { opacity: 0; transform: translateX(36px) scale(.985); filter: blur(2px); } }
+@keyframes page-in-back { from { opacity: 0; transform: translateX(-48px) scale(.985); } }
+
+/* Navigateurs sans transition entre pages : le contenu apparaît en douceur */
+.no-page-transition .page-body { animation: page-in .45s cubic-bezier(.2, .8, .2, 1) both; }
+
+/* Fine barre dorée pendant le chargement de la page suivante */
+.page-progress { position: fixed; top: 0; left: 0; z-index: 3000; height: 2px; width: 100%; background: #D9AE5C; box-shadow: 0 0 8px rgba(217, 174, 92, .6); transform-origin: left; transform: scaleX(0); pointer-events: none; }
+.page-progress.is-loading { animation: page-progress 2.5s cubic-bezier(.1, .7, .3, 1) forwards; }
+@keyframes page-progress { from { transform: scaleX(0); } to { transform: scaleX(.85); } }
 
 /* Apparition au défilement (js/motion.js) */
 .reveal { opacity: 0; transform: translateY(22px); transition: opacity .7s cubic-bezier(.2, .8, .2, 1) var(--reveal-delay, 0ms), transform .7s cubic-bezier(.2, .8, .2, 1) var(--reveal-delay, 0ms); }
@@ -419,6 +475,7 @@ a.site-announcement-text:hover { text-decoration: underline; text-underline-offs
 
 @media (prefers-reduced-motion: reduce) {
     @view-transition { navigation: none; }
+    .no-page-transition .page-body, .page-progress.is-loading { animation: none; }
     .reveal { opacity: 1; transform: none; transition: none; }
     .catalog-card img, .news-card-media img, .pg-owned-cover img { transition: none; }
     .catalog-card:hover img, .news-card:hover .news-card-media img, .pg-btn:active, .btn:active { transform: none; }
@@ -428,3 +485,9 @@ a.site-announcement-text:hover { text-decoration: underline; text-underline-offs
 .live-dot { display: inline-block; width: 7px; height: 7px; margin: 0 .35rem .1rem 0; border-radius: 50%; background: #2F9E6B; vertical-align: middle; animation: live-pulse 2s ease-in-out infinite; }
 @keyframes live-pulse { 50% { opacity: .35; } }
 @media (prefers-reduced-motion: reduce) { .live-dot { animation: none; } }
+
+/* Rond qui file vers le panier à l'ajout d'un livre (js/motion.js) */
+.cart-fly { position: fixed; z-index: 2000; width: 18px; height: 18px; pointer-events: none; }
+.cart-fly-dot { width: 100%; height: 100%; border-radius: 50%; background: #D9AE5C; box-shadow: 0 0 0 3px rgba(217, 174, 92, .25), 0 6px 14px -4px rgba(169, 130, 47, .6); }
+.cart-bump { animation: cart-bump .55s cubic-bezier(.2, 1.6, .4, 1); }
+@keyframes cart-bump { 0% { transform: scale(1); } 35% { transform: scale(1.22); } 65% { transform: scale(.94); } 100% { transform: scale(1); } }

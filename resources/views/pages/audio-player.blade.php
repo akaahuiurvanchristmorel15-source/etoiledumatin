@@ -81,7 +81,7 @@
 
                         @if(! $endsAt || $endsAt->diffInDays(now(), true) < 7)
                             @if($audioPlans !== [] && $book->is_audio_available)
-                                <form action="{{ route('cart.add') }}" method="POST" class="pg-audio-renew">
+                                <form action="{{ route('cart.add') }}" method="POST" data-live-stay data-fly-to-cart class="pg-audio-renew">
                                     @csrf
                                     <input type="hidden" name="book_id" value="{{ $book->id }}">
                                     <input type="hidden" name="format" value="audio">

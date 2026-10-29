@@ -5,7 +5,8 @@
  * sont envoyés en arrière-plan, puis la même zone est extraite de la page renvoyée par le serveur.
  * Le serveur ne change pas : il répond comme d'habitude (HTML, redirections, messages flash).
  *
- * - data-live-stay sur un formulaire : la zone reste telle quelle (ex. « Ajouter au panier » depuis une fiche livre).
+ * - data-live-stay sur un formulaire : la page reste telle quelle (ex. « Ajouter au panier » depuis une fiche livre),
+ *   y compris pour un formulaire placé hors de toute zone.
  * - data-live-sync="clé" : élément recopié depuis chaque réponse (badges du panier…).
  * - data-live-poll="secondes" : la zone se rafraîchit seule à intervalle régulier.
  * - data-live-skip : lien ou formulaire laissé en navigation classique.
@@ -153,7 +154,8 @@
     // Formulaires (recherche, filtres, panier, avis…)
     document.addEventListener('submit', function (event) {
         var form = event.target;
-        var region = regionOf(form);
+        // Un formulaire « data-live-stay » fonctionne aussi hors d'une zone (ex. « Ajouter au panier » de l'accueil)
+        var region = regionOf(form) || (form.hasAttribute('data-live-stay') ? form : null);
 
         if (!region || event.defaultPrevented || form.closest('[data-live-skip]') || form.target || !sameOrigin(form.action)) {
             return;

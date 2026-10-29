@@ -1,0 +1,141 @@
+/* ==========================================================================
+   NSOROMMA — Mode nuit
+   Activé par <html data-theme="dark"> (choix du visiteur ou réglage de l'appareil).
+   Les feuilles du site reposent sur des variables : on change d'abord la palette,
+   puis on corrige les quelques couleurs écrites en dur.
+   ========================================================================== */
+
+html[data-theme="dark"] {
+    color-scheme: dark;
+
+    --shell-bg: #14161D;
+    --shell-panel: #1C1F28;
+    --shell-ink: #ECE8DF;
+    --shell-ink-soft: #BDB8AE;
+    --shell-muted: #8E897F;
+    --shell-line: rgba(236, 232, 223, .12);
+
+    /* Texte posé sur un aplat clair (boutons pleins, pastilles…) */
+    --on-ink: #14161D;
+    --hover-tint: rgba(236, 232, 223, .08);
+
+    /* Anciennes feuilles (barre mobile, cartes de livres, liseuse) */
+    --nav-bg: #1C1F28;
+    --nav-border: rgba(217, 174, 92, .18);
+    --nav-text-primary: #ECE8DF;
+    --nav-text-secondary: #A9A398;
+    --nav-beige: #262A34;
+    --nav-dark: #ECE8DF;
+    --nav-shadow: 0 4px 20px rgba(0, 0, 0, .35);
+    --bg-main: #14161D;
+    --card-main: #1C1F28;
+    --text-primary: #ECE8DF;
+    --text-secondary: #A9A398;
+    --accent-beige: #3A3426;
+    --dark: #ECE8DF;
+    --card-shadow: 0 20px 50px rgba(0, 0, 0, .35);
+    --reader-bg: #14161D;
+    --reader-panel: #1C1F28;
+    --reader-ink: #ECE8DF;
+    --reader-ink-soft: #BDB8AE;
+    --reader-muted: #8E897F;
+    --reader-line: rgba(236, 232, 223, .12);
+}
+
+html[data-theme="dark"],
+html[data-theme="dark"] body { background: var(--shell-bg) !important; color: var(--shell-ink); }
+
+/* Variables locales des pages qui fixaient leur propre encre */
+html[data-theme="dark"] .news { --ink: var(--shell-ink); --line: var(--shell-line); --cream: #1C1F28; }
+
+/* ---------- Aplats « encre » : texte foncé sur fond clair ---------- */
+/* :where() garde cette règle peu prioritaire : les boutons « contour » ci-dessous l'emportent */
+html[data-theme="dark"] :where(.pg-btn, .spotlight-cta, .filter-apply, .site-page.is-active, .pg-player-btn, .pg-success-mark,
+    .drawer-btn, .drawer-avatar, .site-rail-badge, .site-user-avatar, .reader-btn, .site-rail-tip, .spotlight-tool-tip) {
+    color: var(--on-ink) !important;
+}
+html[data-theme="dark"] .shelf-arrow:hover:not(:disabled) { color: var(--on-ink) !important; }
+html[data-theme="dark"] :is(.pg-btn, .spotlight-cta, .filter-apply, .drawer-btn):hover { background: #FFFFFF; border-color: #FFFFFF; }
+html[data-theme="dark"] :is(.pg-btn-ghost, .drawer-btn-ghost) { color: var(--shell-ink) !important; border-color: rgba(236, 232, 223, .3); }
+html[data-theme="dark"] :is(.pg-btn-ghost, .drawer-btn-ghost):hover { background: var(--hover-tint); }
+html[data-theme="dark"] .pg-success-mark.is-pending { color: var(--shell-ink) !important; }
+
+/* ---------- Survols et bordures pensés pour un fond clair ---------- */
+html[data-theme="dark"] :is(.site-rail-link:hover, .site-icon-btn:hover, .site-icon-btn.is-active, .site-user:hover, .drawer-close:hover,
+    .search-close:hover, .search-chip:hover, .search-result:hover, .search-result:focus-visible, .spotlight-arrow:hover, .spotlight-tool,
+    a.site-page:hover, .filters-close, .site-rail-menu, .theme-toggle:hover) {
+    background: var(--hover-tint);
+}
+html[data-theme="dark"] .spotlight-tool:hover { background: rgba(236, 232, 223, .14); }
+html[data-theme="dark"] :is(.pg-input, .pg-select, .pg-textarea, .catalog-search input, .filter-group select) { border-bottom-color: rgba(236, 232, 223, .25); color: var(--shell-ink); background-color: transparent; }
+html[data-theme="dark"] :is(.pg-choice:hover, .spotlight-arrow.is-ring, .catalog-header, .drawer-link) { border-color: rgba(236, 232, 223, .25); }
+html[data-theme="dark"] :is(.pg-choice-dot, .pg-success-mark.is-pending) { border-color: rgba(236, 232, 223, .4); }
+html[data-theme="dark"] :is(.pg-strength, .pg-player-track, .pg-timeline-step::before) { background: rgba(236, 232, 223, .15); }
+html[data-theme="dark"] :is(.pg-stars .is-off, .pg-rating-input label) { color: rgba(236, 232, 223, .25); }
+html[data-theme="dark"] select option { background: var(--shell-panel); color: var(--shell-ink); }
+
+/* ---------- Pastilles, avatars et encarts clairs ---------- */
+html[data-theme="dark"] :is(.pg-review-avatar, .spotlight-review-avatar, .spotlight-cover-placeholder) { background: #2A2E39; color: var(--shell-ink); }
+html[data-theme="dark"] .pg-alert { background: rgba(240, 120, 105, .1); }
+html[data-theme="dark"] .legal-missing { background: rgba(217, 174, 92, .2); color: #F1D58F; }
+html[data-theme="dark"] :is(.news-card, .news-book, .news-filter:not(.is-active)) { background: var(--shell-panel); }
+html[data-theme="dark"] .news-article-content { color: var(--shell-ink-soft); }
+
+/* ---------- Notifications : restent sombres, mais détachées du fond ---------- */
+html[data-theme="dark"] .toast { background: #2A2E3A; box-shadow: 0 22px 44px -18px rgba(0, 0, 0, .7), 0 0 0 1px rgba(236, 232, 223, .08); }
+html[data-theme="dark"] .toast-info .toast-icon { background: #3A3F4C; color: var(--shell-ink); }
+
+/* ---------- Fenêtres, tiroirs et fonds voilés ---------- */
+html[data-theme="dark"] :is(.drawer-backdrop, .search-backdrop, .filters-backdrop) { background: rgba(0, 0, 0, .6); }
+html[data-theme="dark"] :is(.site-drawer, .search-panel, .nav-dropdown) { background: var(--shell-panel) !important; }
+
+/* ---------- Bandeau d'annonce : inversé pour rester visible ---------- */
+html[data-theme="dark"] .site-announcement { background: #262A34; color: var(--shell-ink); border-bottom: 1px solid var(--shell-line); }
+
+/* ---------- Couvertures et étagères : moins de contraste agressif ---------- */
+html[data-theme="dark"] :is(.catalog-card img, .pg-owned-cover img, .spotlight-cover img, .news-card-media img) { filter: brightness(.92); }
+html[data-theme="dark"] .home { --board: 74, 62, 44; }
+
+/* ---------- Logo : marque et nom écrits en noir ---------- */
+html[data-theme="dark"] .brand-logo > span { color: var(--shell-ink) !important; }
+html[data-theme="dark"] img[src*="nsoromma-mark"] { filter: invert(.92); }
+
+/* ---------- En-tête et barre d'onglets mobiles ---------- */
+html[data-theme="dark"] .mobile-menu-btn { background: #232731 !important; border-color: rgba(236, 232, 223, .1) !important; color: var(--shell-ink) !important; }
+html[data-theme="dark"] .action-btn { background: #232731; border-color: rgba(236, 232, 223, .1); color: var(--shell-ink); }
+html[data-theme="dark"] .action-btn:hover { background: #2C313C; color: #E3BE73; }
+html[data-theme="dark"] :is(.tabbar-pill, .tabbar-fab) {
+    background: rgba(32, 35, 45, .92);
+    border-color: rgba(236, 232, 223, .1);
+    box-shadow: inset 0 1px 1px rgba(255, 255, 255, .06), 0 10px 24px -10px rgba(0, 0, 0, .7);
+}
+html[data-theme="dark"] :is(.tabbar-item, .tabbar-fab) { color: #8E897F; }
+html[data-theme="dark"] :is(.tabbar-item.active, .tabbar-fab:hover) { color: var(--shell-ink); }
+html[data-theme="dark"] .tabbar-badge { background: var(--shell-ink); color: var(--on-ink); box-shadow: 0 0 0 2px #20232D; }
+html[data-theme="dark"] :is(.tabbar-item:focus-visible, .tabbar-fab:focus-visible) { outline-color: var(--shell-ink); }
+
+/* ---------- Bouton jour / nuit ---------- */
+.theme-toggle { display: inline-grid; place-items: center; cursor: pointer; }
+.theme-toggle-sun { display: none; }
+html[data-theme="dark"] .theme-toggle-sun { display: block; }
+html[data-theme="dark"] .theme-toggle-moon { display: none; }
+
+/* Changement de mode en cercle depuis le bouton : on neutralise le fondu des changements de page */
+html.theme-reveal::view-transition-old(root),
+html.theme-reveal::view-transition-new(root) { animation: none; mix-blend-mode: normal; }
+/* Pendant le changement de mode, les barres fixes font partie du cercle (pas de nom de transition propre) */
+html.theme-reveal :is(.site-topbar, .mobile-topbar, .site-rail, .mobile-bottom-bar) { view-transition-name: none; }
+html.theme-reveal::view-transition-old(root) { z-index: 1; }
+html.theme-reveal::view-transition-new(root) { z-index: 2; }
+
+/* L'icône pivote en changeant : la lune laisse place au soleil, et inversement */
+.theme-toggle svg { transition: transform .5s cubic-bezier(.2, 1.4, .4, 1); }
+.theme-toggle.is-spinning svg { animation: theme-spin .6s cubic-bezier(.2, 1, .3, 1); }
+@keyframes theme-spin { 0% { transform: rotate(-90deg) scale(.4); opacity: 0; } 60% { opacity: 1; } 100% { transform: rotate(0) scale(1); } }
+@media (prefers-reduced-motion: reduce) { .theme-toggle.is-spinning svg { animation: none; } }
+
+/* Fondu doux lors du changement de mode */
+html.theme-switching, html.theme-switching * { transition: background-color .3s ease, color .3s ease, border-color .3s ease !important; }
+@media (prefers-reduced-motion: reduce) {
+    html.theme-switching, html.theme-switching * { transition: none !important; }
+}

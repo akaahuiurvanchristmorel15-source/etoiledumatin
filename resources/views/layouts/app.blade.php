@@ -25,6 +25,99 @@
     <link rel="icon" type="image/png" href="{{ asset('images/brand/favicon.png') }}?v=2">
     <link rel="apple-touch-icon" href="{{ asset('apple-touch-icon.png') }}?v=2">
 
+    {{-- Mode jour / nuit : choix mémorisé, sinon réglage de l'appareil ; appliqué avant l'affichage pour éviter tout flash --}}
+    <meta name="color-scheme" content="light dark">
+    <script>
+        (function () {
+            var root = document.documentElement;
+            var media = window.matchMedia('(prefers-color-scheme: dark)');
+
+            function stored() {
+                try { return localStorage.getItem('theme'); } catch (e) { return null; }
+            }
+
+            function apply(theme) {
+                root.dataset.theme = theme;
+                document.querySelectorAll('[data-theme-toggle]').forEach(function (button) {
+                    button.setAttribute('aria-pressed', theme === 'dark' ? 'true' : 'false');
+                    button.setAttribute('aria-label', theme === 'dark' ? 'Passer en mode jour' : 'Passer en mode nuit');
+                });
+            }
+
+            apply(stored() || (media.matches ? 'dark' : 'light'));
+
+            /**
+             * Bascule animée : l'icône pivote, puis le nouveau mode s'étend en cercle depuis le bouton
+             * (navigateurs récents ; ailleurs, simple fondu des couleurs).
+             */
+            window.toggleTheme = function (origin) {
+                var theme = root.dataset.theme === 'dark' ? 'light' : 'dark';
+                var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+                try { localStorage.setItem('theme', theme); } catch (e) {}
+
+                if (origin) {
+                    origin.classList.remove('is-spinning');
+                    void origin.offsetWidth;
+                    origin.classList.add('is-spinning');
+                    setTimeout(function () { origin.classList.remove('is-spinning'); }, 700);
+                }
+
+                if (reduceMotion || !document.startViewTransition || !origin) {
+                    root.classList.add('theme-switching');
+                    apply(theme);
+                    setTimeout(function () { root.classList.remove('theme-switching'); }, 350);
+
+                    return;
+                }
+
+                var rect = origin.getBoundingClientRect();
+                var x = rect.left + rect.width / 2;
+                var y = rect.top + rect.height / 2;
+                var radius = Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y));
+
+                root.classList.add('theme-reveal');
+                var transition = document.startViewTransition(function () { apply(theme); });
+
+                transition.ready.then(function () {
+                    root.animate(
+                        { clipPath: ['circle(0px at ' + x + 'px ' + y + 'px)', 'circle(' + radius + 'px at ' + x + 'px ' + y + 'px)'] },
+                        { duration: 650, easing: 'cubic-bezier(.4, 0, .2, 1)', pseudoElement: '::view-transition-new(root)' }
+                    );
+                });
+
+                transition.finished.finally(function () { root.classList.remove('theme-reveal'); });
+            };
+
+            // Tant que le visiteur n'a rien choisi, le site suit le réglage de son appareil
+            media.addEventListener('change', function (event) {
+                if (!stored()) { apply(event.matches ? 'dark' : 'light'); }
+            });
+
+            document.addEventListener('click', function (event) {
+                var button = event.target.closest('[data-theme-toggle]');
+                if (button) { window.toggleTheme(button); }
+            });
+
+            document.addEventListener('DOMContentLoaded', function () { apply(root.dataset.theme); });
+
+            // Transition entre pages : sens inverse lors d'un retour arrière ; sinon, repli pour les navigateurs sans transition
+            if ('onpagereveal' in window) {
+                window.addEventListener('pagereveal', function (event) {
+                    var type = window.navigation && navigation.activation && navigation.activation.navigationType;
+                    var from = window.navigation && navigation.activation && navigation.activation.from;
+                    var entry = window.navigation && navigation.activation && navigation.activation.entry;
+
+                    if (event.viewTransition && type === 'traverse' && from && entry && entry.index < from.index) {
+                        event.viewTransition.types.add('back');
+                    }
+                });
+            } else {
+                root.classList.add('no-page-transition');
+            }
+        })();
+    </script>
+
     {{-- Masque les éléments Alpine (menus, recherche, tiroirs) tant qu'Alpine n'est pas initialisé --}}
     <style>[x-cloak] { display: none !important; }</style>
 
@@ -39,6 +132,7 @@
     <link rel="stylesheet" href="{{ asset('css/shell.css') }}?v={{ filemtime(public_path('css/shell.css')) }}">
 
     @stack('styles')
+    <link rel="stylesheet" href="{{ asset('css/theme-dark.css') }}?v={{ filemtime(public_path('css/theme-dark.css')) }}">
 
     <style>
         .font-serif-title { font-family: 'Cinzel', Georgia, serif; }
@@ -47,6 +141,7 @@
     </style>
 </head>
 <body class="@yield('body_class', 'broks-page')" @yield('body_attributes', '')>
+    <div class="page-progress" data-page-progress aria-hidden="true"></div>
     @php
         $announcement = \App\Models\Setting::content('announcement_text');
         $announcementLink = \App\Models\Setting::content('announcement_link');

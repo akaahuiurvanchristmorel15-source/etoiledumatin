@@ -103,7 +103,7 @@
 
                                     <div class="spotlight-tools">
                                         @if($format)
-                                            <form action="{{ route('cart.add') }}" method="POST">
+                                            <form action="{{ route('cart.add') }}" method="POST" data-live-stay data-fly-to-cart>
                                                 @csrf
                                                 <input type="hidden" name="book_id" value="{{ $book->id }}">
                                                 <input type="hidden" name="format" value="{{ $format }}">
