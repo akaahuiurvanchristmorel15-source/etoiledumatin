@@ -104,7 +104,7 @@ class SqlInjectionTest extends TestCase
 
         foreach (File::allFiles(app_path()) as $file) {
             preg_match_all(
-                '/(?:whereRaw|orWhereRaw|havingRaw|orHavingRaw|orderByRaw|selectRaw|groupByRaw|fromRaw|DB::(?:raw|select|selectOne|statement|unprepared|insert|update|delete|affectingStatement))\(\s*([^,)]*)/',
+                '/(?:whereRaw|orWhereRaw|havingRaw|orHavingRaw|orderByRaw|selectRaw|groupByRaw|fromRaw|DB::(?:raw|select|selectOne|statement|unprepared|insert|update|delete|affectingStatement))\(\s*(\'(?:[^\'\\\\]|\\\\.)*\'(?=\s*[,)])|[^,)]*)/',
                 $file->getContents(),
                 $calls
             );

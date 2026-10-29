@@ -7,6 +7,7 @@ use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -31,35 +32,35 @@ class User extends Authenticatable implements MustVerifyEmail
         ];
     }
 
-    public function isAdmin(): bool
+    /**
+     * Rôle du back-office (users.role contient son identifiant), absent pour un client.
+     */
+    public function roleModel(): BelongsTo
     {
-        return in_array($this->role, ['super_admin', 'admin']);
+        return $this->belongsTo(Role::class, 'role', 'slug');
     }
 
-    public function isManager(): bool
+    public function isSuperAdmin(): bool
     {
-        return in_array($this->role, ['super_admin', 'admin', 'manager']);
+        return $this->role === Role::SUPER_ADMIN;
     }
 
-    public function isLogistics(): bool
-    {
-        return in_array($this->role, ['super_admin', 'admin', 'logistics']);
-    }
-
+    /**
+     * Membre de l'équipe : tout compte rattaché à un rôle du back-office.
+     */
     public function isStaff(): bool
     {
-        return $this->isAdmin() || $this->isManager() || $this->isLogistics();
+        return $this->role !== 'customer' && $this->roleModel !== null;
+    }
+
+    public function hasPermission(string $permission): bool
+    {
+        return (bool) $this->roleModel?->grants($permission);
     }
 
     public function roleLabel(): string
     {
-        return match ($this->role) {
-            'super_admin' => 'Super administrateur',
-            'admin' => 'Administrateur',
-            'manager' => 'Gestionnaire catalogue',
-            'logistics' => 'Logistique',
-            default => 'Client',
-        };
+        return $this->roleModel?->name ?? 'Client';
     }
 
     public function orders(): HasMany

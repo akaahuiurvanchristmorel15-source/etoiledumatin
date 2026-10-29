@@ -128,10 +128,10 @@ class CatalogController extends Controller
             'customer_name' => strip_tags($validated['customer_name']),
             'rating' => $validated['rating'],
             'comment' => $validated['comment'],
-            'is_approved' => auth()->check() && auth()->user()->isAdmin(),
+            'is_approved' => (bool) auth()->user()?->can('manage-reviews'),
         ]);
 
-        $message = auth()->check() && auth()->user()->isAdmin()
+        $message = auth()->user()?->can('manage-reviews')
             ? 'Votre avis a été publié.'
             : 'Merci pour votre avis ! Il sera visible après validation par notre équipe éditoriale.';
 

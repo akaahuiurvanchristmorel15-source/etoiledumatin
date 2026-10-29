@@ -9,6 +9,7 @@ use App\Http\Controllers\Admin\NewsController as AdminNewsController;
 use App\Http\Controllers\Admin\NotificationController as AdminNotificationController;
 use App\Http\Controllers\Admin\OrderController as AdminOrderController;
 use App\Http\Controllers\Admin\ReviewController as AdminReviewController;
+use App\Http\Controllers\Admin\RoleController as AdminRoleController;
 use App\Http\Controllers\Admin\SettingsController as AdminSettingsController;
 use App\Http\Controllers\Admin\SpeechSynthesisController as AdminSpeechSynthesisController;
 use App\Http\Controllers\Admin\StockController as AdminStockController;
@@ -139,7 +140,7 @@ Route::post('/deconnexion', [AuthController::class, 'logout'])->name('logout');
 Route::prefix('admin')->name('admin.')->middleware('admin')->group(function () {
     Route::get('/', [AdminDashboardController::class, 'index'])->name('dashboard');
 
-    // Catalogue : livres, catégories & avis (gestionnaires et administrateurs)
+    // Chaque groupe correspond à une permission attribuée aux rôles (Paramètres › Rôles et permissions)
     Route::middleware('can:manage-catalog')->group(function () {
         Route::resource('livres', AdminBookController::class)
             ->parameters(['livres' => 'book'])
@@ -162,7 +163,9 @@ Route::prefix('admin')->name('admin.')->middleware('admin')->group(function () {
         Route::put('/parties/{part}/texte/{language}', [AdminSpeechSynthesisController::class, 'update'])->name('parts.synthesis.update');
 
         Route::resource('categories', AdminCategoryController::class)->except(['show']);
+    });
 
+    Route::middleware('can:manage-news')->group(function () {
         Route::resource('actualites', AdminNewsController::class)
             ->parameters(['actualites' => 'news'])
             ->names([
@@ -174,17 +177,20 @@ Route::prefix('admin')->name('admin.')->middleware('admin')->group(function () {
                 'destroy' => 'news.destroy',
             ])
             ->except(['show']);
+    });
 
+    Route::middleware('can:manage-stock')->group(function () {
         Route::get('/stock', [AdminStockController::class, 'index'])->name('stock.index');
         Route::patch('/stock/{book}', [AdminStockController::class, 'update'])->name('stock.update');
+    });
 
+    Route::middleware('can:manage-reviews')->group(function () {
         Route::get('/avis', [AdminReviewController::class, 'index'])->name('reviews.index');
         Route::post('/avis/{review}/approuver', [AdminReviewController::class, 'approve'])->name('reviews.approve');
         Route::post('/avis/{review}/masquer', [AdminReviewController::class, 'hide'])->name('reviews.hide');
         Route::delete('/avis/{review}', [AdminReviewController::class, 'destroy'])->name('reviews.destroy');
     });
 
-    // Commandes & Expéditions (logistique et administrateurs)
     Route::middleware('can:manage-orders')->group(function () {
         Route::get('/notifications/commandes', [AdminNotificationController::class, 'orders'])->name('notifications.orders');
         Route::get('/commandes', [AdminOrderController::class, 'index'])->name('orders.index');
@@ -193,7 +199,7 @@ Route::prefix('admin')->name('admin.')->middleware('admin')->group(function () {
         Route::post('/commandes/{order}/statut-expedition', [AdminOrderController::class, 'updateShipping'])->name('orders.update-shipping');
     });
 
-    // Paramètres : profil pour tout le personnel, boutique & équipe pour les administrateurs
+    // Paramètres : « Mon compte » pour tout le personnel, le reste selon les permissions
     Route::get('/parametres', [AdminSettingsController::class, 'profile'])->name('settings.profile');
     Route::put('/parametres/profil', [AdminSettingsController::class, 'updateProfile'])->name('settings.profile.update');
     Route::put('/parametres/mot-de-passe', [AdminSettingsController::class, 'updatePassword'])->name('settings.password.update');
@@ -204,6 +210,13 @@ Route::prefix('admin')->name('admin.')->middleware('admin')->group(function () {
 
         Route::get('/parametres/contenu', [AdminSettingsController::class, 'content'])->name('settings.content');
         Route::put('/parametres/contenu', [AdminSettingsController::class, 'updateContent'])->name('settings.content.update');
+    });
+
+    Route::middleware('can:manage-team')->group(function () {
+        Route::get('/parametres/roles', [AdminRoleController::class, 'index'])->name('settings.roles');
+        Route::post('/parametres/roles', [AdminRoleController::class, 'store'])->name('settings.roles.store');
+        Route::put('/parametres/roles/{role}', [AdminRoleController::class, 'update'])->name('settings.roles.update');
+        Route::delete('/parametres/roles/{role}', [AdminRoleController::class, 'destroy'])->name('settings.roles.destroy');
 
         Route::get('/parametres/equipe', [AdminTeamController::class, 'index'])->name('settings.team');
         Route::post('/parametres/equipe', [AdminTeamController::class, 'store'])->name('settings.team.store');

@@ -52,24 +52,24 @@ class AppServiceProvider extends ServiceProvider
         $this->configureSecurity();
 
         View::composer('layouts.admin', function ($view): void {
-            $canManageCatalog = Gate::allows('manage-catalog');
-
             $view->with([
-                'pendingReviewsCount' => $canManageCatalog ? Review::where('is_approved', false)->count() : 0,
-                'outOfStockCount' => $canManageCatalog ? Book::where('is_physical_available', true)->where('stock_physical', '<=', 0)->count() : 0,
+                'pendingReviewsCount' => Gate::allows('manage-reviews') ? Review::where('is_approved', false)->count() : 0,
+                'outOfStockCount' => Gate::allows('manage-stock') ? Book::where('is_physical_available', true)->where('stock_physical', '<=', 0)->count() : 0,
             ]);
         });
     }
 
     /**
-     * Droits du back-office par rôle :
-     * catalogue (livres, catégories, avis) → manager, commandes → logistique, paramètres boutique & équipe → administrateur.
+     * Droits du back-office : une autorisation par permission (config/permissions.php),
+     * accordée selon le rôle du membre (Paramètres › Rôles et permissions). Le super administrateur a tous les droits.
      */
     protected function defineAdminAbilities(): void
     {
-        Gate::define('manage-catalog', fn (User $user): bool => $user->isManager());
-        Gate::define('manage-orders', fn (User $user): bool => $user->isLogistics());
-        Gate::define('manage-store', fn (User $user): bool => $user->isAdmin());
+        Gate::before(fn (User $user): ?bool => $user->isSuperAdmin() ? true : null);
+
+        foreach (array_keys(config('permissions')) as $permission) {
+            Gate::define($permission, fn (User $user): bool => $user->hasPermission($permission));
+        }
     }
 
     /**

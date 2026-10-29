@@ -62,7 +62,7 @@
             <div class="stat-label">Avis à modérer</div>
             <div class="stat-value">{{ $pendingReviewsCount }}</div>
             <div class="stat-meta">
-                @can('manage-catalog')
+                @can('manage-reviews')
                     <a class="link" href="{{ route('admin.reviews.index', ['filter' => 'pending']) }}">Modérer les avis</a>
                 @else
                     En attente de validation
@@ -165,7 +165,7 @@
         </div>
     </section>
 
-    @can('manage-store')
+    @can('manage-team')
         <section class="card">
             <div class="card-header"><h2 class="card-title">Activité récente</h2></div>
             <div class="card-body">
