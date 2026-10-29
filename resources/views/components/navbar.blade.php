@@ -62,7 +62,7 @@
         </form>
 
         <div class="site-topbar-actions">
-            <a href="{{ route('cart.index') }}" class="site-icon-btn {{ $isCart ? 'is-active' : '' }}" aria-label="Panier{{ $cartCount > 0 ? ' ('.$cartCount.')' : '' }}">
+            <a href="{{ route('cart.index') }}" data-live-sync="cart-desktop" class="site-icon-btn {{ $isCart ? 'is-active' : '' }}" aria-label="Panier{{ $cartCount > 0 ? ' ('.$cartCount.')' : '' }}">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 7h12l1 13H5z"/><path d="M9 7a3 3 0 0 1 6 0"/></svg>
                 <span class="cart-badge site-cart-badge" id="cart-counter" style="{{ $cartCount > 0 ? '' : 'display:none;' }}">{{ $cartCount }}</span>
             </a>
@@ -143,7 +143,7 @@
                 </svg>
             </button>
 
-            <a href="{{ route('cart.index') }}" 
+            <a href="{{ route('cart.index') }}" data-live-sync="cart-mobile"
                class="action-btn" 
                style="width: 38px; height: 38px;" 
                aria-label="Panier">
@@ -272,7 +272,7 @@
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="3" y="3" width="8" height="8" rx="2.2"/><rect x="13" y="3" width="8" height="8" rx="2.2"/><rect x="3" y="13" width="8" height="8" rx="2.2"/><rect x="13" y="13" width="8" height="8" rx="2.2"/></svg>
             </a>
 
-            <a href="{{ route('cart.index') }}" class="tabbar-item {{ $isCart ? 'active' : '' }}" aria-label="Panier{{ $cartCount > 0 ? ' ('.$cartCount.' article'.($cartCount > 1 ? 's' : '').')' : '' }}" @if($isCart) aria-current="page" @endif>
+            <a href="{{ route('cart.index') }}" data-live-sync="cart-tabbar" class="tabbar-item {{ $isCart ? 'active' : '' }}" aria-label="Panier{{ $cartCount > 0 ? ' ('.$cartCount.' article'.($cartCount > 1 ? 's' : '').')' : '' }}" @if($isCart) aria-current="page" @endif>
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7.5 7V6.5a4.5 4.5 0 0 1 9 0V7h2.1c.8 0 1.4.6 1.5 1.4l.9 11.2a1.8 1.8 0 0 1-1.8 1.9H4.8A1.8 1.8 0 0 1 3 19.6l.9-11.2C4 7.6 4.6 7 5.4 7zm2 0h5v-.5a2.5 2.5 0 0 0-5 0z"/></svg>
                 @if($cartCount > 0)
                     <span class="tabbar-badge" aria-hidden="true">{{ $cartCount }}</span>

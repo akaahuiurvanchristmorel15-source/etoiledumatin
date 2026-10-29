@@ -384,3 +384,47 @@ img[src*="/images/books/"],
 @media (prefers-reduced-motion: reduce) {
     .site-rail-logo img, .site-rail-tip, .site-rail-link { transition: none; }
 }
+
+/* ---------- Mises à jour sans rechargement (js/live.js) ---------- */
+[data-live] { transition: opacity .25s ease; }
+[data-live].is-live-loading { opacity: .55; pointer-events: none; cursor: progress; }
+[data-live].is-live-entering { opacity: 0; }
+@media (prefers-reduced-motion: reduce) {
+    [data-live] { transition: none; }
+}
+
+/* ---------- Bandeau d'annonce (Paramètres › Contenus du site) ---------- */
+.site-announcement { position: relative; box-sizing: border-box; width: 100%; align-self: stretch; display: flex; align-items: center; justify-content: center; gap: .75rem; padding: .6rem 3rem; background: #1E2230; color: #FAF9F5; font-size: .82rem; letter-spacing: .02em; text-align: center; }
+.site-announcement-text { color: inherit; text-decoration: none; }
+a.site-announcement-text:hover { text-decoration: underline; text-underline-offset: 3px; }
+.site-announcement-close { position: absolute; right: .75rem; top: 50%; transform: translateY(-50%); display: grid; place-items: center; width: 28px; height: 28px; border: 0; border-radius: 50%; background: transparent; color: inherit; cursor: pointer; opacity: .7; }
+.site-announcement-close:hover { opacity: 1; background: rgba(250, 249, 245, .1); }
+
+/* ---------- Animations ---------- */
+/* Fondu enchaîné entre deux pages (navigateurs compatibles, sans effet ailleurs) */
+@view-transition { navigation: auto; }
+::view-transition-old(root) { animation: .22s ease both page-fade-out; }
+::view-transition-new(root) { animation: .32s cubic-bezier(.2, .8, .2, 1) both page-fade-in; }
+@keyframes page-fade-out { to { opacity: 0; } }
+@keyframes page-fade-in { from { opacity: 0; transform: translateY(8px); } }
+
+/* Apparition au défilement (js/motion.js) */
+.reveal { opacity: 0; transform: translateY(22px); transition: opacity .7s cubic-bezier(.2, .8, .2, 1) var(--reveal-delay, 0ms), transform .7s cubic-bezier(.2, .8, .2, 1) var(--reveal-delay, 0ms); }
+.reveal.is-revealed { opacity: 1; transform: none; }
+
+/* Retour discret au survol des couvertures et boutons */
+.catalog-card img, .news-card-media img, .pg-owned-cover img { transition: transform .45s cubic-bezier(.2, .8, .2, 1), box-shadow .45s ease; }
+.catalog-card:hover img, .news-card:hover .news-card-media img { transform: translateY(-4px); }
+.pg-btn:active, .btn:active { transform: scale(.97); }
+
+@media (prefers-reduced-motion: reduce) {
+    @view-transition { navigation: none; }
+    .reveal { opacity: 1; transform: none; transition: none; }
+    .catalog-card img, .news-card-media img, .pg-owned-cover img { transition: none; }
+    .catalog-card:hover img, .news-card:hover .news-card-media img, .pg-btn:active, .btn:active { transform: none; }
+}
+
+/* Pastille « en direct » du tableau de bord */
+.live-dot { display: inline-block; width: 7px; height: 7px; margin: 0 .35rem .1rem 0; border-radius: 50%; background: #2F9E6B; vertical-align: middle; animation: live-pulse 2s ease-in-out infinite; }
+@keyframes live-pulse { 50% { opacity: .35; } }
+@media (prefers-reduced-motion: reduce) { .live-dot { animation: none; } }

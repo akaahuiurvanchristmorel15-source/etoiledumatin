@@ -8,7 +8,7 @@
 @endpush
 
 @section('content')
-    <div class="news">
+    <div class="news" data-live="news">
         <header class="news-header">
             <p class="news-eyebrow">Actualités</p>
             <h1 class="news-title">{{ $selectedType?->pluralLabel() ?? 'La vie de NSOROMMA' }}</h1>

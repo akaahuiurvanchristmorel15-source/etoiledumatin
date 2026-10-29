@@ -12,7 +12,7 @@
         $subtotal = $cart['subtotal_pdf'] + $cart['subtotal_physical'] + ($cart['subtotal_audio'] ?? 0);
     @endphp
 
-    <div class="pg">
+    <div class="pg" data-live="cart">
         <header class="pg-head">
             <ol class="pg-crumbs">
                 <li><a href="{{ route('home') }}">Accueil</a></li>
@@ -58,7 +58,7 @@
                                             <input type="hidden" name="book_id" value="{{ $book->id }}">
                                             <input type="hidden" name="format" value="physical">
                                             <label for="qty-{{ $book->id }}">Quantité</label>
-                                            <select id="qty-{{ $book->id }}" name="quantity" onchange="this.form.submit()">
+                                            <select id="qty-{{ $book->id }}" name="quantity" onchange="this.form.requestSubmit()">
                                                 @for($quantity = 1; $quantity <= max(1, min(20, $book->stock_physical)); $quantity++)
                                                     <option value="{{ $quantity }}" @selected($item['quantity'] == $quantity)>{{ $quantity }}</option>
                                                 @endfor

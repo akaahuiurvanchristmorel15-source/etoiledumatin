@@ -47,6 +47,33 @@
     </style>
 </head>
 <body class="@yield('body_class', 'broks-page')" @yield('body_attributes', '')>
+    @php
+        $announcement = \App\Models\Setting::content('announcement_text');
+        $announcementLink = \App\Models\Setting::content('announcement_link');
+        $socialLinks = collect(['facebook' => 'Facebook', 'instagram' => 'Instagram', 'tiktok' => 'TikTok', 'youtube' => 'YouTube'])
+            ->mapWithKeys(fn (string $label, string $network) => [$label => \App\Models\Setting::content($network.'_url')])
+            ->filter();
+    @endphp
+
+    @if($announcement !== '')
+        {{-- Bandeau d'annonce (Paramètres › Contenus du site) ; fermé, il reste masqué tant que son texte ne change pas --}}
+        <div class="site-announcement" x-show="shown" x-transition.opacity
+             x-data="{
+                key: 'announcement:' + @js(md5($announcement)),
+                shown: true,
+                init() { try { this.shown = localStorage.getItem(this.key) !== 'closed' } catch (e) {} },
+                close() { this.shown = false; try { localStorage.setItem(this.key, 'closed') } catch (e) {} },
+             }">
+            @if($announcementLink !== '')
+                <a href="{{ $announcementLink }}" class="site-announcement-text">{{ $announcement }}</a>
+            @else
+                <span class="site-announcement-text">{{ $announcement }}</span>
+            @endif
+            <button type="button" class="site-announcement-close" aria-label="Fermer l'annonce" @click="close()">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+        </div>
+    @endif
 
     <!-- Grande Carte Principale BROKS -->
     <main class="library-container" role="main">
@@ -71,11 +98,24 @@
                 <a href="{{ route('catalog.index') }}">Catalogue</a>
                 <a href="{{ route('news.index') }}">Actualités</a>
                 <a href="{{ route('orders.lookup') }}">Suivi de commande</a>
-                <a href="https://wa.me/2250700000001">Assistance</a>
+                @if($whatsapp = \App\Models\Setting::content('support_whatsapp'))
+                    <a href="https://wa.me/{{ $whatsapp }}">Assistance</a>
+                @endif
+                @if($email = \App\Models\Setting::content('contact_email'))
+                    <a href="mailto:{{ $email }}">{{ $email }}</a>
+                @endif
+                @if($phone = \App\Models\Setting::content('contact_phone'))
+                    <a href="tel:{{ preg_replace('/[^\d+]/', '', $phone) }}">{{ $phone }}</a>
+                @endif
+                @foreach($socialLinks as $label => $url)
+                    <a href="{{ $url }}" rel="noopener">{{ $label }}</a>
+                @endforeach
             </nav>
         </footer>
     </main>
 
+    <script src="{{ asset('js/motion.js') }}?v={{ filemtime(public_path('js/motion.js')) }}" defer></script>
+    <script src="{{ asset('js/live.js') }}?v={{ filemtime(public_path('js/live.js')) }}" data-login-path="{{ route('login') }}" defer></script>
     @stack('scripts')
 </body>
 </html>

@@ -14,7 +14,7 @@
     <div class="page-header">
         <div>
             <h1 class="page-title">Bonjour, {{ strtok(auth()->user()->name, ' ') }}</h1>
-            <p class="page-subtitle">Vue d'ensemble des ventes, des expéditions et du catalogue.</p>
+            <p class="page-subtitle">Vue d'ensemble des ventes, des expéditions et du catalogue · <span class="live-dot" aria-hidden="true"></span>mis à jour automatiquement</p>
         </div>
         <div class="page-actions">
             @can('manage-orders')
@@ -31,6 +31,10 @@
             @endcan
         </div>
     </div>
+
+    {{-- Rafraîchi toutes les 30 secondes sans rechargement (js/live.js) --}}
+    <div data-live="dashboard" data-live-poll="30">
+    <p class="help" style="margin: -.5rem 0 1rem;">Dernière mise à jour : {{ now()->format('H:i:s') }}</p>
 
     <div class="stats">
         <div class="stat">
@@ -179,4 +183,5 @@
             </div>
         </section>
     @endcan
+    </div>
 @endsection

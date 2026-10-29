@@ -99,7 +99,7 @@
 
         <x-toasts />
 
-        <main class="content">
+        <main class="content" data-live="admin">
             @yield('content')
         </main>
 
@@ -122,14 +122,75 @@
             document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { setOpen(false); } });
             window.addEventListener('resize', function () { if (window.innerWidth > 1024) { setOpen(false); } });
 
-            document.querySelectorAll('form[data-confirm]').forEach(function (form) {
-                form.addEventListener('submit', function (e) {
-                    if (!window.confirm(form.dataset.confirm)) { e.preventDefault(); }
-                });
+            // Écoute déléguée, enregistrée avant js/live.js : une annulation bloque aussi l'envoi sans rechargement
+            document.addEventListener('submit', function (e) {
+                var form = e.target.closest('form[data-confirm]');
+                if (form && !window.confirm(form.dataset.confirm)) { e.preventDefault(); }
             });
         })();
     </script>
 
+    @can('manage-orders')
+        <script>
+            /**
+             * Nouvelles commandes payées : vérification toutes les 30 secondes, notification et compteur dans l'onglet.
+             */
+            (function () {
+                var endpoint = @js(route('admin.notifications.orders'));
+                var since = @js(now()->toIso8601String());
+                var baseTitle = document.title;
+                var unseen = 0;
+
+                function notify(order) {
+                    var stack = document.querySelector('[data-toast-stack]');
+                    var toast = document.createElement('div');
+                    toast.className = 'toast toast-success';
+                    toast.setAttribute('role', 'status');
+                    toast.setAttribute('data-toast', '');
+                    toast.innerHTML = '<span class="toast-icon" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="5 12.5 10 17 19 7"/></svg></span>'
+                        + '<div class="toast-body"><p class="toast-title">Nouvelle commande payée</p><p class="toast-message"><a></a></p></div>'
+                        + '<button type="button" class="toast-close" data-toast-close aria-label="Fermer la notification"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>'
+                        + '<span class="toast-progress" aria-hidden="true"></span>';
+
+                    var link = toast.querySelector('.toast-message a');
+                    link.href = order.url;
+                    link.textContent = order.number + ' · ' + order.customer + ' · ' + order.total;
+
+                    stack.appendChild(toast);
+                    window.initToasts(stack);
+                }
+
+                // Vérifie aussi onglet en arrière-plan : le compteur « (n) » du titre signale les commandes arrivées entre-temps
+                function check() {
+                    fetch(endpoint + '?since=' + encodeURIComponent(since), { headers: { 'Accept': 'application/json' }, credentials: 'same-origin' })
+                        .then(function (response) { return response.ok ? response.json() : null; })
+                        .then(function (data) {
+                            if (!data) {
+                                return;
+                            }
+
+                            since = data.checked_at;
+                            data.orders.forEach(notify);
+                            unseen += data.orders.length;
+                            unseen = document.hidden ? unseen : 0;
+                            document.title = unseen ? '(' + unseen + ') ' + baseTitle : baseTitle;
+                        })
+                        .catch(function () {});
+                }
+
+                document.addEventListener('visibilitychange', function () {
+                    if (!document.hidden) {
+                        unseen = 0;
+                        document.title = baseTitle;
+                    }
+                });
+
+                setInterval(check, 30000);
+            })();
+        </script>
+    @endcan
+    <script src="{{ asset('js/motion.js') }}?v={{ filemtime(public_path('js/motion.js')) }}" defer></script>
+    <script src="{{ asset('js/live.js') }}?v={{ filemtime(public_path('js/live.js')) }}" data-login-path="{{ route('admin.login') }}" defer></script>
     @stack('scripts')
 </body>
 </html>

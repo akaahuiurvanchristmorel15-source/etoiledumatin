@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\BookPartController as AdminBookPartController;
 use App\Http\Controllers\Admin\CategoryController as AdminCategoryController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\NewsController as AdminNewsController;
+use App\Http\Controllers\Admin\NotificationController as AdminNotificationController;
 use App\Http\Controllers\Admin\OrderController as AdminOrderController;
 use App\Http\Controllers\Admin\ReviewController as AdminReviewController;
 use App\Http\Controllers\Admin\SettingsController as AdminSettingsController;
@@ -182,6 +183,7 @@ Route::prefix('admin')->name('admin.')->middleware('admin')->group(function () {
 
     // Commandes & Expéditions (logistique et administrateurs)
     Route::middleware('can:manage-orders')->group(function () {
+        Route::get('/notifications/commandes', [AdminNotificationController::class, 'orders'])->name('notifications.orders');
         Route::get('/commandes', [AdminOrderController::class, 'index'])->name('orders.index');
         Route::get('/commandes/export/csv', [AdminOrderController::class, 'exportCsv'])->name('orders.export-csv');
         Route::get('/commandes/{order}', [AdminOrderController::class, 'show'])->name('orders.show');
@@ -196,6 +198,9 @@ Route::prefix('admin')->name('admin.')->middleware('admin')->group(function () {
     Route::middleware('can:manage-store')->group(function () {
         Route::get('/parametres/livraison', [AdminSettingsController::class, 'shipping'])->name('settings.shipping');
         Route::put('/parametres/livraison', [AdminSettingsController::class, 'updateShipping'])->name('settings.shipping.update');
+
+        Route::get('/parametres/contenu', [AdminSettingsController::class, 'content'])->name('settings.content');
+        Route::put('/parametres/contenu', [AdminSettingsController::class, 'updateContent'])->name('settings.content.update');
 
         Route::get('/parametres/equipe', [AdminTeamController::class, 'index'])->name('settings.team');
         Route::post('/parametres/equipe', [AdminTeamController::class, 'store'])->name('settings.team.store');

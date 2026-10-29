@@ -35,6 +35,14 @@ class Setting extends Model
         return self::allValues()[$key] ?? $default;
     }
 
+    /**
+     * Contenu modifiable du site (config/site.php), ou sa valeur par défaut tant qu'il n'a pas été saisi.
+     */
+    public static function content(string $name): string
+    {
+        return (string) (self::allValues()['content.'.$name] ?? config('site.content.'.$name.'.default', ''));
+    }
+
     public static function put(string $key, ?string $value): void
     {
         self::updateOrCreate(['key' => $key], ['value' => $value]);

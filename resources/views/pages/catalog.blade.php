@@ -34,7 +34,7 @@
         };
     @endphp
 
-    <div class="catalog" x-data="{ filtersOpen: false }">
+    <div class="catalog" data-live="catalog" x-data="{ filtersOpen: false }">
         <header class="catalog-header">
             <p class="catalog-eyebrow">Catalogue</p>
             <h1 class="catalog-title">{{ $selectedCategory?->name ?? 'Tous les livres' }}</h1>
@@ -153,7 +153,7 @@
                             <input type="hidden" name="{{ $key }}" value="{{ $value }}">
                         @endforeach
                         <label for="sort" class="sr-only">Trier par</label>
-                        <select id="sort" name="sort" onchange="this.form.submit()">
+                        <select id="sort" name="sort" onchange="this.form.requestSubmit()">
                             @foreach($sorts as $value => $label)
                                 <option value="{{ $value }}" @selected((request('sort') ?: 'recent') === $value)>{{ $label }}</option>
                             @endforeach

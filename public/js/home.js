@@ -52,8 +52,11 @@
     });
 
     // Partage d'un livre : partage natif du téléphone, sinon copie du lien
-    document.querySelectorAll('[data-share]').forEach(function (button) {
-        button.addEventListener('click', function () {
+    // (écoute déléguée : le bouton peut être remplacé par une mise à jour sans rechargement)
+    document.addEventListener('click', function (event) {
+        var button = event.target.closest('[data-share]');
+
+        if (button) {
             var url = button.dataset.shareUrl;
             var label = button.querySelector('[data-share-label]');
 
@@ -70,6 +73,6 @@
                     }
                 });
             }
-        });
+        }
     });
 })();

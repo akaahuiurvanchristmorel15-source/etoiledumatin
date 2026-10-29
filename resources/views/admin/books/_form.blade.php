@@ -245,14 +245,6 @@
          * Les PDF récents rangent leurs objets dans des flux compressés (/ObjStm) : on les décompresse avant de lire l'arbre des pages.
          */
         (() => {
-            const fileInput = document.getElementById('pdf_file');
-            const pagesInput = document.getElementById('pages_count');
-            const help = document.getElementById('pages_count_help');
-
-            if (! fileInput || ! pagesInput) {
-                return;
-            }
-
             const inflate = async (bytes) => {
                 const reader = new Blob([bytes]).stream().pipeThrough(new DecompressionStream('deflate')).getReader();
                 const chunks = [];
@@ -297,10 +289,14 @@
                 return Math.max(0, ...totals) || text.match(/\/Type\s*\/Page(?![a-zA-Z])/g)?.length || null;
             };
 
-            fileInput.addEventListener('change', async () => {
-                const file = fileInput.files[0];
+            // Écoute déléguée : le formulaire peut être remplacé par une mise à jour sans rechargement
+            document.addEventListener('change', async (event) => {
+                const fileInput = event.target.closest('#pdf_file');
+                const pagesInput = document.getElementById('pages_count');
+                const help = document.getElementById('pages_count_help');
+                const file = fileInput?.files[0];
 
-                if (! file) {
+                if (! file || ! pagesInput) {
                     return;
                 }
 

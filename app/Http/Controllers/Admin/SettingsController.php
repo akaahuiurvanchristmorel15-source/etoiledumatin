@@ -80,4 +80,34 @@ class SettingsController extends Controller
 
         return back()->with('success', 'Les frais de livraison ont été mis à jour.');
     }
+
+    public function content(): View
+    {
+        Gate::authorize('manage-store');
+
+        return view('admin.settings.content', [
+            'fields' => collect(config('site.content'))->groupBy('group', preserveKeys: true),
+        ]);
+    }
+
+    public function updateContent(Request $request): RedirectResponse
+    {
+        Gate::authorize('manage-store');
+
+        $fields = config('site.content');
+
+        $validated = $request->validate(
+            collect($fields)->map(fn (array $field) => $field['rules'])->all(),
+            [],
+            collect($fields)->map(fn (array $field) => mb_strtolower($field['label']))->all()
+        );
+
+        foreach (array_keys($fields) as $name) {
+            Setting::put('content.'.$name, trim((string) ($validated[$name] ?? '')));
+        }
+
+        AuditLog::log($request->user()->id, 'site_content_updated');
+
+        return back()->with('success', 'Les contenus du site ont été mis à jour.');
+    }
 }

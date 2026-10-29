@@ -69,7 +69,7 @@
         $audioParts = $book->offersAudioSubscription() ? $book->parts->filter(fn ($part) => $part->tracks->isNotEmpty()) : collect();
     @endphp
 
-    <div class="pg pg-detail">
+    <div class="pg pg-detail" data-live="book">
         <ol class="pg-crumbs" style="padding-top: 1rem;">
             <li><a href="{{ route('home') }}">Accueil</a></li>
             <li><a href="{{ route('catalog.index') }}">Catalogue</a></li>
@@ -100,7 +100,7 @@
                         @endif
 
                         @if($formats->isNotEmpty())
-                            <form action="{{ route('cart.add') }}" method="POST" class="pg-detail-formats" x-data="{ format: @js($defaultFormat) }">
+                            <form action="{{ route('cart.add') }}" method="POST" data-live-stay class="pg-detail-formats" x-data="{ format: @js($defaultFormat) }">
                                 @csrf
                                 <input type="hidden" name="book_id" value="{{ $book->id }}">
 
@@ -225,7 +225,7 @@
 
                 <div class="pg-audio-parts">
                     @foreach($audioParts as $part)
-                        <form action="{{ route('cart.add') }}" method="POST" class="pg-audio-part">
+                        <form action="{{ route('cart.add') }}" method="POST" data-live-stay class="pg-audio-part">
                             @csrf
                             <input type="hidden" name="book_id" value="{{ $book->id }}">
                             <input type="hidden" name="format" value="audio">

@@ -186,7 +186,7 @@
         @if($shelves->isNotEmpty())
             <div class="collections">
                 <div class="collections-head">
-                    <h2 class="collections-title">Nos collections</h2>
+                    <h2 class="collections-title">{{ \App\Models\Setting::content('home_collections_title') }}</h2>
                     <a href="{{ route('catalog.index') }}" class="collections-link">Tout le catalogue ({{ $booksCount }})</a>
                 </div>
 
@@ -231,7 +231,7 @@
         @if($latestNews->isNotEmpty())
             <section class="home-news" aria-labelledby="home-news-title">
                 <div class="home-news-head">
-                    <h2 class="home-news-title" id="home-news-title">Dernières actualités</h2>
+                    <h2 class="home-news-title" id="home-news-title">{{ \App\Models\Setting::content('home_news_title') }}</h2>
                     <a href="{{ route('news.index') }}" class="home-news-link">Toutes les actualités →</a>
                 </div>
                 <ul class="news-grid">
