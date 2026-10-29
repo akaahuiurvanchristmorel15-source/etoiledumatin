@@ -1,5 +1,6 @@
 @php
     $languages = config('audio.languages');
+    $speech = app(\App\Services\SpeechSynthesisService::class);
 @endphp
 
 <section class="card" id="parties-audio" style="margin-top: 1.5rem;">
@@ -50,6 +51,36 @@
                             <span class="badge">{{ $label }} · à importer</span>
                         @endforeach
                     </div>
+
+                    <details class="stack" style="gap: .75rem;" @if($part->syntheses->contains(fn ($synthesis) => $synthesis->isRunning() || $synthesis->status === 'failed')) open @endif>
+                        <summary class="label" style="cursor: pointer;">Voix de synthèse ({{ implode(', ', $speech->languages()) }})</summary>
+                        @unless($speech->isConfigured())
+                            <p class="help">Ajoutez OPENAI_API_KEY au fichier .env pour activer la génération.</p>
+                        @endunless
+                        @foreach($speech->languages() as $code => $label)
+                            @php $synthesis = $part->syntheses->firstWhere('language', $code); @endphp
+                            <form action="{{ route('admin.parts.synthesis.update', [$part, $code]) }}" method="POST" class="field">
+                                @csrf
+                                @method('PUT')
+                                <label class="label" for="part_text_{{ $part->id }}_{{ $code }}">
+                                    Texte {{ $label }}
+                                    @if($synthesis)
+                                        <span class="badge {{ match ($synthesis->status) { 'done' => 'badge-success', 'failed' => 'badge-danger', default => 'badge-info' } }}">{{ $synthesis->statusLabel() }}</span>
+                                    @endif
+                                </label>
+                                <textarea id="part_text_{{ $part->id }}_{{ $code }}" name="text" rows="5" class="input" placeholder="Collez ici le texte {{ $label }} de cette partie">{{ $part->text($code) }}</textarea>
+                                @if($synthesis?->status === 'failed' && $synthesis->error)
+                                    <p class="error">{{ $synthesis->error }}</p>
+                                @endif
+                                <div class="cell-actions" style="margin-top: .5rem;">
+                                    <button type="submit" class="btn btn-secondary btn-sm">Enregistrer le texte</button>
+                                    <button type="submit" name="generate" value="1" class="btn btn-primary btn-sm" @disabled(! $speech->isConfigured() || $synthesis?->isRunning())>
+                                        {{ $part->availableLanguages()[$code] ?? false ? 'Régénérer la voix' : 'Générer la voix' }}
+                                    </button>
+                                </div>
+                            </form>
+                        @endforeach
+                    </details>
 
                     <form action="{{ route('admin.parts.tracks.store', $part) }}" method="POST" enctype="multipart/form-data" class="form-grid form-grid-3" style="align-items: end;">
                         @csrf
@@ -106,6 +137,7 @@
                 </button>
             </div>
         </form>
+        @error('text', 'synthesis')<p class="error">{{ $message }}</p>@enderror
         @error('audio_file', 'track')<p class="error">{{ $message }}</p>@enderror
         @error('language', 'track')<p class="error">{{ $message }}</p>@enderror
     </div>

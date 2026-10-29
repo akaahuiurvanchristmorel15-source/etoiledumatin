@@ -38,6 +38,25 @@ return [
         365 => '1 an',
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Synthèse vocale (OpenAI)
+    |--------------------------------------------------------------------------
+    |
+    | Langues que la synthèse sait lire, avec la consigne de lecture donnée à la voix.
+    | Les langues nationales restent enregistrées par des narrateurs puis importées.
+    |
+    */
+    'synthesis' => [
+        'model' => env('OPENAI_TTS_MODEL', 'gpt-4o-mini-tts'),
+        'voice' => env('OPENAI_TTS_VOICE', 'coral'),
+        'chunk_length' => 4000,
+        'languages' => [
+            'fr' => 'Lis ce texte en français, comme un narrateur de livre audio : voix posée, chaleureuse, débit régulier.',
+            'en' => 'Read this text in English like an audiobook narrator: calm, warm voice and a steady pace.',
+        ],
+    ],
+
     'disk' => 'local',
 
     'directory' => 'audio-tracks',

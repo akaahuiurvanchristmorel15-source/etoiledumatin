@@ -77,7 +77,7 @@ class BookController extends Controller
     {
         $categories = Category::orderBy('name')->get();
 
-        $book->load('parts.tracks');
+        $book->load('parts.tracks', 'parts.syntheses');
 
         return view('admin.books.edit', compact('book', 'categories'));
     }

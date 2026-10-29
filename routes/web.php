@@ -9,6 +9,7 @@ use App\Http\Controllers\Admin\NewsController as AdminNewsController;
 use App\Http\Controllers\Admin\OrderController as AdminOrderController;
 use App\Http\Controllers\Admin\ReviewController as AdminReviewController;
 use App\Http\Controllers\Admin\SettingsController as AdminSettingsController;
+use App\Http\Controllers\Admin\SpeechSynthesisController as AdminSpeechSynthesisController;
 use App\Http\Controllers\Admin\StockController as AdminStockController;
 use App\Http\Controllers\Admin\TeamController as AdminTeamController;
 use App\Http\Controllers\AudioListeningController;
@@ -154,6 +155,7 @@ Route::prefix('admin')->name('admin.')->middleware('admin')->group(function () {
         Route::delete('/parties/{part}', [AdminBookPartController::class, 'destroy'])->name('parts.destroy');
         Route::post('/parties/{part}/pistes', [AdminAudioTrackController::class, 'store'])->name('parts.tracks.store');
         Route::delete('/pistes/{track}', [AdminAudioTrackController::class, 'destroy'])->name('tracks.destroy');
+        Route::put('/parties/{part}/texte/{language}', [AdminSpeechSynthesisController::class, 'update'])->name('parts.synthesis.update');
 
         Route::resource('categories', AdminCategoryController::class)->except(['show']);
 

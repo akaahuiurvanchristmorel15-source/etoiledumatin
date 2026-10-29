@@ -18,12 +18,14 @@ class BookPart extends Model
         'position',
         'title',
         'summary',
+        'texts',
     ];
 
     protected function casts(): array
     {
         return [
             'position' => 'integer',
+            'texts' => 'array',
         ];
     }
 
@@ -35,6 +37,19 @@ class BookPart extends Model
     public function tracks(): HasMany
     {
         return $this->hasMany(AudioTrack::class);
+    }
+
+    public function syntheses(): HasMany
+    {
+        return $this->hasMany(AudioSynthesis::class);
+    }
+
+    /**
+     * Texte à lire par la synthèse vocale dans une langue donnée.
+     */
+    public function text(string $language): string
+    {
+        return trim((string) ($this->texts[$language] ?? ''));
     }
 
     public function subscriptions(): HasMany
