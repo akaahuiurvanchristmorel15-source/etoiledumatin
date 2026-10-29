@@ -18,20 +18,20 @@ class CatalogController extends Controller
         $query = Book::active()->with('category');
 
         // Filtre par catégorie
-        if ($request->filled('category')) {
-            $query->whereHas('category', function ($q) use ($request) {
-                $q->where('slug', $request->query('category'));
+        if ($categorySlug = $this->queryText($request, 'category')) {
+            $query->whereHas('category', function ($q) use ($categorySlug) {
+                $q->where('slug', $categorySlug);
             });
         }
 
         // Filtre par auteur
-        if ($request->filled('author')) {
-            $query->where('author', $request->query('author'));
+        if ($author = $this->queryText($request, 'author', 255)) {
+            $query->where('author', $author);
         }
 
         // Filtre par langue
-        if ($request->filled('language')) {
-            $query->where('language', $request->query('language'));
+        if ($language = $this->queryText($request, 'language', 50)) {
+            $query->where('language', $language);
         }
 
         // Filtre par format
@@ -45,8 +45,8 @@ class CatalogController extends Controller
 
         // Filtre par plage de prix : au moins un format réellement en vente doit être dans la fourchette
         if ($request->filled('price_min') || $request->filled('price_max')) {
-            $min = $request->filled('price_min') ? (int) $request->query('price_min') : 0;
-            $max = $request->filled('price_max') ? (int) $request->query('price_max') : PHP_INT_MAX;
+            $min = (int) $this->queryText($request, 'price_min') ?: 0;
+            $max = (int) $this->queryText($request, 'price_max') ?: PHP_INT_MAX;
 
             $query->where(function ($q) use ($min, $max) {
                 foreach (['pdf', 'physical', 'audio'] as $format) {
@@ -58,8 +58,8 @@ class CatalogController extends Controller
         }
 
         // Recherche par mot-clé (titre, auteur, description)
-        if ($request->filled('search')) {
-            $search = '%'.trim($request->query('search')).'%';
+        if ($term = $this->queryText($request, 'search')) {
+            $search = '%'.$term.'%';
             $query->where(function ($q) use ($search) {
                 $q->where('title', 'like', $search)
                     ->orWhere('author', 'like', $search)
@@ -81,8 +81,8 @@ class CatalogController extends Controller
             ->orderBy('display_order')
             ->get();
 
-        $selectedCategory = $request->filled('category')
-            ? Category::where('slug', $request->query('category'))->first()
+        $selectedCategory = $categorySlug
+            ? Category::where('slug', $categorySlug)->first()
             : null;
 
         // Listes distinctes pour les filtres

@@ -16,7 +16,7 @@ class NewsController extends Controller
 
     public function index(Request $request): View
     {
-        $selectedType = NewsType::tryFrom((string) $request->query('type'));
+        $selectedType = NewsType::tryFrom($this->queryText($request, 'type'));
 
         $news = News::published()
             ->with('book')

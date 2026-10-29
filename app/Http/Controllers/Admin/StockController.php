@@ -15,8 +15,8 @@ class StockController extends Controller
     {
         $query = Book::where('is_physical_available', true)->with('category');
 
-        if ($request->filled('search')) {
-            $search = '%'.trim($request->query('search')).'%';
+        if ($term = $this->queryText($request, 'search')) {
+            $search = '%'.$term.'%';
             $query->where(fn ($q) => $q->where('title', 'like', $search)->orWhere('author', 'like', $search));
         }
 

@@ -2,6 +2,7 @@
 
 use App\Http\Middleware\EnsureAccountEmailIsVerified;
 use App\Http\Middleware\EnsureUserIsAdmin;
+use App\Http\Middleware\IgnoreArrayQueryParameters;
 use App\Http\Middleware\SecurityHeaders;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -36,6 +37,7 @@ return Application::configure(basePath: dirname(__DIR__))
         );
 
         $middleware->web(append: [
+            IgnoreArrayQueryParameters::class,
             SecurityHeaders::class,
             'throttle:global',
         ]);

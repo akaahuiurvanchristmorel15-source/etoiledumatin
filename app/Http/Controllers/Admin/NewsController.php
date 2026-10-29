@@ -21,11 +21,11 @@ class NewsController extends Controller
     {
         $query = News::query();
 
-        if ($request->filled('search')) {
-            $query->where('title', 'like', '%'.trim($request->query('search')).'%');
+        if ($search = $this->queryText($request, 'search')) {
+            $query->where('title', 'like', '%'.$search.'%');
         }
 
-        if ($type = NewsType::tryFrom((string) $request->query('type'))) {
+        if ($type = NewsType::tryFrom($this->queryText($request, 'type'))) {
             $query->where('type', $type);
         }
 

@@ -16,18 +16,18 @@ class OrderController extends Controller
     {
         $query = Order::with(['items.book', 'shippingAddress', 'user']);
 
-        if ($request->filled('status')) {
-            $query->where('payment_status', $request->query('status'));
+        if ($paymentStatus = $this->queryText($request, 'status', 20)) {
+            $query->where('payment_status', $paymentStatus);
         }
 
-        if ($request->filled('shipping_status')) {
-            $query->whereHas('shippingAddress', function ($q) use ($request) {
-                $q->where('status', $request->query('shipping_status'));
+        if ($shippingStatus = $this->queryText($request, 'shipping_status', 20)) {
+            $query->whereHas('shippingAddress', function ($q) use ($shippingStatus) {
+                $q->where('status', $shippingStatus);
             });
         }
 
-        if ($request->filled('search')) {
-            $s = '%'.trim($request->query('search')).'%';
+        if ($search = $this->queryText($request, 'search')) {
+            $s = '%'.$search.'%';
             $query->where(function ($q) use ($s) {
                 $q->where('order_number', 'like', $s)
                     ->orWhere('customer_name', 'like', $s)

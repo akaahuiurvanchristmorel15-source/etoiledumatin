@@ -108,7 +108,7 @@ class CheckoutController extends Controller
         PaymentGatewayInterface $paymentGateway,
         OrderService $orderService
     ): RedirectResponse {
-        $reference = $request->query('reference') ?? $request->query('trxref');
+        $reference = $this->queryText($request, 'reference', 100) ?: $this->queryText($request, 'trxref', 100);
 
         if (! $reference) {
             return redirect()->route('cart.index')->with('error', 'Référence de transaction introuvable.');

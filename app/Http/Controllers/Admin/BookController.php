@@ -33,13 +33,13 @@ class BookController extends Controller
     {
         $query = Book::with('category');
 
-        if ($request->filled('search')) {
-            $s = '%'.trim($request->query('search')).'%';
+        if ($search = $this->queryText($request, 'search')) {
+            $s = '%'.$search.'%';
             $query->where(fn ($q) => $q->where('title', 'like', $s)->orWhere('author', 'like', $s));
         }
 
-        if ($request->filled('category_id')) {
-            $query->where('category_id', $request->query('category_id'));
+        if ($categoryId = (int) $this->queryText($request, 'category_id')) {
+            $query->where('category_id', $categoryId);
         }
 
         if ($request->query('visibility') === 'active') {
