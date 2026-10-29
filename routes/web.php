@@ -46,6 +46,9 @@ Route::get('/livre/{book}/apercu-pdf', [CatalogController::class, 'previewPdf'])
 Route::post('/livre/{book}/avis', [CatalogController::class, 'addReview'])->name('books.review')->middleware(['verified.account', 'throttle:reviews']);
 Route::get('/actualites', [NewsController::class, 'index'])->name('news.index');
 Route::get('/actualites/{slug}', [NewsController::class, 'show'])->name('news.show');
+Route::view('/mentions-legales', 'pages.legal.notice')->name('legal.notice');
+Route::view('/confidentialite', 'pages.legal.privacy')->name('legal.privacy');
+Route::view('/conditions-generales-de-vente', 'pages.legal.terms')->name('legal.terms');
 Route::get('/suivi-commande', [LibraryController::class, 'guestLookup'])->name('orders.lookup')->middleware('throttle:10,1');
 
 /*

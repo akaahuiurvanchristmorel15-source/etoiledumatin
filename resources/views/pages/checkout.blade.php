@@ -179,7 +179,7 @@
                         </button>
                         <a href="{{ route('cart.index') }}" class="pg-link" style="text-align: center;">Modifier le panier</a>
                     </div>
-                    <p class="pg-note">En validant, vous acceptez les conditions de vente et de licence de NSOROMMA. Paiement chiffré par Paystack.</p>
+                    <p class="pg-note">En validant, vous acceptez les <a href="{{ route('legal.terms') }}">conditions générales de vente</a> de NSOROMMA. Vos données sont traitées selon notre <a href="{{ route('legal.privacy') }}">politique de confidentialité</a>. Paiement chiffré par Paystack.</p>
                 </div>
             </aside>
         </form>

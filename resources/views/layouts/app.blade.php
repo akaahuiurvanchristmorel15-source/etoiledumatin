@@ -110,6 +110,9 @@
                 @foreach($socialLinks as $label => $url)
                     <a href="{{ $url }}" rel="noopener">{{ $label }}</a>
                 @endforeach
+                <a href="{{ route('legal.notice') }}">Mentions légales</a>
+                <a href="{{ route('legal.privacy') }}">Confidentialité</a>
+                <a href="{{ route('legal.terms') }}">CGV</a>
             </nav>
         </footer>
     </main>

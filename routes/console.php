@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\AuditLog;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule;
@@ -14,3 +15,6 @@ Schedule::command('queue:work --stop-when-empty --timeout=1800 --max-time=3000')
     ->everyMinute()
     ->withoutOverlapping(60)
     ->runInBackground();
+
+// Journal de sécurité purgé au-delà de 12 mois, comme l'annonce la politique de confidentialité
+Schedule::command('model:prune', ['--model' => [AuditLog::class]])->daily();

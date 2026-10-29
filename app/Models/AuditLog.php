@@ -2,13 +2,20 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\MassPrunable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class AuditLog extends Model
 {
-    use HasFactory;
+    use HasFactory, MassPrunable;
+
+    /**
+     * Durée de conservation annoncée dans la politique de confidentialité (adresse IP, navigateur).
+     */
+    public const RETENTION_MONTHS = 12;
 
     public $timestamps = false;
 
@@ -27,6 +34,14 @@ class AuditLog extends Model
             'details' => 'array',
             'created_at' => 'datetime',
         ];
+    }
+
+    /**
+     * Entrées supprimées chaque jour par « model:prune » (voir routes/console.php).
+     */
+    public function prunable(): Builder
+    {
+        return static::where('created_at', '<', now()->subMonths(self::RETENTION_MONTHS));
     }
 
     public function user(): BelongsTo

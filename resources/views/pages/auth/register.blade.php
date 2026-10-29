@@ -76,7 +76,7 @@
 
                     <label class="pg-checkbox">
                         <input type="checkbox" name="terms" value="1" required @checked(old('terms'))>
-                        <span>J'accepte les conditions d'utilisation et la politique de confidentialité de NSOROMMA.</span>
+                        <span>J'accepte les <a href="{{ route('legal.terms') }}">conditions générales de vente</a> et la <a href="{{ route('legal.privacy') }}">politique de confidentialité</a> de NSOROMMA.</span>
                     </label>
                     @error('terms')<span class="pg-error">{{ $message }}</span>@enderror
 

@@ -6,6 +6,7 @@ use App\Models\Book;
 use App\Models\Category;
 use App\Models\News;
 use Illuminate\Http\Response;
+use Illuminate\Support\Carbon;
 
 class SeoController extends Controller
 {
@@ -24,11 +25,15 @@ class SeoController extends Controller
         $news = News::published()->select(['slug', 'updated_at'])->latest('published_at')->get();
 
         $lastUpdate = $books->max('updated_at') ?? now();
+        $legalUpdate = Carbon::create(2026, 10, 29); // date affichée en tête des pages légales
 
         $urls = collect([
             ['loc' => route('home'), 'lastmod' => $lastUpdate, 'changefreq' => 'daily', 'priority' => '1.0'],
             ['loc' => route('catalog.index'), 'lastmod' => $lastUpdate, 'changefreq' => 'daily', 'priority' => '0.9'],
             ['loc' => route('news.index'), 'lastmod' => $news->max('updated_at') ?? $lastUpdate, 'changefreq' => 'daily', 'priority' => '0.7'],
+            ['loc' => route('legal.notice'), 'lastmod' => $legalUpdate, 'changefreq' => 'yearly', 'priority' => '0.2'],
+            ['loc' => route('legal.privacy'), 'lastmod' => $legalUpdate, 'changefreq' => 'yearly', 'priority' => '0.2'],
+            ['loc' => route('legal.terms'), 'lastmod' => $legalUpdate, 'changefreq' => 'yearly', 'priority' => '0.2'],
         ])
             ->merge($categories->map(fn (Category $category) => [
                 'loc' => route('catalog.index', ['category' => $category->slug]),

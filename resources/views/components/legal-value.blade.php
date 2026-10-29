@@ -1,0 +1,1 @@
+{{-- Information saisie dans Paramètres › Contenus du site, ou repère visible tant qu'elle manque --}}@props(['name'])@php($value = \App\Models\Setting::content($name))@if($value !== ''){{ $value }}@else<mark class="legal-missing">[à compléter : {{ mb_strtolower(config('site.content.'.$name.'.label')) }}]</mark>@endif
