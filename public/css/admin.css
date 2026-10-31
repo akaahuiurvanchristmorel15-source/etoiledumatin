@@ -528,3 +528,7 @@ button { font: inherit; }
 /* Bandeau affiché à l'équipe tant que le mode maintenance est actif */
 .maintenance-banner { display: flex; align-items: center; gap: .6rem; padding: .65rem 1.5rem; background: var(--warning-soft); color: var(--warning); border-bottom: 1px solid rgba(181, 71, 8, .25); font-size: .82rem; font-weight: 500; }
 .maintenance-banner a { margin-left: auto; color: inherit; font-weight: 600; text-decoration: underline; }
+
+/* Code de double authentification : grands chiffres espacés */
+.two-factor-code { font-family: var(--serif); font-size: 1.9rem; font-weight: 600; letter-spacing: .35em; text-align: center; min-height: 60px; }
+.two-factor-code::placeholder { color: rgba(30, 34, 48, .2); }

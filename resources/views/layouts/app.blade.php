@@ -27,7 +27,8 @@
 
     {{-- Mode jour / nuit : choix mémorisé, sinon réglage de l'appareil ; appliqué avant l'affichage pour éviter tout flash --}}
     <meta name="color-scheme" content="light dark">
-    <script>
+    <script src="{{ asset('js/behaviors.js') }}?v={{ filemtime(public_path('js/behaviors.js')) }}"></script>
+    <script nonce="{{ Vite::cspNonce() }}">
         (function () {
             var root = document.documentElement;
             var media = window.matchMedia('(prefers-color-scheme: dark)');

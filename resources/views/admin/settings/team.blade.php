@@ -36,7 +36,7 @@
                                         <form action="{{ route('admin.settings.team.update', $member) }}" method="POST" class="role-form">
                                             @csrf
                                             @method('PUT')
-                                            <select name="role" class="select" style="min-width: 190px;" aria-label="Rôle de {{ $member->name }}" onchange="this.form.requestSubmit()">
+                                            <select name="role" class="select" style="min-width: 190px;" aria-label="Rôle de {{ $member->name }}" data-autosubmit>
                                                 @foreach($roles as $role)
                                                     <option value="{{ $role->slug }}" @selected($member->role === $role->slug)>{{ $role->name }}</option>
                                                 @endforeach
@@ -117,7 +117,7 @@
 @endsection
 
 @push('scripts')
-    <script>
+    <script nonce="{{ Vite::cspNonce() }}">
         /**
          * Mot de passe provisoire : proposé d'office, régénérable et copiable.
          * Écoute déléguée : le formulaire peut être remplacé par une mise à jour sans rechargement (js/live.js).

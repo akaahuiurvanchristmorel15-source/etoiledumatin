@@ -1,7 +1,7 @@
 <a href="{{ route('news.show', $item->slug) }}" class="news-card">
     <span class="news-card-media">
         <img src="{{ $item->coverUrl() }}" alt="" loading="lazy"
-             onerror="this.onerror=null;this.src='{{ asset('images/brand/nsoromma-logo.png') }}';">
+             data-fallback="{{ asset('images/brand/nsoromma-logo.png') }}">
         <span class="news-badge">{{ $item->type->label() }}</span>
     </span>
     <span class="news-card-body">

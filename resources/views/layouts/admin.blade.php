@@ -16,6 +16,7 @@
     <link rel="stylesheet" href="{{ asset('css/shell.css') }}?v={{ filemtime(public_path('css/shell.css')) }}">
     <link rel="stylesheet" href="{{ asset('css/admin.css') }}?v={{ filemtime(public_path('css/admin.css')) }}">
 
+    <script src="{{ asset('js/behaviors.js') }}?v={{ filemtime(public_path('js/behaviors.js')) }}"></script>
     @stack('styles')
 </head>
 <body>
@@ -121,7 +122,7 @@
         <footer class="footer">© {{ date('Y') }} Éditions NSOROMMA</footer>
     </div>
 
-    <script>
+    <script nonce="{{ Vite::cspNonce() }}">
         (function () {
             var body = document.body;
             var toggle = document.getElementById('menu-toggle');
@@ -137,16 +138,11 @@
             document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { setOpen(false); } });
             window.addEventListener('resize', function () { if (window.innerWidth > 1024) { setOpen(false); } });
 
-            // Écoute déléguée, enregistrée avant js/live.js : une annulation bloque aussi l'envoi sans rechargement
-            document.addEventListener('submit', function (e) {
-                var form = e.target.closest('form[data-confirm]');
-                if (form && !window.confirm(form.dataset.confirm)) { e.preventDefault(); }
-            });
         })();
     </script>
 
     @can('manage-orders')
-        <script>
+        <script nonce="{{ Vite::cspNonce() }}">
             /**
              * Nouvelles commandes payées : vérification toutes les 30 secondes, notification et compteur dans l'onglet.
              */

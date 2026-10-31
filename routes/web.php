@@ -14,6 +14,7 @@ use App\Http\Controllers\Admin\SettingsController as AdminSettingsController;
 use App\Http\Controllers\Admin\SpeechSynthesisController as AdminSpeechSynthesisController;
 use App\Http\Controllers\Admin\StockController as AdminStockController;
 use App\Http\Controllers\Admin\TeamController as AdminTeamController;
+use App\Http\Controllers\AdminTwoFactorController;
 use App\Http\Controllers\AudioListeningController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CartController;
@@ -121,6 +122,11 @@ Route::middleware('guest')->group(function () {
     Route::post('/mot-de-passe-oublie', [PasswordResetController::class, 'email'])->name('password.email')->middleware('throttle:password-reset');
     Route::get('/reinitialiser-mot-de-passe/{token}', [PasswordResetController::class, 'edit'])->name('password.reset');
     Route::post('/reinitialiser-mot-de-passe', [PasswordResetController::class, 'update'])->name('password.update')->middleware('throttle:password-reset');
+
+    // Double authentification de l'équipe : code reçu par e-mail après le mot de passe
+    Route::get('/admin/verification', [AdminTwoFactorController::class, 'show'])->name('admin.two-factor');
+    Route::post('/admin/verification', [AdminTwoFactorController::class, 'verify'])->name('admin.two-factor.verify')->middleware('throttle:login');
+    Route::post('/admin/verification/renvoyer', [AdminTwoFactorController::class, 'resend'])->name('admin.two-factor.resend')->middleware('throttle:password-reset');
 
     Route::get('/auth/google', [GoogleAuthController::class, 'redirect'])->name('auth.google');
     Route::get('/auth/google/callback', [GoogleAuthController::class, 'callback'])->name('auth.google.callback')->middleware('throttle:login');

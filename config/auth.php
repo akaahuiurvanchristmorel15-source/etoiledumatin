@@ -114,4 +114,18 @@ return [
 
     'password_timeout' => env('AUTH_PASSWORD_TIMEOUT', 10800),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Double authentification de l'équipe
+    |--------------------------------------------------------------------------
+    |
+    | Après le mot de passe, les membres de l'équipe saisissent un code à
+    | 6 chiffres reçu par e-mail. Un appareil peut être reconnu 30 jours.
+    | À ne désactiver (ADMIN_TWO_FACTOR=false) que si l'envoi d'e-mails
+    | ne fonctionne pas, le temps de le réparer.
+    |
+    */
+
+    'admin_two_factor' => (bool) env('ADMIN_TWO_FACTOR', true),
+
 ];

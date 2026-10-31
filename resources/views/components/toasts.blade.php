@@ -26,7 +26,7 @@
 </div>
 
 @once
-    <script>
+    <script nonce="{{ Vite::cspNonce() }}">
         /**
          * Active les notifications pas encore prises en charge (au chargement et après chaque mise à jour sans rechargement).
          */

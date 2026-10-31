@@ -76,7 +76,7 @@
         </section>
     </main>
 
-    <script>
+    <script nonce="{{ Vite::cspNonce() }}">
         document.querySelectorAll('[data-toggle-password]').forEach(function (button) {
             button.addEventListener('click', function () {
                 var input = document.getElementById('password');

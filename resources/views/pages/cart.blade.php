@@ -58,7 +58,7 @@
                                             <input type="hidden" name="book_id" value="{{ $book->id }}">
                                             <input type="hidden" name="format" value="physical">
                                             <label for="qty-{{ $book->id }}">Quantité</label>
-                                            <select id="qty-{{ $book->id }}" name="quantity" onchange="this.form.requestSubmit()">
+                                            <select id="qty-{{ $book->id }}" name="quantity" data-autosubmit>
                                                 @for($quantity = 1; $quantity <= max(1, min(20, $book->stock_physical)); $quantity++)
                                                     <option value="{{ $quantity }}" @selected($item['quantity'] == $quantity)>{{ $quantity }}</option>
                                                 @endfor
@@ -90,7 +90,7 @@
 
                     <div class="pg-line-tools" style="justify-content: space-between; margin-top: 1.5rem;">
                         <a href="{{ route('catalog.index') }}" class="pg-link">← Continuer mes achats</a>
-                        <form action="{{ route('cart.clear') }}" method="POST" onsubmit="return confirm('Vider entièrement le panier ?');">
+                        <form action="{{ route('cart.clear') }}" method="POST" data-confirm="Vider entièrement le panier ?">
                             @csrf
                             <button type="submit" class="pg-link">Vider le panier</button>
                         </form>

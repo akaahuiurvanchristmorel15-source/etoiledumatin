@@ -51,7 +51,7 @@
             alt="Couverture du livre {{ $bookTitle }} par {{ $bookAuthor }}"
             class="book-cover-img"
             loading="lazy"
-            onerror="this.onerror=null;this.src='{{ asset('images/books/fallback-book.jpg') }}';"
+            data-fallback="{{ asset('images/books/fallback-book.jpg') }}"
         >
 
         {{-- Badges format --}}

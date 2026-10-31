@@ -84,7 +84,7 @@
                     <div class="spotlight-cover">
                         <img src="{{ $book->cover_image ? asset($book->cover_image) : asset('images/books/fallback-book.jpg') }}"
                              alt="Couverture de {{ $book->title }}"
-                             onerror="this.onerror=null;this.src='{{ asset('images/books/fallback-book.jpg') }}';">
+                             data-fallback="{{ asset('images/books/fallback-book.jpg') }}">
                     </div>
 
                     <div class="spotlight-intro">

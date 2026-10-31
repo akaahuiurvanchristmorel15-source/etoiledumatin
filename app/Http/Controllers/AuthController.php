@@ -69,7 +69,7 @@ class AuthController extends Controller
 
         AuditLog::log(Auth::id(), 'user_logged_in');
 
-        return $this->redirectAfterLogin($request);
+        return $this->redirectAfterLogin($request, $request->boolean('remember'));
     }
 
     public function showRegister(): View
@@ -129,10 +129,15 @@ class AuthController extends Controller
     }
 
     /**
-     * Redirection après connexion : l'administration pour l'équipe, la bibliothèque pour les lecteurs.
+     * Redirection après connexion : l'administration pour l'équipe (après la double authentification), la bibliothèque pour les lecteurs.
      */
-    public static function redirectAfterLogin(Request $request): RedirectResponse
+    public static function redirectAfterLogin(Request $request, bool $remember = false): RedirectResponse
     {
+        // Équipe : un code reçu par e-mail est demandé avant d'ouvrir l'administration
+        if (AdminTwoFactorController::isRequiredFor($request, Auth::user())) {
+            return AdminTwoFactorController::start($request, Auth::user(), $remember);
+        }
+
         if (Auth::user()->isStaff()) {
             return redirect()->intended(route('admin.dashboard'));
         }

@@ -85,7 +85,7 @@
                         <div class="spotlight-top">
                             <a href="{{ route('catalog.show', $book->slug) }}" class="spotlight-cover" tabindex="-1" aria-hidden="true">
                                 <img src="{{ $book->cover_image ? asset($book->cover_image) : asset('images/books/fallback-book.jpg') }}" alt=""
-                                     onerror="this.onerror=null;this.src='{{ asset('images/books/fallback-book.jpg') }}';">
+                                     data-fallback="{{ asset('images/books/fallback-book.jpg') }}">
                             </a>
 
                             <div class="spotlight-intro">
@@ -212,7 +212,7 @@
                                         <a href="{{ route('catalog.show', $book->slug) }}" class="shelf-book-link">
                                             <img src="{{ $book->cover_image ? asset($book->cover_image) : asset('images/books/fallback-book.jpg') }}"
                                                  alt="{{ $book->title }}, {{ $book->author }}" loading="lazy"
-                                                 onerror="this.onerror=null;this.src='{{ asset('images/books/fallback-book.jpg') }}';">
+                                                 data-fallback="{{ asset('images/books/fallback-book.jpg') }}">
                                             <span class="shelf-book-caption" aria-hidden="true">
                                                 <span class="shelf-book-title">{{ $book->title }}</span>
                                                 <span class="shelf-book-author">{{ $book->author }}</span>

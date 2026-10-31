@@ -102,7 +102,7 @@
         </ol>
 
         <div class="pg-audio-dock" x-show="current !== null" x-cloak style="display: none;">
-            <audio x-ref="player" controls controlsList="nodownload" preload="none" @ended="current = null" oncontextmenu="return false;"></audio>
+            <audio x-ref="player" controls controlsList="nodownload" preload="none" @ended="current = null" @contextmenu.prevent></audio>
         </div>
     </div>
 @endsection

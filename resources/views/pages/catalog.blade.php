@@ -153,7 +153,7 @@
                             <input type="hidden" name="{{ $key }}" value="{{ $value }}">
                         @endforeach
                         <label for="sort" class="sr-only">Trier par</label>
-                        <select id="sort" name="sort" onchange="this.form.requestSubmit()">
+                        <select id="sort" name="sort" data-autosubmit>
                             @foreach($sorts as $value => $label)
                                 <option value="{{ $value }}" @selected((request('sort') ?: 'recent') === $value)>{{ $label }}</option>
                             @endforeach
@@ -170,7 +170,7 @@
                                     <span class="catalog-cover">
                                         <img src="{{ $book->cover_image ? asset($book->cover_image) : asset('images/books/fallback-book.jpg') }}"
                                              alt="Couverture de {{ $book->title }}" loading="lazy"
-                                             onerror="this.onerror=null;this.src='{{ asset('images/books/fallback-book.jpg') }}';">
+                                             data-fallback="{{ asset('images/books/fallback-book.jpg') }}">
                                     </span>
                                     <span class="catalog-formats">
                                         {{ collect(['PDF' => $book->is_pdf_available, 'Papier' => $book->is_physical_available, 'Audio' => $book->is_audio_available])->filter()->keys()->implode(' · ') }}

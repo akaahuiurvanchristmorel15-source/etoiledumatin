@@ -74,6 +74,6 @@ class GoogleAuthController extends Controller
 
         AuditLog::log($user->id, $action);
 
-        return AuthController::redirectAfterLogin($request);
+        return AuthController::redirectAfterLogin($request, remember: true);
     }
 }

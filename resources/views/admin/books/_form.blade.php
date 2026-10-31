@@ -239,7 +239,7 @@
 </div>
 
 @push('scripts')
-    <script>
+    <script nonce="{{ Vite::cspNonce() }}">
         /**
          * Compte les pages du PDF dès sa sélection et remplit « Nombre de pages ».
          * Les PDF récents rangent leurs objets dans des flux compressés (/ObjStm) : on les décompresse avant de lire l'arbre des pages.
