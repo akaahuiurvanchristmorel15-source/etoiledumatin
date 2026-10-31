@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\BlockVisitorsDuringMaintenance;
 use App\Http\Middleware\EnsureAccountEmailIsVerified;
 use App\Http\Middleware\EnsureUserIsAdmin;
 use App\Http\Middleware\IgnoreArrayQueryParameters;
@@ -40,6 +41,7 @@ return Application::configure(basePath: dirname(__DIR__))
             IgnoreArrayQueryParameters::class,
             SecurityHeaders::class,
             'throttle:global',
+            BlockVisitorsDuringMaintenance::class,
         ]);
 
         $middleware->redirectUsersTo(fn (Request $request) => $request->user()?->isStaff() ? route('admin.dashboard') : route('library.index'));

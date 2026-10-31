@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Middleware\BlockVisitorsDuringMaintenance;
 use App\Models\AuditLog;
 use App\Models\User;
 use Illuminate\Auth\Events\PasswordReset;
@@ -58,6 +59,9 @@ class PasswordResetController extends Controller
             ]);
         }
 
-        return redirect()->route('login')->with('success', 'Votre mot de passe a été modifié. Vous pouvez vous connecter.');
+        // En maintenance, seule la connexion d'administration reste ouverte
+        $loginRoute = BlockVisitorsDuringMaintenance::isActive() ? 'admin.login' : 'login';
+
+        return redirect()->route($loginRoute)->with('success', 'Votre mot de passe a été modifié. Vous pouvez vous connecter.');
     }
 }

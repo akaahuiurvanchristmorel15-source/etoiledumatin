@@ -20,14 +20,21 @@
 </head>
 <body>
     @php
-        $navItems = [
-            ['route' => 'admin.dashboard', 'match' => 'admin.dashboard', 'icon' => 'dashboard', 'label' => 'Tableau de bord', 'can' => null],
-            ['route' => 'admin.orders.index', 'match' => 'admin.orders.*', 'icon' => 'bag', 'label' => 'Commandes', 'can' => 'manage-orders'],
-            ['route' => 'admin.books.index', 'match' => 'admin.books.*', 'icon' => 'book', 'label' => 'Livres', 'can' => 'manage-catalog'],
-            ['route' => 'admin.stock.index', 'match' => 'admin.stock.*', 'icon' => 'box', 'label' => 'Stock', 'can' => 'manage-stock', 'count' => $outOfStockCount ?? 0],
-            ['route' => 'admin.categories.index', 'match' => 'admin.categories.*', 'icon' => 'folder', 'label' => 'Catégories', 'can' => 'manage-catalog'],
-            ['route' => 'admin.news.index', 'match' => 'admin.news.*', 'icon' => 'news', 'label' => 'Actualités', 'can' => 'manage-news'],
-            ['route' => 'admin.reviews.index', 'match' => 'admin.reviews.*', 'icon' => 'star', 'label' => 'Avis clients', 'can' => 'manage-reviews', 'count' => $pendingReviewsCount ?? 0],
+        // Menu regroupé par thème ; un groupe sans entrée autorisée n'est pas affiché
+        $navGroups = [
+            'Pilotage' => [
+                ['route' => 'admin.dashboard', 'match' => 'admin.dashboard', 'label' => 'Tableau de bord', 'can' => null],
+                ['route' => 'admin.orders.index', 'match' => 'admin.orders.*', 'label' => 'Commandes', 'can' => 'manage-orders'],
+            ],
+            'Catalogue' => [
+                ['route' => 'admin.books.index', 'match' => ['admin.books.*', 'admin.parts.*', 'admin.tracks.*'], 'label' => 'Livres', 'can' => 'manage-catalog'],
+                ['route' => 'admin.categories.index', 'match' => 'admin.categories.*', 'label' => 'Catégories', 'can' => 'manage-catalog'],
+                ['route' => 'admin.stock.index', 'match' => 'admin.stock.*', 'label' => 'Stock', 'can' => 'manage-stock', 'count' => $outOfStockCount ?? 0],
+            ],
+            'Contenu' => [
+                ['route' => 'admin.news.index', 'match' => 'admin.news.*', 'label' => 'Actualités', 'can' => 'manage-news'],
+                ['route' => 'admin.reviews.index', 'match' => 'admin.reviews.*', 'label' => 'Avis clients', 'can' => 'manage-reviews', 'count' => $pendingReviewsCount ?? 0],
+            ],
         ];
     @endphp
 
@@ -38,38 +45,38 @@
         </a>
 
         <nav class="sidebar-nav">
-            <div class="nav-section">
-                <div class="nav-label">Gestion</div>
-                @foreach($navItems as $item)
-                    @if(! $item['can'] || Gate::allows($item['can']))
-                        @php $isActive = request()->routeIs($item['match']); @endphp
-                        <a href="{{ route($item['route']) }}" class="nav-link {{ $isActive ? 'is-active' : '' }}" @if($isActive) aria-current="page" @endif>
-                            <x-admin.icon :name="$item['icon']" />
-                            <span>{{ $item['label'] }}</span>
-                            @if(($item['count'] ?? 0) > 0)
-                                <span class="nav-count" aria-label="{{ $item['count'] }} en attente">{{ $item['count'] }}</span>
-                            @endif
-                        </a>
-                    @endif
-                @endforeach
-            </div>
+            @foreach($navGroups as $groupLabel => $items)
+                @php $allowedItems = array_filter($items, fn (array $item): bool => ! $item['can'] || Gate::allows($item['can'])); @endphp
+                @if($allowedItems)
+                    <div class="nav-section">
+                        <div class="nav-label">{{ $groupLabel }}</div>
+                        @foreach($allowedItems as $item)
+                            @php $isActive = request()->routeIs(...(array) $item['match']); @endphp
+                            <a href="{{ route($item['route']) }}" class="nav-link {{ $isActive ? 'is-active' : '' }}" @if($isActive) aria-current="page" @endif>
+                                <span>{{ $item['label'] }}</span>
+                                @if(($item['count'] ?? 0) > 0)
+                                    <span class="nav-count" aria-label="{{ $item['count'] }} en attente">{{ $item['count'] }}</span>
+                                @endif
+                            </a>
+                        @endforeach
+                    </div>
+                @endif
+            @endforeach
 
             <div class="nav-section">
-                <div class="nav-label">Compte</div>
+                <div class="nav-label">Réglages</div>
                 @php $isSettings = request()->routeIs('admin.settings.*'); @endphp
                 <a href="{{ route('admin.settings.profile') }}" class="nav-link {{ $isSettings ? 'is-active' : '' }}" @if($isSettings) aria-current="page" @endif>
-                    <x-admin.icon name="settings" />
                     <span>Paramètres</span>
                 </a>
                 <a href="{{ route('home') }}" class="nav-link">
-                    <x-admin.icon name="external" />
                     <span>Voir la boutique</span>
                 </a>
             </div>
         </nav>
 
         <div class="sidebar-user">
-            <span class="avatar" aria-hidden="true">{{ mb_strtoupper(mb_substr(auth()->user()->name, 0, 2)) }}</span>
+            <span class="avatar" aria-hidden="true">{{ mb_strtoupper(mb_substr(auth()->user()->name, 0, 1)) }}</span>
             <div class="sidebar-user-info">
                 <div class="sidebar-user-name">{{ auth()->user()->name }}</div>
                 <div class="sidebar-user-role">{{ auth()->user()->roleLabel() }}</div>
@@ -98,6 +105,14 @@
         </header>
 
         <x-toasts />
+
+        @if(\App\Http\Middleware\BlockVisitorsDuringMaintenance::isActive())
+            <div class="maintenance-banner" role="status">
+                <x-admin.icon name="alert" />
+                <span>Mode maintenance actif : les visiteurs voient la page « Le site sera bientôt disponible ».</span>
+                @can('manage-store')<a href="{{ route('admin.settings.maintenance') }}">Gérer</a>@endcan
+            </div>
+        @endif
 
         <main class="content" data-live="admin">
             @yield('content')

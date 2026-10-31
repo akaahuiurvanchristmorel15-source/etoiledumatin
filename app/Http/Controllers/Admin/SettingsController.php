@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Middleware\BlockVisitorsDuringMaintenance;
 use App\Models\AuditLog;
 use App\Models\Setting;
 use Illuminate\Contracts\View\View;
@@ -109,5 +110,39 @@ class SettingsController extends Controller
         AuditLog::log($request->user()->id, 'site_content_updated');
 
         return back()->with('success', 'Les contenus du site ont été mis à jour.');
+    }
+
+    public function maintenance(): View
+    {
+        Gate::authorize('manage-store');
+
+        return view('admin.settings.maintenance', [
+            'isActive' => BlockVisitorsDuringMaintenance::isActive(),
+            'maintenanceMessage' => Setting::get('maintenance.message'),
+        ]);
+    }
+
+    /**
+     * Active ou désactive le mode maintenance : seuls l'équipe et la connexion d'administration restent accessibles.
+     */
+    public function updateMaintenance(Request $request): RedirectResponse
+    {
+        Gate::authorize('manage-store');
+
+        $validated = $request->validate([
+            'enabled' => ['required', 'boolean'],
+            'message' => ['nullable', 'string', 'max:500'],
+        ]);
+
+        $isEnabled = (bool) $validated['enabled'];
+
+        Setting::put('maintenance.enabled', $isEnabled ? '1' : '0');
+        Setting::put('maintenance.message', trim((string) ($validated['message'] ?? '')));
+
+        AuditLog::log($request->user()->id, $isEnabled ? 'maintenance_enabled' : 'maintenance_disabled');
+
+        return back()->with('success', $isEnabled
+            ? 'Mode maintenance activé : les visiteurs voient la page « Le site sera bientôt disponible ».'
+            : 'Mode maintenance désactivé : le site est de nouveau ouvert à tous.');
     }
 }

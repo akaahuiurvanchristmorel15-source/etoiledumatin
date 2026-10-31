@@ -10,6 +10,7 @@
     @can('manage-store')
         <a href="{{ route('admin.settings.content') }}" class="{{ request()->routeIs('admin.settings.content') ? 'is-active' : '' }}">Contenus du site</a>
         <a href="{{ route('admin.settings.shipping') }}" class="{{ request()->routeIs('admin.settings.shipping') ? 'is-active' : '' }}">Livraison</a>
+        <a href="{{ route('admin.settings.maintenance') }}" class="{{ request()->routeIs('admin.settings.maintenance') ? 'is-active' : '' }}">Maintenance</a>
     @endcan
     @can('manage-team')
         <a href="{{ route('admin.settings.team') }}" class="{{ request()->routeIs('admin.settings.team') ? 'is-active' : '' }}">Équipe</a>

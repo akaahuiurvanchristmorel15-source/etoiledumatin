@@ -13,6 +13,7 @@
 
     <div class="page-header">
         <div>
+            <p class="page-eyebrow">{{ ucfirst(now()->locale('fr')->isoFormat('dddd D MMMM YYYY')) }}</p>
             <h1 class="page-title">Bonjour, {{ strtok(auth()->user()->name, ' ') }}</h1>
             <p class="page-subtitle">Vue d'ensemble des ventes, des expéditions et du catalogue · <span class="live-dot" aria-hidden="true"></span>mis à jour automatiquement</p>
         </div>

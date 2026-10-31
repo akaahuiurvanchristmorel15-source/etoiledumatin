@@ -212,6 +212,9 @@ Route::prefix('admin')->name('admin.')->middleware('admin')->group(function () {
 
         Route::get('/parametres/contenu', [AdminSettingsController::class, 'content'])->name('settings.content');
         Route::put('/parametres/contenu', [AdminSettingsController::class, 'updateContent'])->name('settings.content.update');
+
+        Route::get('/parametres/maintenance', [AdminSettingsController::class, 'maintenance'])->name('settings.maintenance');
+        Route::put('/parametres/maintenance', [AdminSettingsController::class, 'updateMaintenance'])->name('settings.maintenance.update');
     });
 
     Route::middleware('can:manage-team')->group(function () {
