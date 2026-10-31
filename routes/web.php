@@ -43,7 +43,7 @@ Route::get('/catalogue', [CatalogController::class, 'index'])->name('catalog.ind
 Route::get('/recherche/suggestions', [SearchController::class, 'suggestions'])->name('search.suggestions')->middleware('throttle:60,1');
 Route::get('/livre/{slug}', [CatalogController::class, 'show'])->name('catalog.show');
 Route::get('/livre/{slug}/extrait', [CatalogController::class, 'preview'])->name('catalog.preview');
-Route::get('/livre/{book}/apercu-pdf', [CatalogController::class, 'previewPdf'])->name('catalog.preview-pdf');
+Route::get('/livre/{book}/apercu-pdf', [CatalogController::class, 'previewPdf'])->name('catalog.preview-pdf')->middleware('throttle:downloads');
 Route::post('/livre/{book}/avis', [CatalogController::class, 'addReview'])->name('books.review')->middleware(['verified.account', 'throttle:reviews']);
 Route::get('/actualites', [NewsController::class, 'index'])->name('news.index');
 Route::get('/actualites/{slug}', [NewsController::class, 'show'])->name('news.show');
@@ -59,11 +59,13 @@ Route::get('/suivi-commande', [LibraryController::class, 'guestLookup'])->name('
 */
 Route::prefix('panier')->name('cart.')->group(function () {
     Route::get('/', [CartController::class, 'index'])->name('index');
-    Route::post('/ajouter', [CartController::class, 'add'])->name('add');
-    Route::match(['post', 'patch'], '/modifier', [CartController::class, 'update'])->name('update');
-    Route::match(['post', 'delete'], '/supprimer', [CartController::class, 'remove'])->name('remove');
-    Route::post('/zone-livraison', [CartController::class, 'setZone'])->name('zone');
-    Route::post('/vider', [CartController::class, 'clear'])->name('clear');
+    Route::middleware('throttle:cart')->group(function () {
+        Route::post('/ajouter', [CartController::class, 'add'])->name('add');
+        Route::match(['post', 'patch'], '/modifier', [CartController::class, 'update'])->name('update');
+        Route::match(['post', 'delete'], '/supprimer', [CartController::class, 'remove'])->name('remove');
+        Route::post('/zone-livraison', [CartController::class, 'setZone'])->name('zone');
+        Route::post('/vider', [CartController::class, 'clear'])->name('clear');
+    });
 });
 
 /*
@@ -74,7 +76,7 @@ Route::prefix('panier')->name('cart.')->group(function () {
 Route::prefix('commander')->name('checkout.')->middleware('verified.account')->group(function () {
     Route::get('/', [CheckoutController::class, 'index'])->name('index');
     Route::post('/traiter', [CheckoutController::class, 'process'])->name('process')->middleware('throttle:checkout');
-    Route::get('/retour-paystack', [CheckoutController::class, 'callback'])->name('callback');
+    Route::get('/retour-paystack', [CheckoutController::class, 'callback'])->name('callback')->middleware('throttle:payment-callback');
     Route::get('/confirmation/{order}', [CheckoutController::class, 'confirmation'])->name('confirmation');
     Route::get('/simulation/{order}', [CheckoutController::class, 'sandboxPayment'])->name('sandbox-payment');
     Route::post('/simulation/{order}', [CheckoutController::class, 'sandboxConfirm'])->name('sandbox-confirm');
@@ -90,19 +92,19 @@ Route::post('/paystack/webhook', [CheckoutController::class, 'webhook'])->name('
 */
 Route::middleware('verified.account')->group(function () {
     Route::get('/ma-bibliotheque', [LibraryController::class, 'index'])->name('library.index');
-    Route::get('/ma-bibliotheque/generer-lien/{download}', [LibraryController::class, 'generateDownloadLink'])->name('library.download');
+    Route::get('/ma-bibliotheque/generer-lien/{download}', [LibraryController::class, 'generateDownloadLink'])->name('library.download')->middleware('throttle:downloads');
 });
 
 // Écoute audio par abonnement (streaming réservé aux abonnés en cours)
 Route::middleware(['auth', 'verified.account'])->group(function () {
     Route::get('/ma-bibliotheque/ecoute/{book:slug}', [AudioListeningController::class, 'show'])->name('library.listen');
-    Route::get('/ma-bibliotheque/ecoute/piste/{track}', [AudioListeningController::class, 'stream'])->name('library.listen.stream');
+    Route::get('/ma-bibliotheque/ecoute/piste/{track}', [AudioListeningController::class, 'stream'])->name('library.listen.stream')->middleware('throttle:audio-stream');
 });
 
 // Téléchargement sécurisé signé (expirant et protégé par filigrane FPDI)
 Route::get('/telechargement/securise/{token}', [DownloadController::class, 'process'])
     ->name('downloads.process')
-    ->middleware('signed');
+    ->middleware(['signed', 'throttle:downloads']);
 
 /*
 |--------------------------------------------------------------------------
@@ -160,7 +162,7 @@ Route::prefix('admin')->name('admin.')->middleware('admin')->group(function () {
         Route::delete('/parties/{part}', [AdminBookPartController::class, 'destroy'])->name('parts.destroy');
         Route::post('/parties/{part}/pistes', [AdminAudioTrackController::class, 'store'])->name('parts.tracks.store');
         Route::delete('/pistes/{track}', [AdminAudioTrackController::class, 'destroy'])->name('tracks.destroy');
-        Route::put('/parties/{part}/texte/{language}', [AdminSpeechSynthesisController::class, 'update'])->name('parts.synthesis.update');
+        Route::put('/parties/{part}/texte/{language}', [AdminSpeechSynthesisController::class, 'update'])->name('parts.synthesis.update')->middleware('throttle:speech-synthesis');
 
         Route::resource('categories', AdminCategoryController::class)->except(['show']);
     });
@@ -194,7 +196,7 @@ Route::prefix('admin')->name('admin.')->middleware('admin')->group(function () {
     Route::middleware('can:manage-orders')->group(function () {
         Route::get('/notifications/commandes', [AdminNotificationController::class, 'orders'])->name('notifications.orders');
         Route::get('/commandes', [AdminOrderController::class, 'index'])->name('orders.index');
-        Route::get('/commandes/export/csv', [AdminOrderController::class, 'exportCsv'])->name('orders.export-csv');
+        Route::get('/commandes/export/csv', [AdminOrderController::class, 'exportCsv'])->name('orders.export-csv')->middleware('throttle:exports');
         Route::get('/commandes/{order}', [AdminOrderController::class, 'show'])->name('orders.show');
         Route::post('/commandes/{order}/statut-expedition', [AdminOrderController::class, 'updateShipping'])->name('orders.update-shipping');
     });
@@ -202,7 +204,7 @@ Route::prefix('admin')->name('admin.')->middleware('admin')->group(function () {
     // Paramètres : « Mon compte » pour tout le personnel, le reste selon les permissions
     Route::get('/parametres', [AdminSettingsController::class, 'profile'])->name('settings.profile');
     Route::put('/parametres/profil', [AdminSettingsController::class, 'updateProfile'])->name('settings.profile.update');
-    Route::put('/parametres/mot-de-passe', [AdminSettingsController::class, 'updatePassword'])->name('settings.password.update');
+    Route::put('/parametres/mot-de-passe', [AdminSettingsController::class, 'updatePassword'])->name('settings.password.update')->middleware('throttle:password-change');
 
     Route::middleware('can:manage-store')->group(function () {
         Route::get('/parametres/livraison', [AdminSettingsController::class, 'shipping'])->name('settings.shipping');
@@ -219,7 +221,7 @@ Route::prefix('admin')->name('admin.')->middleware('admin')->group(function () {
         Route::delete('/parametres/roles/{role}', [AdminRoleController::class, 'destroy'])->name('settings.roles.destroy');
 
         Route::get('/parametres/equipe', [AdminTeamController::class, 'index'])->name('settings.team');
-        Route::post('/parametres/equipe', [AdminTeamController::class, 'store'])->name('settings.team.store');
+        Route::post('/parametres/equipe', [AdminTeamController::class, 'store'])->name('settings.team.store')->middleware('throttle:team-invites');
         Route::put('/parametres/equipe/{member}', [AdminTeamController::class, 'update'])->name('settings.team.update');
         Route::delete('/parametres/equipe/{member}', [AdminTeamController::class, 'destroy'])->name('settings.team.destroy');
     });

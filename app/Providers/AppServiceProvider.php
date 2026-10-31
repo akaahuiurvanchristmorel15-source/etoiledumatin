@@ -96,6 +96,24 @@ class AppServiceProvider extends ServiceProvider
         RateLimiter::for('reviews', fn (Request $request) => Limit::perMinutes(10, 3)->by($request->user()?->id ?: $request->ip()));
         RateLimiter::for('checkout', fn (Request $request) => Limit::perMinute(10)->by($request->ip()));
 
+        // Retour de paiement : chaque appel interroge l'API Paystack
+        RateLimiter::for('payment-callback', fn (Request $request) => Limit::perMinute(20)->by($request->ip()));
+
+        // Panier : assez large pour un achat normal, bloque les robots qui le remplissent en boucle
+        RateLimiter::for('cart', fn (Request $request) => Limit::perMinute(60)->by($request->user()?->id ?: $request->ip()));
+
+        // Fichiers (aperçu PDF, liens et téléchargements filigranés) : coûteux à produire et à aspirer en masse
+        RateLimiter::for('downloads', fn (Request $request) => Limit::perMinute(20)->by($request->user()?->id ?: $request->ip()));
+
+        // Écoute audio : le lecteur envoie plusieurs requêtes partielles par piste
+        RateLimiter::for('audio-stream', fn (Request $request) => Limit::perMinute(240)->by($request->user()?->id ?: $request->ip()));
+
+        // Back-office : synthèse vocale facturée par OpenAI, invitations envoyées par e-mail, export lourd, mot de passe
+        RateLimiter::for('speech-synthesis', fn (Request $request) => Limit::perHour(30)->by($request->user()?->id ?: $request->ip()));
+        RateLimiter::for('team-invites', fn (Request $request) => Limit::perHour(20)->by($request->user()?->id ?: $request->ip()));
+        RateLimiter::for('exports', fn (Request $request) => Limit::perMinute(5)->by($request->user()?->id ?: $request->ip()));
+        RateLimiter::for('password-change', fn (Request $request) => Limit::perMinute(5)->by($request->user()?->id ?: $request->ip()));
+
         VerifyEmail::toMailUsing(fn (object $notifiable, string $url) => (new MailMessage)
             ->subject('Confirmez votre adresse e-mail — NSOROMMA')
             ->greeting('Bienvenue sur NSOROMMA')
