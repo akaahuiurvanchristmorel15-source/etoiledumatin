@@ -43,6 +43,7 @@
                 @else
                     <a href="{{ route('orders.lookup', ['order_number' => $order->order_number, 'contact' => $order->customer_email]) }}" class="pg-btn">Suivre cette commande</a>
                 @endauth
+                <a href="{{ route('orders.proforma', $order) }}" class="pg-btn pg-btn-ghost" download><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11"/><polyline points="7 10 12 15 17 10"/><path d="M5 20h14"/></svg><span>Facture proforma</span></a>
                 <a href="{{ route('catalog.index') }}" class="pg-btn pg-btn-ghost">Continuer mes achats</a>
             </div>
         </header>

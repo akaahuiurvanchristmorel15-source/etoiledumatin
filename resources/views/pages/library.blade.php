@@ -141,6 +141,7 @@
                                 @if($order->shippingAddress?->tracking_number)
                                     <p class="pg-hint" style="margin: .75rem 0 0;">Suivi : {{ $order->shippingAddress->carrier_name }} · {{ $order->shippingAddress->tracking_number }}</p>
                                 @endif
+                                <p style="margin: 1rem 0 0;"><a href="{{ route('orders.proforma', $order) }}" class="pg-btn pg-btn-ghost" download><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11"/><polyline points="7 10 12 15 17 10"/><path d="M5 20h14"/></svg><span>Facture proforma</span></a></p>
                             </article>
                         @endforeach
                     </div>

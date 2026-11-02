@@ -21,6 +21,10 @@
             </p>
         </div>
         <div class="page-actions">
+            <a href="{{ route('orders.proforma', $order) }}" class="btn btn-secondary" download>
+                <x-admin.icon name="download" />
+                <span>Facture proforma</span>
+            </a>
             <a href="{{ route('admin.orders.index') }}" class="btn btn-secondary">
                 <x-admin.icon name="arrow-left" />
                 <span>Retour</span>

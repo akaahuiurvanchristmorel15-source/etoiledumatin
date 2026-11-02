@@ -39,6 +39,7 @@
                 <span>Total <strong>{{ number_format($order->total_amount, 0, ',', ' ') }} FCFA</strong></span>
             </div>
 
+            <p style="margin: 0 0 1.5rem;"><a href="{{ route('orders.proforma', $order) }}" class="pg-btn pg-btn-ghost" download><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11"/><polyline points="7 10 12 15 17 10"/><path d="M5 20h14"/></svg><span>Facture proforma</span></a></p>
             @include('pages._order-details')
         @elseif(request()->filled('order_number'))
             <div class="pg-empty">

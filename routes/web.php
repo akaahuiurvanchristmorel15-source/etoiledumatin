@@ -26,6 +26,7 @@ use App\Http\Controllers\GoogleAuthController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\LibraryController;
 use App\Http\Controllers\NewsController;
+use App\Http\Controllers\OrderInvoiceController;
 use App\Http\Controllers\PasswordResetController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\SeoController;
@@ -52,6 +53,7 @@ Route::view('/mentions-legales', 'pages.legal.notice')->name('legal.notice');
 Route::view('/confidentialite', 'pages.legal.privacy')->name('legal.privacy');
 Route::view('/conditions-generales-de-vente', 'pages.legal.terms')->name('legal.terms');
 Route::get('/suivi-commande', [LibraryController::class, 'guestLookup'])->name('orders.lookup')->middleware('throttle:10,1');
+Route::get('/commande/{order}/facture-proforma', OrderInvoiceController::class)->name('orders.proforma')->middleware('throttle:downloads');
 
 /*
 |--------------------------------------------------------------------------
