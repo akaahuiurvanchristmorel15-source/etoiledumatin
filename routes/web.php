@@ -66,7 +66,6 @@ Route::prefix('panier')->name('cart.')->group(function () {
         Route::post('/ajouter', [CartController::class, 'add'])->name('add');
         Route::match(['post', 'patch'], '/modifier', [CartController::class, 'update'])->name('update');
         Route::match(['post', 'delete'], '/supprimer', [CartController::class, 'remove'])->name('remove');
-        Route::post('/zone-livraison', [CartController::class, 'setZone'])->name('zone');
         Route::post('/vider', [CartController::class, 'clear'])->name('clear');
     });
 });

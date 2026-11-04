@@ -13,9 +13,8 @@ class CartController extends Controller
     public function index(CartService $cartService): View
     {
         $cart = $cartService->getCart();
-        $zones = config('shipping.zones');
 
-        return view('pages.cart', compact('cart', 'zones'));
+        return view('pages.cart', compact('cart'));
     }
 
     public function add(Request $request, CartService $cartService): RedirectResponse
@@ -100,17 +99,6 @@ class CartController extends Controller
         $cartService->remove($validated['book_id'], $validated['format']);
 
         return back()->with('success', 'Article retiré du panier.');
-    }
-
-    public function setZone(Request $request, CartService $cartService): RedirectResponse
-    {
-        $validated = $request->validate([
-            'shipping_zone' => ['required', 'string', 'in:abidjan,interior,uemoa,international'],
-        ]);
-
-        $cartService->setShippingZone($validated['shipping_zone']);
-
-        return back()->with('success', 'Zone de livraison mise à jour.');
     }
 
     public function clear(CartService $cartService): RedirectResponse
