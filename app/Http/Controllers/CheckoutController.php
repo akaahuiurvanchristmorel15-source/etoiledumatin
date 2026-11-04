@@ -106,7 +106,8 @@ class CheckoutController extends Controller
     public function callback(
         Request $request,
         PaymentGatewayInterface $paymentGateway,
-        OrderService $orderService
+        OrderService $orderService,
+        CartService $cartService
     ): RedirectResponse {
         $reference = $this->queryText($request, 'reference', 100) ?: $this->queryText($request, 'trxref', 100);
 
@@ -121,7 +122,10 @@ class CheckoutController extends Controller
             return redirect()->route('home')->with('error', 'Commande introuvable.');
         }
 
+        // Le webhook Paystack a pu valider la commande avant le retour du client
         if ($order->isPaid()) {
+            $cartService->clearAfterPayment($order);
+
             return redirect()->route('checkout.confirmation', $order);
         }
 
@@ -143,6 +147,7 @@ class CheckoutController extends Controller
                 $reference,
                 $verification['raw_data']['channel'] ?? 'paystack'
             );
+            $cartService->clearAfterPayment($order);
 
             return redirect()->route('checkout.confirmation', $order)
                 ->with('success', 'Félicitations ! Votre paiement a été validé avec succès.');
@@ -176,7 +181,8 @@ class CheckoutController extends Controller
         Order $order,
         Request $request,
         OrderService $orderService,
-        PaymentGatewayInterface $paymentGateway
+        PaymentGatewayInterface $paymentGateway,
+        CartService $cartService
     ): RedirectResponse {
         $this->ensureSandboxIsUsable($order, $paymentGateway);
 
@@ -190,6 +196,7 @@ class CheckoutController extends Controller
             $validated['reference'],
             'paystack_sandbox ('.$validated['payment_channel'].')'
         );
+        $cartService->clearAfterPayment($order);
 
         return redirect()->route('checkout.confirmation', $order)
             ->with('success', 'Paiement Paystack simulé avec succès via '.$validated['payment_channel'].' !');

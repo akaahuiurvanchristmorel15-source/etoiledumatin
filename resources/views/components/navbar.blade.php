@@ -50,7 +50,9 @@
                 <div class="nav-dropdown-divider"></div>
                 <a href="{{ route('news.index') }}" class="nav-dropdown-item">Actualités</a>
                 <a href="{{ route('orders.lookup') }}" class="nav-dropdown-item">Suivi de commande</a>
-                <a href="https://wa.me/2250700000001" class="nav-dropdown-item">Assistance WhatsApp</a>
+                @if($whatsapp = \App\Models\Setting::content('support_whatsapp'))
+                    <a href="https://wa.me/{{ $whatsapp }}" class="nav-dropdown-item">Assistance WhatsApp</a>
+                @endif
             </div>
         </div>
     </aside>
@@ -231,7 +233,9 @@
 
             <section class="drawer-section drawer-services" style="--i: 6;">
                 <a href="{{ route('orders.lookup') }}">Suivi de commande</a>
-                <a href="https://wa.me/2250700000001">Assistance WhatsApp</a>
+                @if($whatsapp = \App\Models\Setting::content('support_whatsapp'))
+                    <a href="https://wa.me/{{ $whatsapp }}">Assistance WhatsApp</a>
+                @endif
             </section>
         </div>
 

@@ -44,8 +44,10 @@
         @elseif(request()->filled('order_number'))
             <div class="pg-empty">
                 <p class="pg-empty-title">Aucune commande trouvée</p>
-                <p>Vérifiez le numéro de commande et l'e-mail ou le téléphone saisis lors de l'achat.<br>Besoin d'aide ? Notre équipe répond sur WhatsApp.</p>
-                <a href="https://wa.me/2250700000001" class="pg-btn pg-btn-ghost">Contacter l'assistance</a>
+                <p>Vérifiez le numéro de commande et l'e-mail ou le téléphone saisis lors de l'achat.@if($whatsapp = \App\Models\Setting::content('support_whatsapp'))<br>Besoin d'aide ? Notre équipe répond sur WhatsApp.@endif</p>
+                @if($whatsapp)
+                    <a href="https://wa.me/{{ $whatsapp }}" class="pg-btn pg-btn-ghost">Contacter l'assistance</a>
+                @endif
             </div>
         @endif
     </div>

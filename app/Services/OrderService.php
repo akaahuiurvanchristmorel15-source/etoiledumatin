@@ -88,8 +88,8 @@ class OrderService
                 ]);
             }
 
-            // Vidage du panier
-            $cartService->clear();
+            // Le panier n'est vidé qu'une fois le paiement validé : un échec ne doit pas le faire perdre
+            $cartService->holdForOrder($order);
 
             AuditLog::log($user?->id, 'order_created', [
                 'order_id' => $order->id,

@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Book;
 use App\Models\BookPart;
+use App\Models\Order;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Str;
 
@@ -12,6 +13,8 @@ class CartService
     protected const SESSION_KEY = 'letoile_cart';
 
     protected const SHIPPING_ZONE_KEY = 'letoile_shipping_zone';
+
+    protected const PENDING_ORDER_KEY = 'letoile_cart_pending_order';
 
     /**
      * Préfixe des lignes d'abonnement audio dans le panier : « audio:{id de la partie} ».
@@ -213,7 +216,25 @@ class CartService
      */
     public function clear(): void
     {
-        Session::forget(self::SESSION_KEY);
+        Session::forget([self::SESSION_KEY, self::PENDING_ORDER_KEY]);
+    }
+
+    /**
+     * Retient la commande en cours de paiement issue de ce panier.
+     */
+    public function holdForOrder(Order $order): void
+    {
+        Session::put(self::PENDING_ORDER_KEY, $order->id);
+    }
+
+    /**
+     * Vide le panier si la commande payée en est bien issue ; un panier composé depuis reste intact.
+     */
+    public function clearAfterPayment(Order $order): void
+    {
+        if (Session::get(self::PENDING_ORDER_KEY) === $order->id) {
+            $this->clear();
+        }
     }
 
     /**

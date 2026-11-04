@@ -79,6 +79,30 @@ class DynamicSiteTest extends TestCase
             ->assertSee('https://instagram.com/nsoromma', false);
     }
 
+    public function test_whatsapp_links_are_hidden_until_a_number_is_configured(): void
+    {
+        $unknownOrderLookup = route('orders.lookup', ['order_number' => 'EDM-INCONNUE', 'contact' => 'inconnu@test.ci']);
+
+        $this->get($unknownOrderLookup)
+            ->assertOk()
+            ->assertSee('Aucune commande trouvée')
+            ->assertDontSee('wa.me', false);
+
+        $this->actingAs(User::where('role', 'super_admin')->firstOrFail())
+            ->put(route('admin.settings.content.update'), [
+                'home_collections_title' => 'Nos collections',
+                'home_news_title' => 'Actualités',
+                'support_whatsapp' => '2250102030405',
+            ])
+            ->assertSessionHas('success');
+
+        $this->get($unknownOrderLookup)
+            ->assertOk()
+            ->assertSee('Assistance WhatsApp')
+            ->assertSee('<a href="https://wa.me/2250102030405" class="pg-btn pg-btn-ghost">', false)
+            ->assertSee('<a href="https://wa.me/2250102030405" class="nav-dropdown-item">', false);
+    }
+
     public function test_content_settings_are_validated_and_restricted_to_store_admins(): void
     {
         $admin = User::where('role', 'super_admin')->firstOrFail();

@@ -41,7 +41,7 @@ return [
             'group' => 'Contact',
             'label' => 'Numéro WhatsApp d\'assistance',
             'help' => 'Format international sans espace ni « + », ex. 2250700000001.',
-            'default' => '2250700000001',
+            'default' => '',
             'rules' => ['nullable', 'regex:/^\d{8,15}$/'],
         ],
         'contact_email' => [
