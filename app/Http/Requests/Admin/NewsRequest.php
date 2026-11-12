@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Admin;
 
 use App\Enums\NewsType;
+use App\Rules\NoEmbeddedCode;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -36,7 +37,7 @@ class NewsRequest extends FormRequest
             'book_id' => ['nullable', 'exists:books,id'],
             'published_at' => ['nullable', 'date'],
             'is_published' => ['boolean'],
-            'cover_file' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:4096'],
+            'cover_file' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'extensions:jpeg,png,jpg,webp', 'max:4096', new NoEmbeddedCode],
             'remove_cover' => ['nullable', 'boolean'],
         ];
     }

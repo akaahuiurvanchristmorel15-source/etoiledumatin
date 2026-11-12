@@ -56,6 +56,18 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | HTTPS obligatoire
+    |--------------------------------------------------------------------------
+    |
+    | En production, toute requête arrivée en clair est redirigée vers HTTPS
+    | et les liens générés utilisent HTTPS. FORCE_HTTPS=false le désactive.
+    |
+    */
+
+    'force_https' => (bool) env('FORCE_HTTPS', env('APP_ENV', 'production') === 'production'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Application Timezone
     |--------------------------------------------------------------------------
     |

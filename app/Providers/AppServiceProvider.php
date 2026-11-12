@@ -17,6 +17,7 @@ use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
@@ -77,6 +78,11 @@ class AppServiceProvider extends ServiceProvider
      */
     protected function configureSecurity(): void
     {
+        // Liens, redirections et URL signées en HTTPS, même si le serveur reçoit la requête en clair derrière Cloudflare
+        if (config('app.force_https')) {
+            URL::forceScheme('https');
+        }
+
         // En production : 10 caractères, majuscules et minuscules, chiffres, et refus des mots de passe ayant fuité
         Password::defaults(fn () => $this->app->isProduction()
             ? Password::min(10)->letters()->mixedCase()->numbers()->uncompromised()

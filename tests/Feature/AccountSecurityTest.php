@@ -91,6 +91,51 @@ class AccountSecurityTest extends TestCase
         $this->assertDatabaseHas('audit_logs', ['action' => 'login_locked']);
     }
 
+    public function test_each_new_lockout_lasts_longer(): void
+    {
+        $this->failLogins(5);
+        $this->travel(61)->seconds();
+
+        $this->failLogins(5);
+        $this->travel(61)->seconds();
+
+        // Deuxième blocage : 5 minutes au lieu d'une
+        $this->post(route('login'), ['email' => 'lecteur@gmail.com', 'password' => 'Lecteur@123456']);
+        $this->assertGuest();
+
+        $this->travel(240)->seconds();
+
+        $this->post(route('login'), ['email' => 'lecteur@gmail.com', 'password' => 'Lecteur@123456'])
+            ->assertRedirect(route('library.index'));
+    }
+
+    public function test_account_is_locked_when_attempts_come_from_many_addresses(): void
+    {
+        foreach (['10.0.0.1', '10.0.0.2', '10.0.0.3', '10.0.0.4'] as $ip) {
+            $this->failLogins(5, $ip);
+        }
+
+        $this->withServerVariables(['REMOTE_ADDR' => '10.0.0.9'])
+            ->post(route('login'), ['email' => 'lecteur@gmail.com', 'password' => 'Lecteur@123456'])
+            ->assertSessionHasErrors('email');
+
+        $this->assertGuest();
+    }
+
+    public function test_successful_login_resets_the_failure_count(): void
+    {
+        $this->failLogins(4);
+
+        $this->post(route('login'), ['email' => 'lecteur@gmail.com', 'password' => 'Lecteur@123456'])
+            ->assertRedirect(route('library.index'));
+        $this->post(route('logout'));
+
+        $this->failLogins(4);
+
+        $this->post(route('login'), ['email' => 'lecteur@gmail.com', 'password' => 'Lecteur@123456'])
+            ->assertRedirect(route('library.index'));
+    }
+
     public function test_login_is_case_insensitive_on_the_email(): void
     {
         $this->post(route('login'), ['email' => 'LECTEUR@gmail.com', 'password' => 'Lecteur@123456'])
@@ -288,6 +333,14 @@ class AccountSecurityTest extends TestCase
      * @param  array<string, mixed>  $overrides
      * @return array<string, mixed>
      */
+    private function failLogins(int $count, string $ip = '127.0.0.1'): void
+    {
+        for ($attempt = 0; $attempt < $count; $attempt++) {
+            $this->withServerVariables(['REMOTE_ADDR' => $ip])
+                ->post(route('login'), ['email' => 'lecteur@gmail.com', 'password' => 'mauvais-mot-de-passe']);
+        }
+    }
+
     private function registrationData(array $overrides = []): array
     {
         return [

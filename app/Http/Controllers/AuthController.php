@@ -9,6 +9,7 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\Password;
@@ -20,6 +21,21 @@ class AuthController extends Controller
      * Nombre d'essais de connexion autorisés avant blocage temporaire (par e-mail et adresse IP).
      */
     protected const MAX_LOGIN_ATTEMPTS = 5;
+
+    /**
+     * Échecs tolérés sur un même compte, toutes adresses IP confondues : freine une attaque répartie sur de nombreuses IP.
+     */
+    protected const MAX_ACCOUNT_LOGIN_ATTEMPTS = 20;
+
+    /**
+     * Fenêtre pendant laquelle les échecs sont comptés, en secondes.
+     */
+    protected const FAILED_LOGIN_WINDOW_SECONDS = 900;
+
+    /**
+     * Durée des blocages successifs, en secondes : 1 min, puis 5 min, 15 min et 1 h. Le palier retombe après 24 h sans blocage.
+     */
+    protected const LOCKOUT_SECONDS = [60, 300, 900, 3600];
 
     public function showLogin(): View
     {
@@ -44,19 +60,23 @@ class AuthController extends Controller
             'password' => ['required', 'string', 'max:255'],
         ]);
 
-        $throttleKey = $this->loginThrottleKey($request);
+        $throttleKeys = $this->loginThrottleKeys($request);
 
-        if (RateLimiter::tooManyAttempts($throttleKey, self::MAX_LOGIN_ATTEMPTS)) {
-            $seconds = RateLimiter::availableIn($throttleKey);
-            AuditLog::log(null, 'login_locked', ['email' => $credentials['email']]);
+        foreach (array_keys($throttleKeys) as $throttleKey) {
+            if ($seconds = $this->lockedOutFor($throttleKey)) {
+                AuditLog::log(null, 'login_locked', ['email' => $credentials['email']]);
 
-            throw ValidationException::withMessages([
-                'email' => "Trop de tentatives de connexion. Réessayez dans {$seconds} secondes.",
-            ]);
+                throw ValidationException::withMessages([
+                    'email' => "Trop de tentatives de connexion. Réessayez dans {$seconds} secondes.",
+                ]);
+            }
         }
 
         if (! Auth::attempt($credentials, $request->boolean('remember'))) {
-            RateLimiter::hit($throttleKey, 60);
+            foreach ($throttleKeys as $throttleKey => $maxAttempts) {
+                $this->recordFailedLogin($throttleKey, $maxAttempts);
+            }
+
             AuditLog::log(null, 'login_failed', ['email' => $credentials['email']]);
 
             throw ValidationException::withMessages([
@@ -64,7 +84,10 @@ class AuthController extends Controller
             ]);
         }
 
-        RateLimiter::clear($throttleKey);
+        foreach (array_keys($throttleKeys) as $throttleKey) {
+            $this->clearFailedLogins($throttleKey);
+        }
+
         $request->session()->regenerate();
 
         AuditLog::log(Auth::id(), 'user_logged_in');
@@ -150,8 +173,50 @@ class AuthController extends Controller
         return redirect()->intended(route('library.index'))->with('success', 'Bienvenue sur votre espace.');
     }
 
-    protected function loginThrottleKey(Request $request): string
+    /**
+     * Compteurs d'échecs à surveiller, avec leur seuil : le couple e-mail + IP, puis le compte seul.
+     *
+     * @return array<string, int>
+     */
+    protected function loginThrottleKeys(Request $request): array
     {
-        return 'login|'.Str::lower((string) $request->input('email')).'|'.$request->ip();
+        $email = Str::lower((string) $request->input('email'));
+
+        return [
+            'login|'.$email.'|'.$request->ip() => self::MAX_LOGIN_ATTEMPTS,
+            'login-account|'.$email => self::MAX_ACCOUNT_LOGIN_ATTEMPTS,
+        ];
+    }
+
+    /**
+     * Secondes de blocage restantes, ou 0 si la connexion est permise.
+     */
+    protected function lockedOutFor(string $throttleKey): int
+    {
+        return max(0, (int) Cache::get($throttleKey.'|locked_until', 0) - now()->timestamp);
+    }
+
+    /**
+     * Compte l'échec ; au seuil, bloque pour une durée qui augmente à chaque blocage (délai progressif).
+     */
+    protected function recordFailedLogin(string $throttleKey, int $maxAttempts): void
+    {
+        if (RateLimiter::hit($throttleKey, self::FAILED_LOGIN_WINDOW_SECONDS) < $maxAttempts) {
+            return;
+        }
+
+        $lockouts = (int) Cache::get($throttleKey.'|lockouts', 0);
+        $seconds = self::LOCKOUT_SECONDS[min($lockouts, count(self::LOCKOUT_SECONDS) - 1)];
+
+        Cache::put($throttleKey.'|locked_until', now()->addSeconds($seconds)->timestamp, $seconds);
+        Cache::put($throttleKey.'|lockouts', $lockouts + 1, now()->addDay());
+        RateLimiter::clear($throttleKey);
+    }
+
+    protected function clearFailedLogins(string $throttleKey): void
+    {
+        RateLimiter::clear($throttleKey);
+        Cache::forget($throttleKey.'|locked_until');
+        Cache::forget($throttleKey.'|lockouts');
     }
 }

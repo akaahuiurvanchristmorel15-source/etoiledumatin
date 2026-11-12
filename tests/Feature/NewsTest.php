@@ -130,6 +130,29 @@ class NewsTest extends TestCase
         $this->get(route('news.show', $article->slug))->assertOk();
     }
 
+    public function test_cover_image_hiding_php_code_is_rejected(): void
+    {
+        Storage::fake('public');
+        $cover = UploadedFile::fake()->createWithContent('affiche.jpg', $this->jpegBytes().'<?php echo "polyglotte"; ?>');
+
+        $this->actingAs($this->userWithRole('manager'))
+            ->post(route('admin.news.store'), $this->newsPayload(['cover_file' => $cover]))
+            ->assertSessionHasErrors('cover_file');
+
+        $this->assertDatabaseMissing('news', ['title' => 'Conférence sur Cheikh Anta Diop']);
+    }
+
+    public function test_cover_image_with_a_foreign_extension_is_rejected(): void
+    {
+        Storage::fake('public');
+
+        $this->actingAs($this->userWithRole('manager'))
+            ->post(route('admin.news.store'), $this->newsPayload([
+                'cover_file' => UploadedFile::fake()->createWithContent('affiche.html', $this->jpegBytes()),
+            ]))
+            ->assertSessionHasErrors('cover_file');
+    }
+
     public function test_news_saved_unchecked_stays_a_draft(): void
     {
         $this->actingAs($this->userWithRole('manager'))
@@ -216,6 +239,14 @@ class NewsTest extends TestCase
         $this->actingAs($customer)->post(route('admin.news.store'), $this->newsPayload())->assertForbidden();
 
         $this->assertDatabaseMissing('news', ['title' => 'Conférence sur Cheikh Anta Diop']);
+    }
+
+    private function jpegBytes(): string
+    {
+        // La variable garde le fichier temporaire ouvert : il disparaît dès que l'objet est libéré
+        $image = UploadedFile::fake()->image('modele.jpg');
+
+        return (string) file_get_contents($image->getRealPath());
     }
 
     private function userWithRole(string $role): User

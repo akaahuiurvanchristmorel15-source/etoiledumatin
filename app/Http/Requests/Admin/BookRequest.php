@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Rules\NoEmbeddedCode;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -54,9 +55,10 @@ class BookRequest extends FormRequest
             'is_audio_available' => ['boolean'],
             'is_featured' => ['boolean'],
             'is_active' => ['boolean'],
-            'cover_file' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:4096'],
-            'pdf_file' => ['nullable', 'file', 'mimes:pdf', 'max:51200'],
-            'audio_sample_file' => ['nullable', 'file', 'mimes:mp3,wav,ogg,m4a,aac', 'max:20480'],
+            // Fichiers publics : extension, type réel (lu dans le contenu), taille, puis recherche de code caché
+            'cover_file' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'extensions:jpeg,png,jpg,webp', 'max:4096', new NoEmbeddedCode],
+            'pdf_file' => ['nullable', 'file', 'mimes:pdf', 'extensions:pdf', 'max:51200'],
+            'audio_sample_file' => ['nullable', 'file', 'mimes:mp3,wav,ogg,m4a,aac', 'extensions:mp3,wav,ogg,m4a,aac', 'max:20480', new NoEmbeddedCode],
         ];
     }
 

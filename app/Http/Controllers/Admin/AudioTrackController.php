@@ -19,7 +19,7 @@ class AudioTrackController extends Controller
     {
         $validated = $request->validateWithBag('track', [
             'language' => ['required', Rule::in(array_keys(config('audio.languages')))],
-            'audio_file' => ['required', 'file', 'mimes:mp3,m4a,aac,ogg,wav', 'max:204800'],
+            'audio_file' => ['required', 'file', 'mimes:mp3,m4a,aac,ogg,wav', 'extensions:mp3,m4a,aac,ogg,wav', 'max:204800'],
         ], [], ['language' => 'langue', 'audio_file' => 'fichier audio']);
 
         $part->tracks()->where('language', $validated['language'])->get()->each->delete();

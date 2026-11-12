@@ -4,6 +4,7 @@ use App\Http\Middleware\BlockVisitorsDuringMaintenance;
 use App\Http\Middleware\EnsureAccountEmailIsVerified;
 use App\Http\Middleware\EnsureUserIsAdmin;
 use App\Http\Middleware\IgnoreArrayQueryParameters;
+use App\Http\Middleware\RedirectToHttps;
 use App\Http\Middleware\SecurityHeaders;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -38,7 +39,9 @@ return Application::configure(basePath: dirname(__DIR__))
             headers: Request::HEADER_X_FORWARDED_FOR | Request::HEADER_X_FORWARDED_PROTO,
         );
 
-        $middleware->web(append: [
+        $middleware->web(prepend: [
+            RedirectToHttps::class,
+        ], append: [
             IgnoreArrayQueryParameters::class,
             SecurityHeaders::class,
             'throttle:global',
