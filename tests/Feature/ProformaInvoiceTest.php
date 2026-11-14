@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Book;
 use App\Models\BookPart;
 use App\Models\Order;
+use App\Models\Setting;
 use App\Models\User;
 use App\Services\OrderService;
 use App\Services\ProformaInvoicePdf;
@@ -68,6 +69,47 @@ class ProformaInvoiceTest extends TestCase
         $pdf->render();
 
         $this->assertGreaterThan(1, $pdf->PageNo());
+    }
+
+    public function test_vat_is_extracted_from_the_tax_inclusive_total_at_18_percent_by_default(): void
+    {
+        $breakdown = (new ProformaInvoicePdf($this->makeOrder()))->taxBreakdown();
+
+        $this->assertSame(['rate' => 18.0, 'excluding_tax' => 18644, 'tax' => 3356], $breakdown);
+    }
+
+    public function test_vat_follows_the_rate_set_in_the_settings(): void
+    {
+        $order = $this->makeOrder();
+
+        Setting::put('content.vat_rate', '9.5');
+        $this->assertSame(['rate' => 9.5, 'excluding_tax' => 20091, 'tax' => 1909], (new ProformaInvoicePdf($order))->taxBreakdown());
+
+        Setting::put('content.vat_rate', '0');
+        $this->assertSame(['rate' => 0.0, 'excluding_tax' => 22000, 'tax' => 0], (new ProformaInvoicePdf($order))->taxBreakdown());
+
+        $this->actingAs($this->customer)->get(route('orders.proforma', $order))->assertOk();
+    }
+
+    public function test_the_vat_rate_setting_must_be_a_percentage(): void
+    {
+        $admin = User::where('role', 'super_admin')->firstOrFail();
+
+        $this->actingAs($admin)
+            ->put(route('admin.settings.content.update'), [
+                'home_collections_title' => 'Nos collections',
+                'home_news_title' => 'Actualités',
+                'vat_rate' => '18 %',
+            ])
+            ->assertSessionHasErrors('vat_rate');
+
+        $this->actingAs($admin)
+            ->put(route('admin.settings.content.update'), [
+                'home_collections_title' => 'Nos collections',
+                'home_news_title' => 'Actualités',
+                'vat_rate' => '18',
+            ])
+            ->assertSessionHasNoErrors();
     }
 
     public function test_the_document_number_is_derived_from_the_order(): void

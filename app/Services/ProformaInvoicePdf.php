@@ -57,6 +57,20 @@ class ProformaInvoicePdf extends Fpdi
         return preg_replace('/^[A-Z]+-/', 'PF-', $this->order->order_number);
     }
 
+    /**
+     * Ventilation du total : les prix étant TTC, le hors-taxes et la TVA en sont déduits au taux réglé dans les paramètres.
+     *
+     * @return array{rate: float, excluding_tax: int, tax: int}
+     */
+    public function taxBreakdown(): array
+    {
+        $rate = max(0.0, (float) Setting::content('vat_rate'));
+        $total = (int) $this->order->total_amount;
+        $excludingTax = (int) round($total * 100 / (100 + $rate));
+
+        return ['rate' => $rate, 'excluding_tax' => $excludingTax, 'tax' => $total - $excludingTax];
+    }
+
     public function render(): string
     {
         $this->AddPage();
@@ -222,9 +236,9 @@ class ProformaInvoicePdf extends Fpdi
         $x += self::TITLE_COLUMN;
         $this->drawLabel($x, $y + 2, 'Qté', self::QUANTITY_COLUMN, 'C');
         $x += self::QUANTITY_COLUMN;
-        $this->drawLabel($x, $y + 2, 'Prix unitaire', self::PRICE_COLUMN, 'R');
+        $this->drawLabel($x, $y + 2, 'Prix unit. TTC', self::PRICE_COLUMN, 'R');
         $x += self::PRICE_COLUMN;
-        $this->drawLabel($x, $y + 2, 'Total', self::PRICE_COLUMN, 'R');
+        $this->drawLabel($x, $y + 2, 'Total TTC', self::PRICE_COLUMN, 'R');
 
         $this->drawRule(self::MARGIN, $y + 5, self::CONTENT_WIDTH, self::INK);
         $this->SetY($y + 5);
@@ -278,27 +292,25 @@ class ProformaInvoicePdf extends Fpdi
     private function drawTotals(): void
     {
         // Total et mention restent ensemble : la mention n'arrive jamais seule sur une page
-        $this->ensureRoom(50);
+        $this->ensureRoom(64);
 
         $top = $this->GetY() + 7;
         $y = $top;
         $x = self::MARGIN + self::CONTENT_WIDTH - self::TOTALS_WIDTH;
+        $tax = $this->taxBreakdown();
 
         // Sans livraison, le sous-total répéterait simplement le total
         if ($this->order->shipping_cost > 0) {
-            $this->setFontStyle('Helvetica', '', 9.5, self::SOFT);
-            $this->SetXY($x, $y);
-            $this->Cell(self::TOTALS_WIDTH / 2, 5, 'Sous-total');
-            $this->SetTextColor(...self::INK);
-            $this->Cell(self::TOTALS_WIDTH / 2, 5, $this->money($this->order->total_amount - $this->order->shipping_cost), 0, 0, 'R');
-
+            $this->drawTotalsRow($x, $y, 'Sous-total TTC', $this->order->total_amount - $this->order->shipping_cost);
             $y += 6;
-            $this->SetTextColor(...self::SOFT);
-            $this->SetXY($x, $y);
-            $this->Cell(self::TOTALS_WIDTH / 2, 5, 'Livraison');
-            $this->SetTextColor(...self::INK);
-            $this->Cell(self::TOTALS_WIDTH / 2, 5, $this->money($this->order->shipping_cost), 0, 0, 'R');
+            $this->drawTotalsRow($x, $y, 'Livraison TTC', $this->order->shipping_cost);
+            $y += 8;
+        }
 
+        if ($tax['rate'] > 0) {
+            $this->drawTotalsRow($x, $y, 'Total HT', $tax['excluding_tax']);
+            $y += 6;
+            $this->drawTotalsRow($x, $y, 'TVA '.$this->percentage($tax['rate']), $tax['tax']);
             $y += 8;
         }
 
@@ -306,7 +318,7 @@ class ProformaInvoicePdf extends Fpdi
 
         $this->setFontStyle('Helvetica', 'B', 9.5, self::INK);
         $this->SetXY($x, $y + 3);
-        $this->Cell(22, 8, 'Total');
+        $this->Cell(22, 8, 'Total TTC');
         $this->setFontStyle('Times', '', 17, self::INK);
         $this->Cell(self::TOTALS_WIDTH - 22, 8, $this->money($this->order->total_amount).' FCFA', 0, 0, 'R');
 
@@ -327,12 +339,25 @@ class ProformaInvoicePdf extends Fpdi
         $this->SetY(max($y + 15, $top + 22));
     }
 
+    private function drawTotalsRow(float $x, float $y, string $label, int $amount): void
+    {
+        $this->setFontStyle('Helvetica', '', 9.5, self::SOFT);
+        $this->SetXY($x, $y);
+        $this->Cell(self::TOTALS_WIDTH / 2, 5, $this->encode($label));
+        $this->SetTextColor(...self::INK);
+        $this->Cell(self::TOTALS_WIDTH / 2, 5, $this->money($amount), 0, 0, 'R');
+    }
+
     private function drawNote(): void
     {
         $this->setFontStyle('Helvetica', '', 8, self::MUTED);
         $y = $this->GetY() + 3;
+        $rate = $this->taxBreakdown()['rate'];
+        $taxNote = $rate > 0
+            ? 'Prix toutes taxes comprises, TVA incluse au taux de '.$this->percentage($rate).'.'
+            : 'TVA non applicable.';
 
-        foreach ($this->wrap('Document informatif : cette facture proforma ne constitue pas une facture définitive. Montants en francs CFA (FCFA).', self::CONTENT_WIDTH) as $line) {
+        foreach ($this->wrap('Document informatif : cette facture proforma ne constitue pas une facture définitive. Montants en francs CFA (FCFA). '.$taxNote, self::CONTENT_WIDTH) as $line) {
             $this->SetXY(self::MARGIN, $y);
             $this->Cell(self::CONTENT_WIDTH, 4, $line);
             $y += 4;
@@ -361,6 +386,14 @@ class ProformaInvoicePdf extends Fpdi
         }
 
         return ucfirst($method);
+    }
+
+    /**
+     * Taux lisible : 18 devient « 18 % », 9.5 devient « 9,5 % ».
+     */
+    private function percentage(float $rate): string
+    {
+        return rtrim(rtrim(number_format($rate, 2, ',', ''), '0'), ',').' %';
     }
 
     private function money(int $amount): string

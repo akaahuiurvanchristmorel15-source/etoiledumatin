@@ -90,6 +90,13 @@ return [
             'default' => '',
             'rules' => ['nullable', 'string', 'max:255'],
         ],
+        'vat_rate' => [
+            'group' => 'Informations légales',
+            'label' => 'Taux de TVA (%)',
+            'help' => 'Les prix du site sont TTC : la facture en déduit le montant hors taxes et la TVA. Mettez 0 si l\'activité est exonérée. Décimales avec un point, ex. 9.5.',
+            'default' => '18',
+            'rules' => ['nullable', 'numeric', 'min:0', 'max:100'],
+        ],
         'legal_publication_director' => [
             'group' => 'Informations légales',
             'label' => 'Directeur de la publication',
