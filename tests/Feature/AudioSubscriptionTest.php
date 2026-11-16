@@ -6,8 +6,11 @@ use App\Models\AudioSubscription;
 use App\Models\AudioTrack;
 use App\Models\Book;
 use App\Models\BookPart;
+use App\Models\ListeningSession;
 use App\Models\Order;
+use App\Models\Setting;
 use App\Models\User;
+use App\Services\AudioStreamService;
 use App\Services\AudioSubscriptionService;
 use App\Services\OrderService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -103,6 +106,7 @@ class AudioSubscriptionTest extends TestCase
         $this->actingAs($reader)->get(route('library.listen.stream', $track))->assertForbidden();
 
         app(AudioSubscriptionService::class)->grant($reader, $this->part, 7);
+        $this->actingAs($reader)->postJson(route('library.listen.open'))->assertOk();
 
         $this->actingAs($reader)->get(route('library.listen.stream', $track))
             ->assertOk()
@@ -111,6 +115,151 @@ class AudioSubscriptionTest extends TestCase
         $this->travel(8)->days();
 
         $this->actingAs($reader)->get(route('library.listen.stream', $track))->assertForbidden();
+    }
+
+    public function test_each_plan_includes_its_listening_hours_and_renewals_add_up(): void
+    {
+        $reader = $this->reader();
+        $service = app(AudioSubscriptionService::class);
+
+        $this->assertSame(30 * 3600, $service->grant($reader, $this->part, 30)->listening_seconds);
+        $service->grant($reader, $this->part, 7);
+
+        $this->assertSame(40 * 3600, $service->remainingSeconds($reader, $this->part));
+
+        $this->get(route('catalog.show', $this->book->slug))->assertSee('1 mois — 1 500 FCFA · 30 h d’écoute');
+    }
+
+    public function test_a_plan_without_hours_is_unlimited(): void
+    {
+        Setting::put('content.audio_plan_hours_30', '');
+
+        $subscription = app(AudioSubscriptionService::class)->grant($this->reader(), $this->part, 30);
+
+        $this->assertNull($subscription->listening_seconds);
+        $this->assertNull(app(AudioSubscriptionService::class)->remainingSeconds($this->reader(), $this->part));
+    }
+
+    public function test_listening_time_is_counted_until_the_quota_runs_out(): void
+    {
+        $reader = $this->reader();
+        $track = $this->part->tracks()->where('language', 'fr')->firstOrFail();
+        app(AudioSubscriptionService::class)->grant($reader, $this->part, 7)->update(['listening_seconds' => 50]);
+
+        $this->actingAs($reader)->postJson(route('library.listen.open'))->assertOk();
+
+        $this->travel(20)->seconds();
+        $this->actingAs($reader)->postJson(route('library.listen.heartbeat', $track))
+            ->assertOk()
+            ->assertJson(['remaining_seconds' => 30]);
+
+        // Une longue pause n'est pas facturée en entier : 30 s au plus par signal
+        $this->travel(10)->minutes();
+        $this->actingAs($reader)->postJson(route('library.listen.heartbeat', $track))
+            ->assertForbidden()
+            ->assertJson(['reason' => 'quota', 'remaining_seconds' => 0]);
+
+        $this->assertFalse($reader->canListenTo($this->part));
+        $this->actingAs($reader)->get(route('library.listen.stream', $track))->assertForbidden();
+        $this->actingAs($reader)->get(route('library.listen', $this->book))->assertSee('Temps d’écoute épuisé');
+    }
+
+    public function test_subscriptions_bought_before_quotas_stay_unlimited(): void
+    {
+        $reader = $this->reader();
+        $track = $this->part->tracks()->where('language', 'fr')->firstOrFail();
+        $subscription = app(AudioSubscriptionService::class)->grant($reader, $this->part, 7);
+        $subscription->update(['listening_seconds' => null]);
+
+        $this->actingAs($reader)->postJson(route('library.listen.open'));
+        $this->travel(20)->seconds();
+        $this->actingAs($reader)->postJson(route('library.listen.heartbeat', $track))->assertOk()->assertJson(['remaining_seconds' => null]);
+
+        $this->assertSame(0, $subscription->fresh()->listened_seconds);
+    }
+
+    public function test_a_third_device_stops_the_oldest_one(): void
+    {
+        $reader = $this->reader();
+        $track = $this->part->tracks()->where('language', 'fr')->firstOrFail();
+        app(AudioSubscriptionService::class)->grant($reader, $this->part, 30);
+
+        $this->actingAs($reader)->postJson(route('library.listen.open'))->assertOk();
+        $firstDevice = session()->all();
+
+        foreach (['deuxième', 'troisième'] as $device) {
+            $this->flushSession();
+            $this->travel(1)->seconds();
+            $this->actingAs($reader)->postJson(route('library.listen.open'))->assertOk();
+        }
+
+        $this->assertSame(2, ListeningSession::where('user_id', $reader->id)->whereNull('ended_at')->count());
+
+        $this->flushSession();
+        $this->withSession($firstDevice);
+
+        $this->actingAs($reader)->postJson(route('library.listen.heartbeat', $track))
+            ->assertStatus(409)
+            ->assertJson(['reason' => 'replaced']);
+        $this->actingAs($reader)->get(route('library.listen.stream', $track))->assertForbidden();
+
+        // Relancer la lecture reprend la main : c'est alors l'appareil suivant qui est coupé
+        $this->actingAs($reader)->postJson(route('library.listen.open'))->assertOk();
+        $this->actingAs($reader)->get(route('library.listen.stream', $track))->assertOk();
+        $this->assertSame(2, ListeningSession::where('user_id', $reader->id)->whereNull('ended_at')->count());
+    }
+
+    public function test_track_is_served_in_small_chunks_to_the_player_only(): void
+    {
+        $reader = $this->reader();
+        $track = $this->part->tracks()->where('language', 'fr')->firstOrFail();
+        Storage::disk('local')->put($track->path, str_repeat('a', 3 * 1048576));
+        app(AudioSubscriptionService::class)->grant($reader, $this->part, 30);
+
+        // Sans lecteur ouvert sur cet appareil, rien n'est servi
+        $this->actingAs($reader)->get(route('library.listen.stream', $track))->assertForbidden();
+
+        $this->actingAs($reader)->postJson(route('library.listen.open'));
+
+        $this->actingAs($reader)->get(route('library.listen.stream', $track), ['Range' => 'bytes=0-'])
+            ->assertStatus(206)
+            ->assertHeader('Content-Range', 'bytes 0-1048575/3145728')
+            ->assertHeader('Content-Length', '1048576');
+
+        // Une ouverture directe de l'adresse (ou « Enregistrer sous ») est refusée
+        $this->actingAs($reader)->get(route('library.listen.stream', $track), ['Sec-Fetch-Dest' => 'document'])->assertForbidden();
+        $this->actingAs($reader)->get(route('library.listen.stream', $track), ['Sec-Fetch-Dest' => 'audio', 'Range' => 'bytes=2097152-'])
+            ->assertStatus(206)
+            ->assertHeader('Content-Range', 'bytes 2097152-3145727/3145728');
+    }
+
+    public function test_the_track_cannot_be_pulled_much_faster_than_it_is_listened(): void
+    {
+        $reader = $this->reader();
+        $track = $this->part->tracks()->where('language', 'fr')->firstOrFail();
+        Storage::disk('local')->put($track->path, str_repeat('a', 3 * 1048576));
+        app(AudioSubscriptionService::class)->grant($reader, $this->part, 30);
+        $this->actingAs($reader)->postJson(route('library.listen.open'));
+
+        $statuses = collect(range(1, 30))->map(fn () => $this->actingAs($reader)
+            ->get(route('library.listen.stream', $track), ['Range' => 'bytes=0-'])
+            ->getStatusCode());
+
+        $this->assertSame(206, $statuses->first());
+        $this->assertContains(429, $statuses->all());
+
+        // La réserve se reconstitue au rythme de l'écoute
+        $this->travel(1)->minutes();
+        $this->actingAs($reader)->get(route('library.listen.stream', $track), ['Range' => 'bytes=0-'])->assertStatus(206);
+    }
+
+    public function test_the_bitrate_is_read_from_the_mp3_header(): void
+    {
+        $track = $this->part->tracks()->where('language', 'fr')->firstOrFail();
+        $id3Tag = 'ID3'."\x04\x00\x00\x00\x00\x00\x05".'abcde';
+        Storage::disk('local')->put($track->path, $id3Tag."\xFF\xFB\x90\x44".str_repeat("\x00", 400));
+
+        $this->assertSame(16000, app(AudioStreamService::class)->bytesPerSecond($track));
     }
 
     public function test_listening_page_unlocks_only_subscribed_parts(): void

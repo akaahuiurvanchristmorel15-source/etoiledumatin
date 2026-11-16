@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\AudioSubscriptionService;
 use Database\Factories\UserFactory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -83,8 +84,11 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasMany(AudioSubscription::class);
     }
 
+    /**
+     * Abonnement en cours sur la partie, et temps d'écoute restant.
+     */
     public function canListenTo(BookPart $part): bool
     {
-        return $this->audioSubscriptions()->active()->where('book_part_id', $part->id)->exists();
+        return app(AudioSubscriptionService::class)->canListen($this, $part);
     }
 }

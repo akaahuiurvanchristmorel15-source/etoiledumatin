@@ -101,6 +101,8 @@ Route::middleware('verified.account')->group(function () {
 Route::middleware(['auth', 'verified.account'])->group(function () {
     Route::get('/ma-bibliotheque/ecoute/{book:slug}', [AudioListeningController::class, 'show'])->name('library.listen');
     Route::get('/ma-bibliotheque/ecoute/piste/{track}', [AudioListeningController::class, 'stream'])->name('library.listen.stream')->middleware('throttle:audio-stream');
+    Route::post('/ma-bibliotheque/ecoute/appareil', [AudioListeningController::class, 'open'])->name('library.listen.open')->middleware('throttle:audio-stream');
+    Route::post('/ma-bibliotheque/ecoute/piste/{track}/signal', [AudioListeningController::class, 'heartbeat'])->name('library.listen.heartbeat')->middleware('throttle:audio-stream');
 });
 
 // Téléchargement sécurisé signé (expirant et protégé par filigrane FPDI)

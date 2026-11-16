@@ -221,7 +221,7 @@
         @if($audioParts->isNotEmpty())
             <section class="pg-section" id="ecoute" aria-labelledby="listen-title">
                 <h2 id="listen-title" class="pg-related-title">Écouter ce livre</h2>
-                <p class="pg-subtitle" style="margin-top: -.5rem;">Abonnez-vous à la partie de votre choix, puis écoutez-la en streaming depuis votre bibliothèque, dans la langue qui vous convient.</p>
+                <p class="pg-subtitle" style="margin-top: -.5rem;">Abonnez-vous à la partie de votre choix, puis écoutez-la en streaming depuis votre bibliothèque, dans la langue qui vous convient, sur deux appareils à la fois au plus.</p>
 
                 <div class="pg-audio-parts">
                     @foreach($audioParts as $part)
@@ -244,7 +244,7 @@
                                 <label class="sr-only" for="plan_{{ $part->id }}">Durée d'abonnement</label>
                                 <select id="plan_{{ $part->id }}" name="access_days" class="pg-select">
                                     @foreach($audioPlans as $days => $price)
-                                        <option value="{{ $days }}">{{ config('audio.plans.'.$days) }} — {{ number_format($price, 0, ',', ' ') }} FCFA</option>
+                                        <option value="{{ $days }}">{{ config('audio.plans.'.$days) }} — {{ number_format($price, 0, ',', ' ') }} FCFA{{ ($hours = app(\App\Services\AudioSubscriptionService::class)->planHours($days)) ? ' · '.$hours.' h d’écoute' : '' }}</option>
                                     @endforeach
                                 </select>
                                 <button type="submit" class="pg-btn">S'abonner</button>

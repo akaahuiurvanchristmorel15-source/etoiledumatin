@@ -15,12 +15,16 @@ class AudioSubscription extends Model
         'access_days',
         'starts_at',
         'expires_at',
+        'listening_seconds',
+        'listened_seconds',
     ];
 
     protected function casts(): array
     {
         return [
             'access_days' => 'integer',
+            'listening_seconds' => 'integer',
+            'listened_seconds' => 'integer',
             'starts_at' => 'datetime',
             'expires_at' => 'datetime',
         ];
@@ -52,5 +56,13 @@ class AudioSubscription extends Model
     public function isActive(): bool
     {
         return $this->starts_at->isPast() && $this->expires_at->isFuture();
+    }
+
+    /**
+     * Secondes d'écoute restantes sur cet abonnement, ou null s'il n'a pas de quota.
+     */
+    public function remainingSeconds(): ?int
+    {
+        return $this->listening_seconds === null ? null : max(0, $this->listening_seconds - $this->listened_seconds);
     }
 }

@@ -15,7 +15,7 @@
     <ul>
         <li><strong>Livres papier</strong>, expédiés dans la limite des stocks indiqués sur chaque fiche.</li>
         <li><strong>E-books PDF</strong>, téléchargeables depuis « Ma bibliothèque ». Chaque exemplaire porte un filigrane au nom de l'acheteur et peut être téléchargé jusqu'à 15 fois.</li>
-        <li><strong>Abonnements d'écoute audio</strong>, donnant accès en streaming à une partie d'un livre, dans les langues disponibles, pour la durée choisie (1 semaine, 1 mois, 3 mois ou 1 an). L'écoute se fait en ligne depuis « Ma bibliothèque » et nécessite un compte ; les fichiers audio ne sont pas téléchargeables.</li>
+        <li><strong>Abonnements d'écoute audio</strong>, donnant accès en streaming à une partie d'un livre, dans les langues disponibles, pour la durée choisie (1 semaine, 1 mois, 3 mois ou 1 an), dans la limite du temps d'écoute inclus dans la formule et indiqué avant l'achat. L'écoute se fait en ligne depuis « Ma bibliothèque », nécessite un compte et est possible sur deux appareils à la fois au plus : lancer l'écoute sur un troisième arrête celle de l'appareil le plus ancien. Les fichiers audio ne sont pas téléchargeables.</li>
     </ul>
     <p>Les livres numériques et les écoutes sont destinés à un usage strictement personnel : leur copie, revente ou diffusion est interdite.</p>
 
@@ -56,7 +56,7 @@
     <p>
         Les e-books et les écoutes audio sont disponibles dans « Ma bibliothèque » dès la confirmation du paiement.
         Un abonnement audio commence à la confirmation du paiement ; s'il est souscrit avant la fin d'un abonnement en cours à la même partie,
-        il prolonge cet abonnement. À l'échéance, l'écoute s'arrête jusqu'à un nouvel abonnement.
+        il prolonge cet abonnement et ajoute son temps d'écoute au temps restant. L'écoute s'arrête à l'échéance ou quand le temps d'écoute est épuisé, jusqu'à un nouvel abonnement.
     </p>
 
     <h2>7. Rétractation, retours et remboursements</h2>

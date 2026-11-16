@@ -37,6 +37,32 @@ return [
             'default' => 'Dernières actualités',
             'rules' => ['required', 'string', 'max:80'],
         ],
+        // Une entrée par formule de config/audio.php (audio_plan_hours_{durée en jours})
+        'audio_plan_hours_7' => [
+            'group' => 'Écoute audio',
+            'label' => 'Heures d\'écoute — formule 1 semaine',
+            'help' => 'Temps d\'écoute inclus pour chaque partie achetée. Laissez vide pour une écoute sans limite.',
+            'default' => '10',
+            'rules' => ['nullable', 'integer', 'min:1', 'max:10000'],
+        ],
+        'audio_plan_hours_30' => [
+            'group' => 'Écoute audio',
+            'label' => 'Heures d\'écoute — formule 1 mois',
+            'default' => '30',
+            'rules' => ['nullable', 'integer', 'min:1', 'max:10000'],
+        ],
+        'audio_plan_hours_90' => [
+            'group' => 'Écoute audio',
+            'label' => 'Heures d\'écoute — formule 3 mois',
+            'default' => '90',
+            'rules' => ['nullable', 'integer', 'min:1', 'max:10000'],
+        ],
+        'audio_plan_hours_365' => [
+            'group' => 'Écoute audio',
+            'label' => 'Heures d\'écoute — formule 1 an',
+            'default' => '300',
+            'rules' => ['nullable', 'integer', 'min:1', 'max:10000'],
+        ],
         'support_whatsapp' => [
             'group' => 'Contact',
             'label' => 'Numéro WhatsApp d\'assistance',
