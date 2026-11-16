@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\AuditLog;
 use App\Models\ListeningSession;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -102,6 +103,11 @@ class ListeningSessionService
             ->orderByDesc('started_at')
             ->get()
             ->slice(self::MAX_DEVICES - 1)
-            ->each(fn (ListeningSession $listening) => $listening->update(['ended_at' => now(), 'end_reason' => 'replaced']));
+            ->each(function (ListeningSession $listening) use ($user): void {
+                $listening->update(['ended_at' => now(), 'end_reason' => 'replaced']);
+
+                // Un compte qui tourne sur plus de deux appareils peut être partagé
+                AuditLog::log($user->id, 'listening_device_replaced', ['listening_session_id' => $listening->id]);
+            });
     }
 }

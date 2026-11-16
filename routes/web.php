@@ -10,6 +10,7 @@ use App\Http\Controllers\Admin\NotificationController as AdminNotificationContro
 use App\Http\Controllers\Admin\OrderController as AdminOrderController;
 use App\Http\Controllers\Admin\ReviewController as AdminReviewController;
 use App\Http\Controllers\Admin\RoleController as AdminRoleController;
+use App\Http\Controllers\Admin\SecurityController as AdminSecurityController;
 use App\Http\Controllers\Admin\SettingsController as AdminSettingsController;
 use App\Http\Controllers\Admin\SpeechSynthesisController as AdminSpeechSynthesisController;
 use App\Http\Controllers\Admin\StockController as AdminStockController;
@@ -227,6 +228,8 @@ Route::prefix('admin')->name('admin.')->middleware('admin')->group(function () {
     });
 
     Route::middleware('can:manage-team')->group(function () {
+        Route::get('/securite', [AdminSecurityController::class, 'index'])->name('security.index');
+
         Route::get('/parametres/roles', [AdminRoleController::class, 'index'])->name('settings.roles');
         Route::post('/parametres/roles', [AdminRoleController::class, 'store'])->name('settings.roles.store');
         Route::put('/parametres/roles/{role}', [AdminRoleController::class, 'update'])->name('settings.roles.update');

@@ -43,6 +43,10 @@
                         <x-admin.icon name="alert" />
                         <span>{{ $errors->first() }}</span>
                     </div>
+                @elseif(session('info'))
+                    <div class="alert alert-success" role="status" style="margin-top: 1.5rem;">
+                        <span>{{ session('info') }}</span>
+                    </div>
                 @endif
 
                 <form action="{{ route('login') }}" method="POST" class="stack" style="margin-top: 2rem; gap: 1.4rem;">

@@ -2,6 +2,7 @@
 
 namespace App\Rules;
 
+use App\Models\AuditLog;
 use Closure;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Http\UploadedFile;
@@ -31,6 +32,8 @@ class NoEmbeddedCode implements ValidationRule
         }
 
         if ($this->containsSuspiciousMarker((string) $value->getRealPath())) {
+            AuditLog::log(auth()->id(), 'upload_blocked', ['field' => $attribute, 'file_name' => mb_substr($value->getClientOriginalName(), 0, 150)]);
+
             $fail('Le fichier :attribute contient du code et a été refusé.');
         }
     }

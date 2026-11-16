@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Contracts\PaymentGatewayInterface;
+use App\Models\AuditLog;
 use App\Models\Order;
 use App\Services\CartService;
 use App\Services\OrderService;
@@ -55,9 +56,9 @@ class CheckoutController extends Controller
 
         // Règles de validation
         $rules = [
-            'name' => ['required', 'string', 'max:150'],
-            'email' => ['required', 'email', 'max:150'],
-            'phone' => ['required', 'string', 'max:30'],
+            'name' => ['required', 'string', 'min:2', 'max:150'],
+            'email' => ['required', 'email:rfc', 'max:150'],
+            'phone' => ['required', 'string', 'regex:/^\+?[0-9 ().-]{8,20}$/'],
             'payment_channel' => ['required', 'in:paystack_momo,paystack_card,paystack'],
             'notes' => ['nullable', 'string', 'max:500'],
         ];
@@ -70,7 +71,9 @@ class CheckoutController extends Controller
             $rules['delivery_instructions'] = ['nullable', 'string', 'max:500'];
         }
 
-        $validated = $request->validate($rules);
+        $validated = $request->validate($rules, [
+            'phone.regex' => 'Saisissez un numéro de téléphone valide (8 à 20 chiffres).',
+        ]);
 
         // Le stock a pu baisser depuis l'ajout au panier : on refuse plutôt que de vendre des livres absents
         if ($unavailable = $cartService->unavailableItems()) {
@@ -134,6 +137,11 @@ class CheckoutController extends Controller
         if ($verification['success'] && ! $this->coversOrderTotal($order, $verification['amount'])) {
             Log::warning('Montant Paystack inférieur au total de la commande', [
                 'order_id' => $order->id,
+                'expected' => $order->total_amount,
+                'received' => $verification['amount'],
+            ]);
+            AuditLog::log($order->user_id, 'payment_amount_mismatch', [
+                'order_number' => $order->order_number,
                 'expected' => $order->total_amount,
                 'received' => $verification['amount'],
             ]);
@@ -232,6 +240,8 @@ class CheckoutController extends Controller
         $result = $paymentGateway->handleWebhook($request);
 
         if (! $result['verified']) {
+            AuditLog::logThrottled((string) $request->ip(), 600, null, 'paystack_webhook_rejected');
+
             return response()->json(['message' => 'Signature invalide'], 400);
         }
 

@@ -26,6 +26,7 @@
             'Pilotage' => [
                 ['route' => 'admin.dashboard', 'match' => 'admin.dashboard', 'label' => 'Tableau de bord', 'can' => null],
                 ['route' => 'admin.orders.index', 'match' => 'admin.orders.*', 'label' => 'Commandes', 'can' => 'manage-orders'],
+                ['route' => 'admin.security.index', 'match' => 'admin.security.*', 'label' => 'Sécurité', 'can' => 'manage-team'],
             ],
             'Catalogue' => [
                 ['route' => 'admin.books.index', 'match' => ['admin.books.*', 'admin.parts.*', 'admin.tracks.*'], 'label' => 'Livres', 'can' => 'manage-catalog'],

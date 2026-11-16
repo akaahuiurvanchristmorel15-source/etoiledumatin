@@ -41,8 +41,8 @@ class BookRequest extends FormRequest
             'pages_count' => ['nullable', 'integer', 'min:1'],
             'published_year' => ['nullable', 'integer', 'min:1800', 'max:'.(date('Y') + 1)],
             'isbn' => ['nullable', 'string', 'max:50'],
-            'description' => ['required', 'string'],
-            'excerpt' => ['nullable', 'string'],
+            'description' => ['required', 'string', 'max:20000'],
+            'excerpt' => ['nullable', 'string', 'max:20000'],
             'weight_grams' => ['required', 'integer', 'min:50'],
             'price_pdf' => ['required', 'integer', 'min:0'],
             'price_physical' => ['required', 'integer', 'min:0'],
@@ -56,7 +56,7 @@ class BookRequest extends FormRequest
             'is_featured' => ['boolean'],
             'is_active' => ['boolean'],
             // Fichiers publics : extension, type réel (lu dans le contenu), taille, puis recherche de code caché
-            'cover_file' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'extensions:jpeg,png,jpg,webp', 'max:4096', new NoEmbeddedCode],
+            'cover_file' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'extensions:jpeg,png,jpg,webp', 'max:4096', 'dimensions:max_width=6000,max_height=6000', new NoEmbeddedCode],
             'pdf_file' => ['nullable', 'file', 'mimes:pdf', 'extensions:pdf', 'max:51200'],
             'audio_sample_file' => ['nullable', 'file', 'mimes:mp3,wav,ogg,m4a,aac', 'extensions:mp3,wav,ogg,m4a,aac', 'max:20480', new NoEmbeddedCode],
         ];

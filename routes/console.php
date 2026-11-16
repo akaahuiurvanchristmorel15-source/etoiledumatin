@@ -16,5 +16,8 @@ Schedule::command('queue:work --stop-when-empty --timeout=1800 --max-time=3000')
     ->withoutOverlapping(60)
     ->runInBackground();
 
+// Alerte e-mail aux super administrateurs en cas d'activité suspecte (connexions répétées, fichiers piégés…)
+Schedule::command('security:alert')->everyFifteenMinutes()->withoutOverlapping();
+
 // Journal de sécurité purgé au-delà de 12 mois, comme l'annonce la politique de confidentialité
 Schedule::command('model:prune', ['--model' => [AuditLog::class]])->daily();

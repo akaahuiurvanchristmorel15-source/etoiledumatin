@@ -41,7 +41,7 @@ class PasswordResetController extends Controller
         $request->merge(['email' => Str::lower(trim((string) $request->input('email')))]);
 
         $validated = $request->validate([
-            'token' => ['required', 'string'],
+            'token' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:150'],
             'password' => ['required', 'confirmed', PasswordRule::defaults()],
         ]);

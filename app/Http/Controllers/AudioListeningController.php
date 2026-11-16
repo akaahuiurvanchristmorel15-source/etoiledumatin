@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\AudioTrack;
+use App\Models\AuditLog;
 use App\Models\Book;
 use App\Services\AudioStreamService;
 use App\Services\AudioSubscriptionService;
@@ -111,7 +112,12 @@ class AudioListeningController extends Controller
         abort_unless($user->canListenTo($track->part), 403, 'Votre abonnement d\'écoute à cette partie est terminé, ou votre temps d\'écoute est épuisé.');
 
         $destination = $request->headers->get('Sec-Fetch-Dest');
-        abort_if($destination !== null && ! in_array($destination, self::MEDIA_FETCH_DESTINATIONS, true), 403, 'Cette piste s\'écoute uniquement depuis le lecteur de votre bibliothèque.');
+
+        if ($destination !== null && ! in_array($destination, self::MEDIA_FETCH_DESTINATIONS, true)) {
+            AuditLog::logThrottled($user->id.':'.$track->id, 600, $user->id, 'audio_direct_access', ['track_id' => $track->id, 'destination' => $destination]);
+
+            abort(403, 'Cette piste s\'écoute uniquement depuis le lecteur de votre bibliothèque.');
+        }
 
         $listening = $sessions->current($user, $request);
         abort_unless($listening && $sessions->canStream($listening), 403, 'Relancez la lecture depuis votre bibliothèque.');
@@ -125,7 +131,11 @@ class AudioListeningController extends Controller
         if ($range) {
             [$start, $end] = $range;
 
-            abort_unless($streams->takeCredit($listening, $track, $end - $start + 1), 429, 'Lecture trop rapide : patientez quelques instants.');
+            if (! $streams->takeCredit($listening, $track, $end - $start + 1)) {
+                AuditLog::logThrottled((string) $listening->id, 600, $user->id, 'audio_stream_throttled', ['track_id' => $track->id]);
+
+                abort(429, 'Lecture trop rapide : patientez quelques instants.');
+            }
 
             // La réponse partielle ne couvre qu'un morceau : le lecteur demande la suite au fil de l'écoute.
             // Un fichier qui tient en un seul morceau, demandé sans plage, est envoyé normalement.

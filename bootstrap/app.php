@@ -6,9 +6,11 @@ use App\Http\Middleware\EnsureUserIsAdmin;
 use App\Http\Middleware\IgnoreArrayQueryParameters;
 use App\Http\Middleware\RedirectToHttps;
 use App\Http\Middleware\SecurityHeaders;
+use App\Models\AuditLog;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Http\Exceptions\ThrottleRequestsException;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Exceptions\InvalidSignatureException;
 
@@ -63,7 +65,14 @@ return Application::configure(basePath: dirname(__DIR__))
         // Lien de téléchargement expiré : le client doit comprendre quoi faire plutôt que voir une erreur brute
         $exceptions->render(function (InvalidSignatureException $exception, Request $request) {
             if ($request->routeIs('downloads.process')) {
+                AuditLog::logThrottled((string) $request->ip(), 600, $request->user()?->id, 'download_link_invalid');
+
                 return response()->view('pages.download-link-expired', status: 403);
             }
+        });
+
+        // Limite de débit atteinte (connexion, panier, téléchargements…) : noté une fois par adresse et par quart d'heure
+        $exceptions->render(function (ThrottleRequestsException $exception, Request $request) {
+            AuditLog::logThrottled((string) $request->ip(), 900, $request->user()?->id, 'rate_limited', ['path' => '/'.ltrim($request->path(), '/')]);
         });
     })->create();

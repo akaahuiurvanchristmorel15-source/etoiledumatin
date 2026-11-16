@@ -37,7 +37,7 @@ class TeamController extends Controller
             'name' => ['nullable', 'string', 'max:120'],
             'email' => ['required', 'string', 'email', 'max:150'],
             'role' => ['required', Rule::in($this->assignableRoles()->pluck('slug'))],
-            'password' => ['nullable', 'string', Password::defaults()],
+            'password' => ['nullable', 'string', 'max:255', Password::defaults()],
             'send_invite' => ['boolean'],
         ], [], ['name' => 'nom', 'email' => 'e-mail', 'role' => 'rôle', 'password' => 'mot de passe provisoire']);
 

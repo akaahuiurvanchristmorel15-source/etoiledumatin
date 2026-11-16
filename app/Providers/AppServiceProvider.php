@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Contracts\PaymentGatewayInterface;
+use App\Models\AuditLog;
 use App\Models\Book;
 use App\Models\Review;
 use App\Models\Setting;
@@ -92,9 +93,11 @@ class AppServiceProvider extends ServiceProvider
         // Le webhook Paystack en est exempté pour ne jamais perdre une confirmation de paiement.
         RateLimiter::for('global', fn (Request $request) => $request->is('paystack/webhook')
             ? Limit::none()
-            : Limit::perSecond(self::MAX_REQUESTS_PER_SECOND)->by($request->ip())->response(
-                fn (Request $request, array $headers) => response('Trop de requêtes : veuillez patienter quelques secondes avant de réessayer.', 429, $headers)
-            ));
+            : Limit::perSecond(self::MAX_REQUESTS_PER_SECOND)->by($request->ip())->response(function (Request $request, array $headers) {
+                AuditLog::logThrottled((string) $request->ip(), 900, null, 'rate_limited', ['path' => '/'.ltrim($request->path(), '/'), 'limit' => 'global']);
+
+                return response('Trop de requêtes : veuillez patienter quelques secondes avant de réessayer.', 429, $headers);
+            }));
 
         RateLimiter::for('login', fn (Request $request) => Limit::perMinute(30)->by($request->ip()));
         RateLimiter::for('register', fn (Request $request) => Limit::perHour(10)->by($request->ip()));
@@ -132,7 +135,7 @@ class AppServiceProvider extends ServiceProvider
             ->greeting('Bonjour')
             ->line('Vous avez demandé à réinitialiser le mot de passe de votre compte NSOROMMA.')
             ->action('Choisir un nouveau mot de passe', route('password.reset', ['token' => $token, 'email' => $notifiable->getEmailForPasswordReset()]))
-            ->line('Ce lien expire dans 60 minutes. Si vous n\'avez rien demandé, aucune action n\'est nécessaire.'));
+            ->line('Ce lien expire dans '.config('auth.passwords.users.expire').' minutes et ne sert qu\'une fois. Si vous n\'avez rien demandé, aucune action n\'est nécessaire.'));
     }
 
     /**

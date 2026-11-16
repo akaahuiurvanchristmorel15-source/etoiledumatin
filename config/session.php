@@ -47,7 +47,8 @@ return [
     |
     */
 
-    'encrypt' => env('SESSION_ENCRYPT', false),
+    // Chiffrées par défaut en production : une copie de la base ne révèle ni paniers, ni accès aux commandes, ni état de connexion
+    'encrypt' => env('SESSION_ENCRYPT', env('APP_ENV', 'production') === 'production'),
 
     /*
     |--------------------------------------------------------------------------
@@ -127,9 +128,12 @@ return [
     |
     */
 
+    // En production, le préfixe « __Host- » oblige le navigateur à n'accepter le cookie qu'en HTTPS, pour ce domaine exact
+    // (ni sous-domaine ni chemin restreint) : un sous-domaine compromis ne peut pas l'écraser.
     'cookie' => env(
         'SESSION_COOKIE',
-        Str::slug((string) env('APP_NAME', 'laravel')).'-session'
+        (env('APP_ENV', 'production') === 'production' && env('SESSION_DOMAIN') === null && env('SESSION_SECURE_COOKIE', true) ? '__Host-' : '')
+            .Str::slug((string) env('APP_NAME', 'laravel')).'-session'
     ),
 
     /*

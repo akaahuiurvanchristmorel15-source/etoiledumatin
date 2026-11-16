@@ -28,6 +28,13 @@ class AuthController extends Controller
     protected const MAX_ACCOUNT_LOGIN_ATTEMPTS = 20;
 
     /**
+     * Seuils plus stricts pour les comptes de l'équipe (administration).
+     */
+    protected const MAX_STAFF_LOGIN_ATTEMPTS = 3;
+
+    protected const MAX_STAFF_ACCOUNT_LOGIN_ATTEMPTS = 10;
+
+    /**
      * Fenêtre pendant laquelle les échecs sont comptés, en secondes.
      */
     protected const FAILED_LOGIN_WINDOW_SECONDS = 900;
@@ -175,16 +182,18 @@ class AuthController extends Controller
 
     /**
      * Compteurs d'échecs à surveiller, avec leur seuil : le couple e-mail + IP, puis le compte seul.
+     * Les comptes de l'équipe, qui ouvrent l'administration, se verrouillent plus vite.
      *
      * @return array<string, int>
      */
     protected function loginThrottleKeys(Request $request): array
     {
         $email = Str::lower((string) $request->input('email'));
+        $isStaffAccount = (bool) User::where('email', $email)->first()?->isStaff();
 
         return [
-            'login|'.$email.'|'.$request->ip() => self::MAX_LOGIN_ATTEMPTS,
-            'login-account|'.$email => self::MAX_ACCOUNT_LOGIN_ATTEMPTS,
+            'login|'.$email.'|'.$request->ip() => $isStaffAccount ? self::MAX_STAFF_LOGIN_ATTEMPTS : self::MAX_LOGIN_ATTEMPTS,
+            'login-account|'.$email => $isStaffAccount ? self::MAX_STAFF_ACCOUNT_LOGIN_ATTEMPTS : self::MAX_ACCOUNT_LOGIN_ATTEMPTS,
         ];
     }
 

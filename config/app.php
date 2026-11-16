@@ -39,7 +39,8 @@ return [
     |
     */
 
-    'debug' => (bool) env('APP_DEBUG', false),
+    // Jamais en production : la page d'erreur détaillée peut révéler la configuration, dont les clés d'API
+    'debug' => env('APP_ENV', 'production') !== 'production' && (bool) env('APP_DEBUG', false),
 
     /*
     |--------------------------------------------------------------------------

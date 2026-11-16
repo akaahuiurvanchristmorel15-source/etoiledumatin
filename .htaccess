@@ -1,0 +1,9 @@
+# Filet de sécurité si le dossier du projet était servi par erreur à la place de public/ :
+# le fichier .env (clés d'API, mot de passe de la base), les journaux et le code ne doivent jamais être téléchargeables.
+<FilesMatch "^\.|\.(env|log|sql|sqlite|lock|md|xml|yml|yaml)$|^(artisan|composer\.json|package\.json)$">
+    Require all denied
+</FilesMatch>
+
+<IfModule mod_alias.c>
+    RedirectMatch 404 ^/(app|bootstrap|config|database|resources|routes|storage|tests|vendor|node_modules)(/|$)
+</IfModule>

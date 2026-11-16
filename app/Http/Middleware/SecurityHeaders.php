@@ -28,6 +28,19 @@ class SecurityHeaders
         $response->headers->set('Referrer-Policy', 'strict-origin-when-cross-origin');
         $response->headers->set('Permissions-Policy', 'camera=(), microphone=(), geolocation=(), payment=(self)');
         $response->headers->set('Cross-Origin-Opener-Policy', 'same-origin-allow-popups');
+        // Les fichiers du site (PDF, audio, images) ne peuvent être chargés que par lui ou ses sous-domaines
+        $response->headers->set('Cross-Origin-Resource-Policy', 'same-site');
+        $response->headers->set('X-Permitted-Cross-Domain-Policies', 'none');
+        $response->headers->set('Origin-Agent-Cluster', '?1');
+
+        // Ne pas annoncer la version de PHP utilisée
+        $response->headers->remove('X-Powered-By');
+        header_remove('X-Powered-By');
+
+        // Pages personnelles (compte, commandes, administration) : jamais conservées par le navigateur ni par un proxy
+        if ($request->user() && str_contains((string) $response->headers->get('Content-Type'), 'text/html')) {
+            $response->headers->set('Cache-Control', 'no-store, private');
+        }
 
         // Pages HTML seulement : une CSP sur un PDF bloquerait la visionneuse intégrée du navigateur
         if (str_contains((string) $response->headers->get('Content-Type'), 'text/html')) {

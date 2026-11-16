@@ -150,6 +150,7 @@ class CheckoutSecurityTest extends TestCase
         ])->assertStatus(400);
 
         $this->assertFalse($order->fresh()->isPaid());
+        $this->assertDatabaseHas('audit_logs', ['action' => 'paystack_webhook_rejected']);
     }
 
     public function test_webhook_does_not_complete_an_underpaid_order(): void

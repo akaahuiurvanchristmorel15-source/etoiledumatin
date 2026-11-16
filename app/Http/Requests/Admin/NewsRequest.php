@@ -31,13 +31,13 @@ class NewsRequest extends FormRequest
             'title' => ['required', 'string', 'max:255'],
             'type' => ['required', Rule::enum(NewsType::class)],
             'excerpt' => ['required', 'string', 'max:500'],
-            'content' => ['required', 'string'],
+            'content' => ['required', 'string', 'max:60000'],
             'event_date' => ['nullable', 'date'],
             'location' => ['nullable', 'string', 'max:255'],
             'book_id' => ['nullable', 'exists:books,id'],
             'published_at' => ['nullable', 'date'],
             'is_published' => ['boolean'],
-            'cover_file' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'extensions:jpeg,png,jpg,webp', 'max:4096', new NoEmbeddedCode],
+            'cover_file' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'extensions:jpeg,png,jpg,webp', 'max:4096', 'dimensions:max_width=6000,max_height=6000', new NoEmbeddedCode],
             'remove_cover' => ['nullable', 'boolean'],
         ];
     }
